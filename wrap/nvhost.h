@@ -139,8 +139,6 @@ struct nvmap_cache_op {
 #define NVMAP_IOCTL_CACHE _IOW(NVMAP_IOCTL_MAGIC, 12, struct nvmap_cache_op)
 #define NVMAP_IOCTL_GET_ID _IOWR(NVMAP_IOCTL_MAGIC, 13, struct nvmap_create_handle)
 
-struct file *nvhost_ctrl_file_new(const char *path, int fd);
-struct file *nvhost_file_new(const char *path, int fd);
-struct file *nvmap_file_new(const char *path, int fd);
+void nvhost_register(void);
 
 #endif

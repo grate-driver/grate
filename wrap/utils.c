@@ -80,14 +80,16 @@ struct file *file_open(const char *path, int fd)
 		if (strcmp(entry->path, path) == 0) {
 			file = entry->open(path, fd);
 			if (!file) {
-				fprintf(stderr, "failed to open `%s'\n", path);
+				fprintf(stderr, "failed to wrap `%s'\n", path);
 				return NULL;
 			}
 
 			list_add_tail(&file->list, &files);
+			return file;
 		}
 	}
 
+	fprintf(stderr, "no wrapper for file `%s'\n", path);
 	return NULL;
 }
 

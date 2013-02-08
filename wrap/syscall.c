@@ -36,7 +36,13 @@ static void *dlsym_helper(const char *name)
 int open(const char *pathname, int flags, ...)
 {
 	static typeof(open) *orig = NULL;
+	static bool initialized = false;
 	int ret;
+
+	if (!initialized) {
+		nvhost_register();
+		initialized = true;
+	}
 
 	printf("%s(pathname=%s, flags=%x)\n", __func__, pathname, flags);
 
@@ -56,13 +62,8 @@ int open(const char *pathname, int flags, ...)
 		ret = orig(pathname, flags);
 	}
 
-	if (ret >= 0) {
-		struct file *file;
-
-		file = file_open(pathname, ret);
-		if (!file)
-			fprintf(stderr, "failed to open `%s'\n", pathname);
-	}
+	if (ret >= 0)
+		file_open(pathname, ret);
 
 	printf("%s() = %d\n", __func__, ret);
 	return ret;
