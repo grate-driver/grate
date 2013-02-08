@@ -10,7 +10,8 @@ CFLAGS = -O2 -g -Wall -Werror $(EXTRA_CFLAGS)
 LDFLAGS = $(EXTRA_LDFLAGS)
 
 LIBRARIES = wrap/libwrap.so
-PROGRAMS = tests/3d/egl-triangle tests/3d/egl-clear tests/3d/egl-x11-clear
+PROGRAMS  = tests/3d/egl-triangle tests/3d/egl-x11-triangle
+PROGRAMS += tests/3d/egl-clear tests/3d/egl-x11-clear
 
 all: $(LIBRARIES) $(PROGRAMS)
 
@@ -20,6 +21,9 @@ wrap/libwrap.so_LIBS = -ldl
 
 tests/3d/egl-triangle_SOURCES = tests/3d/egl-triangle.c
 tests/3d/egl-triangle_LIBS = -lEGL -lGLESv2
+
+tests/3d/egl-x11-triangle_SOURCES = tests/3d/egl-x11-triangle.c
+tests/3d/egl-x11-triangle_LIBS = -lX11 -lEGL -lGLESv2
 
 tests/3d/egl-clear_SOURCES = tests/3d/egl-clear.c
 tests/3d/egl-clear_LIBS = -lEGL -lGLESv2
