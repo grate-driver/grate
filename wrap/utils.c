@@ -11,7 +11,7 @@ void print_hexdump(FILE *fp, int prefix_type, const char *prefix,
 		   bool ascii)
 {
 	const unsigned char *ptr = buffer;
-	size_t i, j;
+	unsigned int i, j;
 
 	for (j = 0; j < size; j += columns) {
 		const char *space = "";

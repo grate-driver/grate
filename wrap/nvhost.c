@@ -115,7 +115,7 @@ static void nvmap_file_enter_ioctl_mmap(struct nvmap_file *nvmap,
 		return;
 	}
 
-	handle->mapped = (void *)args->addr;
+	handle->mapped = (void *)(uintptr_t)args->addr;
 }
 
 static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
@@ -141,7 +141,7 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 	}
 
 	dest = handle->buffer + op->offset;
-	src = (void *)op->addr;
+	src = (void *)(uintptr_t)op->addr;
 
 	for (i = 0; i < op->count; i++) {
 		print_hexdump(stdout, DUMP_PREFIX_NONE, "  ", src,
@@ -264,14 +264,16 @@ static void nvmap_file_leave_ioctl_pin(struct nvmap_file *nvmap,
 static void nvmap_file_leave_ioctl_cache(struct nvmap_file *nvmap,
 					 struct nvmap_cache_op *args)
 {
+	void *virt = (void *)(uintptr_t)args->addr;
+
 	printf("  Maintenance complete:\n");
 	printf("    address: %x\n", args->addr);
 	printf("    handle: %x\n", args->handle);
 	printf("    length: %u\n", args->length);
 	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 
-	print_hexdump(stdout, DUMP_PREFIX_ADDRESS, "    ", (void *)args->addr,
-		      args->length, 16, true);
+	print_hexdump(stdout, DUMP_PREFIX_ADDRESS, "    ", virt, args->length,
+		      16, true);
 }
 
 static int nvmap_file_leave_ioctl(struct file *file, unsigned long request,
