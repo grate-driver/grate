@@ -57,21 +57,11 @@ int open(const char *pathname, int flags, ...)
 	}
 
 	if (ret >= 0) {
-		struct file *file = NULL;
+		struct file *file;
 
-		if (strcmp(pathname, "/dev/nvhost-ctrl") == 0)
-			file = nvhost_ctrl_file_new(pathname, ret);
-
-		if (strcmp(pathname, "/dev/nvmap") == 0)
-			file = nvmap_file_new(pathname, ret);
-
-		if (strcmp(pathname, "/dev/nvhost-gr2d") == 0)
-			file = nvhost_file_new(pathname, ret);
-
-		if (strcmp(pathname, "/dev/nvhost-gr3d") == 0)
-			file = nvhost_file_new(pathname, ret);
-
-		file_add(file);
+		file = file_open(pathname, ret);
+		if (!file)
+			fprintf(stderr, "failed to open `%s'\n", pathname);
 	}
 
 	printf("%s() = %d\n", __func__, ret);
@@ -89,7 +79,6 @@ int close(int fd)
 	printf("%s(fd=%d)\n", __func__, fd);
 
 	ret = orig(fd);
-	printf("closing file %d\n", fd);
 	file_close(fd);
 
 	printf("%s() = %d\n", __func__, ret);

@@ -47,10 +47,16 @@ struct file_ops {
 	void (*release)(struct file *file);
 };
 
-void file_add(struct file *file);
+struct file *file_open(const char *path, int fd);
 struct file *file_lookup(int fd);
 struct file *file_find(const char *path);
-void file_put(struct file *file);
 void file_close(int fd);
+
+struct file_table {
+	const char *path;
+	struct file *(*open)(const char *path, int fd);
+};
+
+void file_table_register(const struct file_table *table, unsigned int count);
 
 #endif

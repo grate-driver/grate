@@ -721,3 +721,15 @@ struct file *nvhost_file_new(const char *path, int fd)
 
 	return &nvhost->file;
 }
+
+static const struct file_table nvhost_files[] = {
+	{ "/dev/nvmap", nvmap_file_new },
+	{ "/dev/nvhost-ctrl", nvhost_ctrl_file_new },
+	{ "/dev/nvhost-gr2d", nvhost_file_new },
+	{ "/dev/nvhost-gr3d", nvhost_file_new },
+};
+
+static void __attribute__((constructor)) nvhost_register(void)
+{
+	file_table_register(nvhost_files, ARRAY_SIZE(nvhost_files));
+}

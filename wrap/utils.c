@@ -4,6 +4,15 @@
 
 #include "utils.h"
 
+struct file_table_entry {
+	const char *path;
+
+	struct file *(*open)(const char *path, int fd);
+
+	struct list_head list;
+};
+
+static LIST_HEAD(file_table);
 static LIST_HEAD(files);
 
 void print_hexdump(FILE *fp, int prefix_type, const char *prefix,
@@ -56,10 +65,30 @@ void print_hexdump(FILE *fp, int prefix_type, const char *prefix,
 	}
 }
 
-void file_add(struct file *file)
+static void file_put(struct file *file)
 {
-	if (file)
-		list_add_tail(&file->list, &files);
+	if (file && file->ops && file->ops->release)
+		file->ops->release(file);
+}
+
+struct file *file_open(const char *path, int fd)
+{
+	struct file_table_entry *entry;
+	struct file *file;
+
+	list_for_each_entry(entry, &file_table, list) {
+		if (strcmp(entry->path, path) == 0) {
+			file = entry->open(path, fd);
+			if (!file) {
+				fprintf(stderr, "failed to open `%s'\n", path);
+				return NULL;
+			}
+
+			list_add_tail(&file->list, &files);
+		}
+	}
+
+	return NULL;
 }
 
 struct file *file_lookup(int fd)
@@ -84,17 +113,9 @@ struct file *file_find(const char *path)
 	return NULL;
 }
 
-void file_put(struct file *file)
-{
-	if (file && file->ops && file->ops->release)
-		file->ops->release(file);
-}
-
 void file_close(int fd)
 {
 	struct file *file;
-
-	printf("> %s(fd=%d)\n", __func__, fd);
 
 	list_for_each_entry(file, &files, list) {
 		if (file->fd == fd) {
@@ -104,6 +125,25 @@ void file_close(int fd)
 			break;
 		}
 	}
+}
 
-	printf("< %s()\n", __func__);
+void file_table_register(const struct file_table *table, unsigned int count)
+{
+	unsigned int i;
+
+	for (i = 0; i < count; i++) {
+		struct file_table_entry *entry;
+
+		entry = calloc(1, sizeof(*entry));
+		if (!entry) {
+			fprintf(stderr, "out of memory\n");
+			return;
+		}
+
+		INIT_LIST_HEAD(&entry->list);
+		entry->path = table[i].path;
+		entry->open = table[i].open;
+
+		list_add_tail(&entry->list, &file_table);
+	}
 }
