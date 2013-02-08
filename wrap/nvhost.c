@@ -308,8 +308,10 @@ static int nvmap_file_leave_ioctl(struct file *file, unsigned long request,
 
 static void nvmap_file_release(struct file *file)
 {
+	struct nvmap_file *nvmap = to_nvmap_file(file);
+
 	free(file->path);
-	free(file);
+	free(nvmap);
 }
 
 static const struct file_ops nvmap_file_ops = {
@@ -351,10 +353,17 @@ struct nvhost_ctrl_file {
 	struct file file;
 };
 
+static inline struct nvhost_ctrl_file *to_nvhost_ctrl_file(struct file *file)
+{
+	return container_of(file, struct nvhost_ctrl_file, file);
+}
+
 static void nvhost_ctrl_file_release(struct file *file)
 {
+	struct nvhost_ctrl_file *nvhost = to_nvhost_ctrl_file(file);
+
 	free(file->path);
-	free(file);
+	free(nvhost);
 }
 
 static const struct file_ops nvhost_ctrl_file_ops = {
@@ -680,8 +689,10 @@ static ssize_t nvhost_file_write(struct file *file, const void *buffer,
 
 static void nvhost_file_release(struct file *file)
 {
+	struct nvhost_file *nvhost = to_nvhost_file(file);
+
 	free(file->path);
-	free(file);
+	free(nvhost);
 }
 
 static const struct file_ops nvhost_file_ops = {
