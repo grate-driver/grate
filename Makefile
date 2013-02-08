@@ -12,6 +12,7 @@ LDFLAGS = $(EXTRA_LDFLAGS)
 LIBRARIES = wrap/libwrap.so
 PROGRAMS  = tests/3d/egl-triangle tests/3d/egl-x11-triangle
 PROGRAMS += tests/3d/egl-clear tests/3d/egl-x11-clear
+PROGRAMS += tests/3d/gles-clear
 
 all: $(LIBRARIES) $(PROGRAMS)
 
@@ -30,6 +31,9 @@ tests/3d/egl-clear_LIBS = -lEGL -lGLESv2
 
 tests/3d/egl-x11-clear_SOURCES = tests/3d/egl-x11-clear.c
 tests/3d/egl-x11-clear_LIBS = -lX11 -lEGL -lGLESv2
+
+tests/3d/gles-clear_SOURCES = tests/3d/gles-clear.c tests/3d/common.c
+tests/3d/gles-clear_LIBS = -lX11 -lEGL -lGLESv2
 
 define libraries_rule
 $(library)_OBJECTS = $$($(library)_SOURCES:.c=.o)
