@@ -392,13 +392,250 @@ struct file *nvhost_ctrl_file_new(const char *path, int fd)
 struct nvhost_file {
 	struct file file;
 
-	struct nvhost_submit_hdr_ext submit;
-	unsigned int num_reloc_shifts;
+	struct nvhost_job *job;
 };
 
 static inline struct nvhost_file *to_nvhost_file(struct file *file)
 {
 	return container_of(file, struct nvhost_file, file);
+}
+
+enum nvhost_opcode {
+	NVHOST_OPCODE_SETCL,
+	NVHOST_OPCODE_INCR,
+	NVHOST_OPCODE_NONINCR,
+	NVHOST_OPCODE_MASK,
+	NVHOST_OPCODE_IMM,
+	NVHOST_OPCODE_RESTART,
+	NVHOST_OPCODE_GATHER,
+	NVHOST_OPCODE_EXTEND = 14,
+	NVHOST_OPCODE_CHDONE = 15,
+};
+
+#if 0
+static const char *nvhost_opcode_names[] = {
+	"NVHOST_OPCODE_SETCL",
+	"NVHOST_OPCODE_INCR",
+	"NVHOST_OPCODE_NONINCR",
+	"NVHOST_OPCODE_MASK",
+	"NVHOST_OPCODE_IMM",
+	"NVHOST_OPCODE_RESTART",
+	"NVHOST_OPCODE_GATHER",
+	"NVHOST_OPCODE_UNKNOWN_7",
+	"NVHOST_OPCODE_UNKNOWN_8",
+	"NVHOST_OPCODE_UNKNOWN_9",
+	"NVHOST_OPCODE_UNKNOWN_10",
+	"NVHOST_OPCODE_UNKNOWN_11",
+	"NVHOST_OPCODE_UNKNOWN_12",
+	"NVHOST_OPCODE_UNKNOWN_13",
+	"NVHOST_OPCODE_EXTEND",
+	"NVHOST_OPCODE_CHDONE",
+};
+#endif
+
+#define BIT(x) (1 << (x))
+
+struct nvhost_stream {
+	unsigned int num_words;
+	unsigned int position;
+	uint32_t *words;
+};
+
+static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
+{
+	return (stream->words[stream->position] >> 28) & 0xf;
+}
+
+static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, classid;
+	unsigned int i;
+	uint8_t mask;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	classid = (stream->words[stream->position] >> 6) & 0x3ff;
+	mask =stream->words[stream->position] & 0x3f;
+
+	printf("      NVHOST_OPCODE_SETCL: offset:%x classid:%x mask:%x\n",
+	       offset, classid, mask);
+
+	for (i = 0; i < 6; i++) {
+		if (mask & BIT(i)) {
+			uint32_t value = stream->words[++stream->position];
+			printf("        %08x: %08x\n", offset + i, value);
+		}
+	}
+
+	stream->position++;
+}
+
+static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, count, i;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	count = stream->words[stream->position] & 0xffff;
+
+	printf("      NVHOST_OPCODE_INCR: offset:%x count:%x\n", offset, count);
+
+	for (i = 0; i < count; i++)
+		printf("        %08x\n", stream->words[++stream->position]);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, count, i;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	count = stream->words[stream->position] & 0xffff;
+
+	printf("      NVHOST_OPCODE_NONINCR: offset:%x count:%x\n", offset,
+	       count);
+
+	for (i = 0; i < count; i++)
+		printf("        %08x\n", stream->words[++stream->position]);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, mask, i;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	mask = stream->words[stream->position] & 0xffff;
+
+	printf("      NVHOST_OPCODE_MASK: offset:%x mask:%x\n", offset, mask);
+
+	for (i = 0; i < 16; i++)
+		if (mask & BIT(i))
+			printf("        %08x: %08x\n", offset + i,
+			       stream->words[++stream->position]);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, value;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	value = stream->words[stream->position] & 0xffff;
+
+	printf("      NVHOST_OPCODE_IMM: offset:%x value:%x\n", offset, value);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
+{
+	uint32_t offset;
+
+	offset = (stream->words[stream->position] & 0x0fffffff) << 4;
+
+	printf("      NVHOST_OPCODE_RESTART: offset:%x\n", offset);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_gather_dump(struct nvhost_stream *stream)
+{
+	uint16_t offset, count;
+	const char *insert;
+
+	offset = (stream->words[stream->position] >> 16) & 0xfff;
+	count = stream->words[stream->position] & 0x3fff;
+
+	if (stream->words[stream->position] & BIT(15)) {
+		if (stream->words[stream->position] & BIT(14))
+			insert = "INCR ";
+		else
+			insert = "NONINCR ";
+	} else {
+		insert = "";
+	}
+
+	printf("      NVHOST_OPCODE_GATHER: offset:%x %scount:%x base:%x\n",
+	       offset, insert, count, stream->words[++stream->position]);
+	stream->position++;
+}
+
+static void nvhost_opcode_extend_dump(struct nvhost_stream *stream)
+{
+	uint16_t subop;
+	uint32_t value;
+
+	subop = (stream->words[stream->position] >> 24) & 0xf;
+	value = stream->words[stream->position] & 0xffffff;
+
+	printf("      NVHOST_OPCODE_EXTEND: subop:%x value:%x\n", subop, value);
+
+	stream->position++;
+}
+
+static void nvhost_opcode_chdone_dump(struct nvhost_stream *stream)
+{
+	printf("      NVHOST_OPCODE_CHDONE\n");
+	stream->position++;
+}
+
+static void dump_commands(uint32_t *commands, unsigned int count)
+{
+	struct nvhost_stream stream = {
+		.words = commands,
+		.num_words = count,
+		.position = 0,
+	};
+
+	printf("    commands: %u\n", count);
+
+	while (stream.position < stream.num_words) {
+		enum nvhost_opcode opcode = nvhost_stream_get_opcode(&stream);
+
+		switch (opcode) {
+		case NVHOST_OPCODE_SETCL:
+			nvhost_opcode_setcl_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_INCR:
+			nvhost_opcode_incr_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_NONINCR:
+			nvhost_opcode_nonincr_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_MASK:
+			nvhost_opcode_mask_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_IMM:
+			nvhost_opcode_imm_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_RESTART:
+			nvhost_opcode_restart_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_GATHER:
+			nvhost_opcode_gather_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_EXTEND:
+			nvhost_opcode_extend_dump(&stream);
+			break;
+
+		case NVHOST_OPCODE_CHDONE:
+			nvhost_opcode_chdone_dump(&stream);
+			break;
+
+		default:
+			printf("\n");
+			break;
+		}
+	}
 }
 
 struct nvhost_cmdbuf {
@@ -425,6 +662,202 @@ struct nvhost_wait_check {
 	uint32_t thresh;
 };
 
+struct nvhost_pushbuf {
+	unsigned int num_words;
+	unsigned int position;
+	uint32_t *words;
+};
+
+static void nvhost_pushbuf_push(struct nvhost_pushbuf *pushbuf, uint32_t *words,
+				unsigned int count)
+{
+	if (pushbuf->words) {
+		fprintf(stderr, "WARNING: push buffer already filled\n");
+		return;
+	}
+
+	pushbuf->num_words = count;
+
+	pushbuf->words = calloc(count, sizeof(uint32_t));
+	if (!pushbuf->words) {
+		fprintf(stderr, "WARNING: cannot allocate push buffer\n");
+		return;
+	}
+
+	memcpy(pushbuf->words, words, count * sizeof(uint32_t));
+}
+
+struct nvhost_job {
+	struct nvhost_submit_hdr_ext submit;
+
+	struct nvhost_pushbuf *pushbufs;
+	unsigned int num_pushbufs;
+
+	struct nvhost_reloc *relocs;
+	unsigned int num_relocs;
+
+	struct nvhost_wait_check *wait_checks;
+	unsigned long wait_check_mask;
+	unsigned int num_wait_checks;
+
+	struct nvhost_reloc_shift *shifts;
+	unsigned int num_shifts;
+};
+
+struct nvhost_job *nvhost_job_new(struct nvhost_submit_hdr_ext *submit)
+{
+	struct nvhost_job *job;
+
+	job = calloc(1, sizeof(*job));
+	if (!job)
+		return NULL;
+
+	memcpy(&job->submit, submit, sizeof(*submit));
+	job->num_pushbufs = submit->num_cmdbufs;
+
+	job->pushbufs = calloc(job->num_pushbufs, sizeof(struct nvhost_pushbuf));
+	if (!job->pushbufs) {
+		free(job);
+		return NULL;
+	}
+
+	job->num_relocs = submit->num_relocs;
+
+	job->relocs = calloc(job->num_relocs, sizeof(struct nvhost_reloc));
+	if (!job->relocs) {
+		free(job->pushbufs);
+		free(job);
+		return NULL;
+	}
+
+	job->num_wait_checks = submit->num_waitchks;
+	job->wait_check_mask = submit->waitchk_mask;
+
+	job->wait_checks = calloc(job->num_wait_checks, sizeof(struct nvhost_wait_check));
+	if (!job->wait_checks) {
+		free(job->relocs);
+		free(job->pushbufs);
+		free(job);
+		return NULL;
+	}
+
+	if (submit->submit_version >= 2) {
+		job->num_shifts = submit->num_relocs;
+
+		job->shifts = calloc(job->num_shifts, sizeof(struct nvhost_reloc_shift));
+		if (!job->shifts) {
+			free(job->wait_checks);
+			free(job->relocs);
+			free(job->pushbufs);
+			free(job);
+			return NULL;
+		}
+	}
+
+	return job;
+}
+
+static void nvhost_job_free(struct nvhost_job *job)
+{
+	free(job->shifts);
+	free(job->wait_checks);
+	free(job->relocs);
+	free(job->pushbufs);
+	free(job);
+}
+
+static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
+				   const struct nvhost_cmdbuf *cmdbuf)
+{
+	struct file *file = file_find("/dev/nvmap");
+	struct nvmap_file *nvmap = to_nvmap_file(file);
+	struct nvmap_handle *handle;
+
+	printf("  Command Buffer:\n");
+	printf("    mem: %x, offset: %x, words: %u\n", cmdbuf->mem,
+	       cmdbuf->offset, cmdbuf->words);
+
+	if (file) {
+		handle = nvmap_file_lookup_handle(nvmap, cmdbuf->mem);
+		if (handle) {
+			uint32_t *commands = handle->mapped + cmdbuf->offset;
+			struct nvhost_pushbuf *pushbuf = &job->pushbufs[index];
+
+			if (!handle->mapped)
+				commands = handle->buffer + cmdbuf->offset;
+
+			nvhost_pushbuf_push(pushbuf, commands, cmdbuf->words);
+			dump_commands(commands, cmdbuf->words);
+		}
+	} else {
+		fprintf(stderr, "nvmap not found!\n");
+		exit(1);
+	}
+}
+
+static void nvhost_job_add_reloc(struct nvhost_job *job, unsigned int index,
+				 const struct nvhost_reloc *reloc)
+{
+	printf("  Relocation:\n");
+	printf("    command buffer:\n");
+	printf("      %x, offset: %x\n", reloc->cmdbuf_mem,
+	       reloc->cmdbuf_offset);
+	printf("    target:\n");
+	printf("      %x, offset: %x\n", reloc->target_mem,
+	       reloc->target_offset);
+
+	memcpy(&job->relocs[index], reloc, sizeof(*reloc));
+}
+
+static void nvhost_job_add_wait_check(struct nvhost_job *job, unsigned int index,
+				      const struct nvhost_wait_check *check)
+{
+	printf("  Wait Check:\n");
+	printf("    mem: %x, offset: %x\n", check->mem,
+	       check->offset);
+	printf("    syncpt: %x, threshold: %x\n",
+	       check->syncpt, check->thresh);
+}
+
+static void nvhost_job_add_shift(struct nvhost_job *job, unsigned int index,
+				 const struct nvhost_reloc_shift *shift)
+{
+	printf("  Relocation Shift:\n");
+	printf("    %x\n", shift->shift);
+}
+
+static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
+						  struct nvhost_get_param_args *args)
+{
+	struct nvhost_file *nvhost = to_nvhost_file(file);
+	struct nvhost_job *job = nvhost->job;
+	unsigned int i;
+
+	printf("  Flushing channel:\n");
+
+	for (i = 0; i < job->num_relocs; i++) {
+		struct nvhost_reloc *reloc = &job->relocs[i];
+		struct file *file = file_find("/dev/nvmap");
+		struct nvmap_handle *cmdbuf, *target;
+		struct nvmap_file *nvmap;
+
+		nvmap = to_nvmap_file(file);
+
+		cmdbuf = nvmap_file_lookup_handle(nvmap, reloc->cmdbuf_mem);
+		target = nvmap_file_lookup_handle(nvmap, reloc->target_mem);
+
+		printf("    relocating: %x, offset:%x -> %x, offset:%x\n",
+		       reloc->cmdbuf_mem, reloc->cmdbuf_offset,
+		       reloc->target_mem, reloc->target_offset);
+
+		if (cmdbuf)
+			printf("      cmdbuf: id:%lx, size:%zu\n", cmdbuf->id, cmdbuf->size);
+
+		if (target)
+			printf("      target: id:%lx, size:%zu\n", target->id, target->size);
+	}
+}
+
 static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
 						   struct nvhost_submit_hdr_ext *submit)
 {
@@ -439,18 +872,22 @@ static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
 	printf("    wait checks: %u\n", submit->num_waitchks);
 	printf("    wait check mask: %x\n", submit->waitchk_mask);
 
-	if (submit->submit_version >= 2)
-		nvhost->num_reloc_shifts = submit->num_relocs;
+	if (nvhost->job)
+		nvhost_job_free(nvhost->job);
 
-	memcpy(&nvhost->submit, submit, sizeof(*submit));
-
-	printf("  relocation shifts: %u\n", nvhost->num_reloc_shifts);
+	nvhost->job = nvhost_job_new(submit);
+	if (!nvhost->job)
+		fprintf(stderr, "failed to create new job\n");
 }
 
 static int nvhost_file_enter_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
 	switch (request) {
+	case NVHOST_IOCTL_CHANNEL_FLUSH:
+		nvhost_file_enter_ioctl_channel_flush(file, arg);
+		break;
+
 	case NVHOST_IOCTL_CHANNEL_SUBMIT_EXT:
 		nvhost_file_enter_ioctl_channel_submit(file, arg);
 		break;
@@ -462,224 +899,64 @@ static int nvhost_file_enter_ioctl(struct file *file, unsigned long request,
 	return 0;
 }
 
+static void nvhost_file_leave_ioctl_channel_flush(struct file *file,
+						  struct nvhost_get_param_args *args)
+{
+	printf("  Channel flushed\n");
+	printf("    Fence: %x\n", args->value);
+}
+
 static int nvhost_file_leave_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
-	return 0;
-}
-
-enum nvhost_opcode {
-	NVHOST_OPCODE_SETCL,
-	NVHOST_OPCODE_INCR,
-	NVHOST_OPCODE_NONINCR,
-	NVHOST_OPCODE_MASK,
-	NVHOST_OPCODE_IMM,
-	NVHOST_OPCODE_RESTART,
-	NVHOST_OPCODE_GATHER,
-	NVHOST_OPCODE_EXTEND = 14,
-	NVHOST_OPCODE_CHDONE = 15,
-};
-
-static const char *nvhost_opcode_names[] = {
-	"NVHOST_OPCODE_SETCL",
-	"NVHOST_OPCODE_INCR",
-	"NVHOST_OPCODE_NONINCR",
-	"NVHOST_OPCODE_MASK",
-	"NVHOST_OPCODE_IMM",
-	"NVHOST_OPCODE_RESTART",
-	"NVHOST_OPCODE_GATHER",
-	"NVHOST_OPCODE_UNKNOWN_7",
-	"NVHOST_OPCODE_UNKNOWN_8",
-	"NVHOST_OPCODE_UNKNOWN_9",
-	"NVHOST_OPCODE_UNKNOWN_10",
-	"NVHOST_OPCODE_UNKNOWN_11",
-	"NVHOST_OPCODE_UNKNOWN_12",
-	"NVHOST_OPCODE_UNKNOWN_13",
-	"NVHOST_OPCODE_EXTEND",
-	"NVHOST_OPCODE_CHDONE",
-};
-
-#define BIT(x) (1 << (x))
-
-static void dump_commands(uint32_t *commands, unsigned int count)
-{
-	unsigned int i, j;
-
-	printf("    commands: %u\n", count);
-
-	for (i = 0; i < count; i++) {
-		enum nvhost_opcode opcode = (commands[i] >> 28) & 0xf;
-		uint16_t classid, mask, subop;
-		uint32_t offset, value;
-		const char *insert;
-
-		printf("      %08x\n", commands[i]);
-		printf("        %x (%s)", opcode, nvhost_opcode_names[opcode]);
-
-		switch (opcode) {
-		case NVHOST_OPCODE_SETCL:
-			offset = (commands[i] >> 16) & 0xfff;
-			classid = (commands[i] >> 6) & 0x3ff;
-			mask = commands[i] & 0x3f;
-
-			printf(" offset:%x classid:%x mask:%x\n", offset,
-			       classid, mask);
-
-			for (j = 0; j < 6; j++) {
-				if (mask & BIT(j)) {
-					printf("          %08x: %08x\n",
-					       offset + j, commands[++i]);
-				}
-			}
-
-			break;
-
-		case NVHOST_OPCODE_INCR:
-			offset = (commands[i] >> 16) & 0xfff;
-			value = commands[i] & 0xffff;
-
-			printf(" offset:%x count:%x\n", offset, value);
-
-			for (j = 0; j < value; j++) {
-				printf("          %08x\n", commands[++i]);
-			}
-
-			break;
-
-		case NVHOST_OPCODE_NONINCR:
-			offset = (commands[i] >> 16) & 0xfff;
-			value = commands[i] & 0xffff;
-
-			printf(" offset:%x count:%x\n", offset, value);
-
-			for (j = 0; j < value; j++) {
-				printf("          %08x\n", commands[++i]);
-			}
-
-			break;
-
-		case NVHOST_OPCODE_MASK:
-			offset = (commands[i] >> 16) & 0xfff;
-			mask = commands[i] & 0xffff;
-
-			printf(" offset:%x mask:%x\n", offset, mask);
-
-			for (j = 0; j < 16; j++) {
-				if (mask & BIT(j))
-					printf("          %08x: %08x\n",
-					       offset + j, commands[++i]);
-			}
-
-			break;
-
-		case NVHOST_OPCODE_IMM:
-			offset = (commands[i] >> 16) & 0xfff;
-			value = commands[i] & 0xffff;
-
-			printf(" offset:%x value:%x\n", offset, value);
-			break;
-
-		case NVHOST_OPCODE_RESTART:
-			offset = (commands[i] & 0x0fffffff) << 4;
-			printf(" offset:%x\n", offset);
-			break;
-
-		case NVHOST_OPCODE_GATHER:
-			offset = (commands[i] >> 16) & 0xfff;
-			value = commands[i] & 0x3fff;
-
-			if (commands[i] & BIT(15)) {
-				if (commands[i] & BIT(14))
-					insert = "INCR ";
-				else
-					insert = "NONINCR ";
-			} else {
-				insert = "";
-			}
-
-			printf(" offset:%x %scount:%x base:%x\n", offset,
-			       insert, value, commands[++i]);
-			break;
-
-		case NVHOST_OPCODE_EXTEND:
-			subop = (commands[i] >> 24) & 0xf;
-			value = commands[i] & 0xffffff;
-
-			printf(" subop:%x value:%x\n", subop, value);
-			break;
-
-		default:
-			printf("\n");
-			break;
-		}
+	switch (request) {
+	case NVHOST_IOCTL_CHANNEL_FLUSH:
+		nvhost_file_leave_ioctl_channel_flush(file, arg);
+		break;
 	}
+
+	return 0;
 }
 
 static ssize_t nvhost_file_write(struct file *file, const void *buffer,
 				 size_t size)
 {
 	struct nvhost_file *nvhost = to_nvhost_file(file);
+	struct nvhost_job *job = nvhost->job;
 	size_t pos = 0;
 
 	while (pos < size) {
-		if (nvhost->submit.num_cmdbufs) {
+		if (job->submit.num_cmdbufs) {
+			unsigned int index = job->num_pushbufs - job->submit.num_cmdbufs;
 			const struct nvhost_cmdbuf *cmdbuf = buffer + pos;
 
-			printf("  Command Buffer:\n");
-			printf("    mem: %x, offset: %x, words: %u\n",
-			       cmdbuf->mem, cmdbuf->offset, cmdbuf->words);
+			nvhost_job_add_pushbuf(nvhost->job, index, cmdbuf);
 
-			if (1) {
-				struct file *file = file_find("/dev/nvmap");
-				struct nvmap_file *nvmap = to_nvmap_file(file);
-				struct nvmap_handle *handle;
-
-				if (nvmap) {
-					handle = nvmap_file_lookup_handle(nvmap, cmdbuf->mem);
-					if (handle) {
-						uint32_t *commands = handle->mapped + cmdbuf->offset;
-
-						if (!handle->mapped)
-							commands = handle->buffer + cmdbuf->offset;
-
-						dump_commands(commands, cmdbuf->words);
-					}
-				}
-			}
-
-			nvhost->submit.num_cmdbufs--;
+			job->submit.num_cmdbufs--;
 			pos += sizeof(*cmdbuf);
-		} else if (nvhost->submit.num_relocs) {
+		} else if (job->submit.num_relocs) {
+			unsigned int index = job->num_relocs - job->submit.num_relocs;
 			const struct nvhost_reloc *reloc = buffer + pos;
 
-			printf("  Relocation:\n");
-			printf("    command buffer:\n");
-			printf("      %x, offset: %x\n", reloc->cmdbuf_mem,
-			       reloc->cmdbuf_offset);
-			printf("    target:\n");
-			printf("      %x, offset: %x\n", reloc->target_mem,
-			       reloc->target_offset);
+			nvhost_job_add_reloc(job, index, reloc);
 
-			nvhost->submit.num_relocs--;
+			job->submit.num_relocs--;
 			pos += sizeof(*reloc);
-		} else if (nvhost->submit.num_waitchks) {
+		} else if (job->submit.num_waitchks) {
+			unsigned int index = job->num_wait_checks - job->submit.num_waitchks;
 			const struct nvhost_wait_check *check = buffer + pos;
 
-			printf("  Wait Check:\n");
-			printf("    mem: %x, offset: %x\n", check->mem,
-			       check->offset);
-			printf("    syncpt: %x, threshold: %x\n",
-			       check->syncpt, check->thresh);
+			nvhost_job_add_wait_check(job, index, check);
 
-			nvhost->submit.num_waitchks--;
+			job->submit.num_waitchks--;
 			pos += sizeof(*check);
-		} else if (nvhost->num_reloc_shifts) {
+		} else if (job->num_shifts) {
 			const struct nvhost_reloc_shift *shift = buffer + pos;
+			unsigned int index = 0;
 
-			printf("  Relocation Shift:\n");
-			printf("    %x\n", shift->shift);
+			nvhost_job_add_shift(job, index, shift);
 
-			nvhost->num_reloc_shifts--;
+			job->num_shifts--;
 			pos += sizeof(*shift);
 		}
 	}
