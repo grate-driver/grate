@@ -32,5 +32,6 @@ int main(int argc, char *argv[])
 	sleep(1);
 
 	window_close(window);
+
 	return 0;
 }
