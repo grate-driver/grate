@@ -4,9 +4,9 @@ libcommon_la_SOURCES = \
 	common.c \
 	common.h
 
-libcommon_la_LIBADD = $(PNG_LIBS)
+libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS)
 
-LDADD = $(X11_LIBS) $(GLES2_LIBS) libcommon.la
+LDADD = libcommon.la
 
 noinst_PROGRAMS = \
 	egl-clear \
