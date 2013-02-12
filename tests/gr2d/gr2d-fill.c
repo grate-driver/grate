@@ -301,12 +301,35 @@ void nvhost_ctrl_close(struct nvhost_ctrl *ctrl)
 	free(ctrl);
 }
 
+struct nvhost_cmdbuf {
+	uint32_t mem;
+	uint32_t offset;
+	uint32_t words;
+};
+
+struct nvhost_reloc {
+	uint32_t cmdbuf_mem;
+	uint32_t cmdbuf_offset;
+	uint32_t target_mem;
+	uint32_t target_offset;
+};
+
+struct nvhost_reloc_shift {
+	uint32_t shift;
+};
+
 struct nvhost_gr2d {
 	struct nvmap_handle *buffer;
 	struct nvmap_handle *fb;
 	struct nvhost_ctrl *ctrl;
 	struct nvmap *nvmap;
 	int fd;
+
+	struct nvhost_reloc relocs[4];
+	unsigned int num_relocs;
+
+	struct nvhost_reloc_shift shifts[4];
+	unsigned int num_shifts;
 };
 
 struct nvhost_gr2d *nvhost_gr2d_open(struct nvmap *nvmap, struct nvhost_ctrl *ctrl)
@@ -376,37 +399,18 @@ void nvhost_gr2d_close(struct nvhost_gr2d *gr2d)
 	free(gr2d);
 }
 
-struct nvhost_cmdbuf {
-	uint32_t mem;
-	uint32_t offset;
-	uint32_t words;
-};
-
-struct nvhost_reloc {
-	uint32_t cmdbuf_mem;
-	uint32_t cmdbuf_offset;
-	uint32_t target_mem;
-	uint32_t target_offset;
-};
-
-struct nvhost_reloc_shift {
-	uint32_t shift;
-};
-
 int nvhost_gr2d_submit(struct nvhost_gr2d *gr2d, uint32_t *fencep)
 {
 	struct nvhost_get_param_args fence;
 	struct nvhost_submit_hdr_ext args;
-	struct nvhost_reloc_shift shifts;
 	struct nvhost_cmdbuf cmdbuf;
-	struct nvhost_reloc relocs;
 	int err;
 
 	memset(&args, 0, sizeof(args));
 	args.syncpt_id = 18;
 	args.syncpt_incrs = 1;
 	args.num_cmdbufs = 1;
-	args.num_relocs = 1;
+	args.num_relocs = gr2d->num_relocs;
 	args.submit_version = 2;
 	args.num_waitchks = 0;
 	args.waitchk_mask = 0;
@@ -427,20 +431,11 @@ int nvhost_gr2d_submit(struct nvhost_gr2d *gr2d, uint32_t *fencep)
 	if (err < 0) {
 	}
 
-	memset(&relocs, 0, sizeof(relocs));
-	relocs.cmdbuf_mem = gr2d->buffer->id;
-	relocs.cmdbuf_offset = 0;
-	relocs.target_mem = gr2d->fb->id;
-	relocs.target_offset = 0;
-
-	err = write(gr2d->fd, &relocs, sizeof(relocs));
+	err = write(gr2d->fd, gr2d->relocs, sizeof(struct nvhost_reloc) * gr2d->num_relocs);
 	if (err < 0) {
 	}
 
-	memset(&shifts, 0, sizeof(shifts));
-	shifts.shift = 0;
-
-	err = write(gr2d->fd, &shifts, sizeof(shifts));
+	err = write(gr2d->fd, gr2d->shifts, sizeof(struct nvhost_reloc_shift) * gr2d->num_relocs);
 	if (err < 0) {
 	}
 
@@ -530,13 +525,16 @@ void nvhost_gr2d_fill(struct nvhost_gr2d *gr2d)
 	*ptr++ = 0x00000000;
 	*ptr++ = NVHOST_OPCODE_MASK(0x1e, 7);
 	*ptr++ = 0x00000000;
-	*ptr++ = 0x00010044;
+	//*ptr++ = 0x00010044; /* 16-bit depth */
+	*ptr++ = 0x00020044; /* 32-bit depth */
 	*ptr++ = 0x000000cc;
 	*ptr++ = NVHOST_OPCODE_MASK(0x2b, 9);
 	*ptr++ = 0xdeadbeef;
-	*ptr++ = 0x00000040;
+	//*ptr++ = 0x00000040; /* 64 byte stride */
+	*ptr++ = 0x00000080; /* 128 byte stride */
 	*ptr++ = NVHOST_OPCODE_NONINCR(0x35, 1);
-	*ptr++ = 0x0000f800;
+	//*ptr++ = 0x0000f800; /* 16-bit red */
+	*ptr++ = 0xff0000ff; /* 32-bit red */
 	*ptr++ = NVHOST_OPCODE_NONINCR(0x46, 1);
 	*ptr++ = 0x00100000;
 	*ptr++ = NVHOST_OPCODE_MASK(0x38, 5);
@@ -555,6 +553,14 @@ void nvhost_gr2d_fill(struct nvhost_gr2d *gr2d)
 						length);
 	if (err < 0) {
 	}
+
+	gr2d->relocs[0].cmdbuf_mem = gr2d->buffer->id;
+	gr2d->relocs[0].cmdbuf_offset = 0x2c;
+	gr2d->relocs[0].target_mem = gr2d->fb->id;
+	gr2d->relocs[0].target_offset = 0;
+	gr2d->shifts[0].shift = 0;
+
+	gr2d->num_relocs = 1;
 
 	err = nvhost_gr2d_submit(gr2d, &fence);
 	if (err < 0) {
@@ -586,7 +592,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	buffer = nvmap_handle_create(nvmap, width * height * 3);
+	buffer = nvmap_handle_create(nvmap, width * height * 4);
 	if (!buffer) {
 		return 1;
 	}
@@ -662,7 +668,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		png_set_IHDR(png, info, 32, 32, 8, PNG_COLOR_TYPE_RGB,
+		png_set_IHDR(png, info, 32, 32, 8, PNG_COLOR_TYPE_RGBA,
 			     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 			     PNG_FILTER_TYPE_BASE);
 		png_write_info(png, info);
@@ -672,7 +678,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
-		stride = 32 * (24 / 8);
+		stride = 32 * (32 / 8);
 
 		rows = malloc(32 * sizeof(png_bytep));
 		if (!rows) {
@@ -694,15 +700,6 @@ int main(int argc, char *argv[])
 		png_write_end(png, NULL);
 
 		fclose(fp);
-
-		/*
-		fp = fopen("test.raw", "wb");
-		if (fp) {
-			printf("writing %zu bytes from %p\n", buffer->size, buffer->ptr);
-			fwrite(buffer->ptr, 1, buffer->size, fp);
-			fclose(fp);
-		}
-		*/
 	}
 
 	nvhost_gr2d_close(gr2d);
