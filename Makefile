@@ -121,5 +121,8 @@ endef
 
 $(foreach program,$(PROGRAMS),$(eval $(programs_rule)))
 
+gr2d-test: gr2d-test.c
+	$(CC) $(CFLAGS) -o $@ $< -lpng
+
 clean:
 	rm -f $(CLEANFILES)
