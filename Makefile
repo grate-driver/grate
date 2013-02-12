@@ -128,5 +128,8 @@ $(foreach program,$(PROGRAMS),$(eval $(programs_rule)))
 gr2d-test: gr2d-test.c
 	$(CC) $(CFLAGS) -o $@ $< -lpng
 
+hex2float: hex2float.c
+	$(CC) $(CFLAGS) -o $@ $<
+
 clean:
 	rm -f $(CLEANFILES)
