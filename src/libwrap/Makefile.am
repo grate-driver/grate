@@ -7,3 +7,5 @@ libwrap_la_SOURCES = \
 	syscall.c \
 	utils.c \
 	utils.h
+
+libwrap_la_LIBADD = -ldl
