@@ -154,6 +154,14 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 	}
 }
 
+static void nvmap_file_enter_ioctl_param(struct nvmap_file *nvmap,
+					 struct nvmap_handle_param *args)
+{
+	printf("  Parameter:\n");
+	printf("    handle: %x\n", args->handle);
+	printf("    param: %x\n", args->param);
+}
+
 static void nvmap_file_enter_ioctl_pin(struct nvmap_file *nvmap,
 				       struct nvmap_pin_handle *args)
 {
@@ -199,6 +207,10 @@ static int nvmap_file_enter_ioctl(struct file *file, unsigned long request,
 
 	case NVMAP_IOCTL_WRITE:
 		nvmap_file_enter_ioctl_write(nvmap, arg);
+		break;
+
+	case NVMAP_IOCTL_PARAM:
+		nvmap_file_enter_ioctl_param(nvmap, arg);
 		break;
 
 	case NVMAP_IOCTL_PIN:
@@ -252,6 +264,13 @@ static void nvmap_file_leave_ioctl_mmap(struct nvmap_file *nvmap,
 	printf("    address: %x\n", args->addr);
 }
 
+static void nvmap_file_leave_ioctl_param(struct nvmap_file *nvmap,
+					 struct nvmap_handle_param *args)
+{
+	printf("  Parameter obtained:\n");
+	printf("    result: %u\n", args->result);
+}
+
 static void nvmap_file_leave_ioctl_pin(struct nvmap_file *nvmap,
 				       struct nvmap_pin_handle *args)
 {
@@ -272,7 +291,7 @@ static void nvmap_file_leave_ioctl_cache(struct nvmap_file *nvmap,
 	printf("    length: %u\n", args->length);
 	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 
-	print_hexdump(stdout, DUMP_PREFIX_ADDRESS, "    ", virt, args->length,
+	print_hexdump(stdout, DUMP_PREFIX_OFFSET, "    ", virt, args->length,
 		      16, true);
 }
 
@@ -292,6 +311,10 @@ static int nvmap_file_leave_ioctl(struct file *file, unsigned long request,
 
 	case NVMAP_IOCTL_MMAP:
 		nvmap_file_leave_ioctl_mmap(nvmap, arg);
+		break;
+
+	case NVMAP_IOCTL_PARAM:
+		nvmap_file_leave_ioctl_param(nvmap, arg);
 		break;
 
 	case NVMAP_IOCTL_PIN:
@@ -358,6 +381,69 @@ static inline struct nvhost_ctrl_file *to_nvhost_ctrl_file(struct file *file)
 	return container_of(file, struct nvhost_ctrl_file, file);
 }
 
+static void nvhost_ctrl_file_enter_ioctl_syncpt_read(struct file *file,
+						     struct nvhost_ctrl_syncpt_read_args *args)
+{
+	printf("  Reading sync point %u\n", args->id);
+	printf("    value: %u\n", args->value);
+}
+
+static void nvhost_ctrl_file_enter_ioctl_syncpt_waitex(struct file *file,
+						       struct nvhost_ctrl_syncpt_waitex_args *args)
+{
+	printf("  Waiting for sync point %u to reach %u, timeout %u\n",
+	       args->id, args->thresh, args->timeout);
+	printf("    value: %u\n", args->value);
+}
+
+static int nvhost_ctrl_file_enter_ioctl(struct file *file,
+					unsigned long request, void *arg)
+{
+	switch (request) {
+	case NVHOST_IOCTL_CTRL_SYNCPT_READ:
+		nvhost_ctrl_file_enter_ioctl_syncpt_read(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CTRL_SYNCPT_WAITEX:
+		nvhost_ctrl_file_enter_ioctl_syncpt_waitex(file, arg);
+		break;
+	}
+
+	return 0;
+}
+
+static void nvhost_ctrl_file_leave_ioctl_syncpt_read(struct file *file,
+						     struct nvhost_ctrl_syncpt_read_args *args)
+{
+	printf("  ID: %u\n", args->id);
+	printf("  Value: %u\n", args->value);
+}
+
+static void nvhost_ctrl_file_leave_ioctl_syncpt_waitex(struct file *file,
+						       struct nvhost_ctrl_syncpt_waitex_args *args)
+{
+	printf("  ID: %u\n", args->id);
+	printf("  Threshold: %u\n", args->thresh);
+	printf("  Timeout: %u\n", args->timeout);
+	printf("  Value: %u\n", args->value);
+}
+
+static int nvhost_ctrl_file_leave_ioctl(struct file *file,
+					unsigned long request, void *arg)
+{
+	switch (request) {
+	case NVHOST_IOCTL_CTRL_SYNCPT_READ:
+		nvhost_ctrl_file_leave_ioctl_syncpt_read(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CTRL_SYNCPT_WAITEX:
+		nvhost_ctrl_file_leave_ioctl_syncpt_waitex(file, arg);
+		break;
+	}
+
+	return 0;
+}
+
 static void nvhost_ctrl_file_release(struct file *file)
 {
 	struct nvhost_ctrl_file *nvhost = to_nvhost_ctrl_file(file);
@@ -367,6 +453,8 @@ static void nvhost_ctrl_file_release(struct file *file)
 }
 
 static const struct file_ops nvhost_ctrl_file_ops = {
+	.enter_ioctl = nvhost_ctrl_file_enter_ioctl,
+	.leave_ioctl = nvhost_ctrl_file_leave_ioctl,
 	.release = nvhost_ctrl_file_release,
 };
 
@@ -826,6 +914,13 @@ static void nvhost_job_add_shift(struct nvhost_job *job, unsigned int index,
 	printf("    %x\n", shift->shift);
 }
 
+static void nvhost_file_enter_ioctl_channel_set_nvmap_fd(struct file *file,
+							 struct nvhost_set_nvmap_fd_args *args)
+{
+	printf("  Setting NVMAP file descriptor:\n");
+	printf("    file descriptor: %d\n", args->fd);
+}
+
 static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
 						  struct nvhost_get_param_args *args)
 {
@@ -858,6 +953,18 @@ static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
 	}
 }
 
+static void nvhost_file_enter_ioctl_channel_get_syncpoints(struct file *file,
+							   struct nvhost_get_param_args *args)
+{
+	printf("  Getting syncpoints: %x\n", args->value);
+}
+
+static void nvhost_file_enter_ioctl_channel_get_waitbases(struct file *file,
+							  struct nvhost_get_param_args *args)
+{
+	printf("  Getting waitbases: %x\n", args->value);
+}
+
 static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
 						   struct nvhost_submit_hdr_ext *submit)
 {
@@ -888,6 +995,18 @@ static int nvhost_file_enter_ioctl(struct file *file, unsigned long request,
 		nvhost_file_enter_ioctl_channel_flush(file, arg);
 		break;
 
+	case NVHOST_IOCTL_CHANNEL_GET_SYNCPOINTS:
+		nvhost_file_enter_ioctl_channel_get_syncpoints(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CHANNEL_GET_WAITBASES:
+		nvhost_file_enter_ioctl_channel_get_waitbases(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CHANNEL_SET_NVMAP_FD:
+		nvhost_file_enter_ioctl_channel_set_nvmap_fd(file, arg);
+		break;
+
 	case NVHOST_IOCTL_CHANNEL_SUBMIT_EXT:
 		nvhost_file_enter_ioctl_channel_submit(file, arg);
 		break;
@@ -903,7 +1022,19 @@ static void nvhost_file_leave_ioctl_channel_flush(struct file *file,
 						  struct nvhost_get_param_args *args)
 {
 	printf("  Channel flushed\n");
-	printf("    Fence: %x\n", args->value);
+	printf("    Fence: %x, %u\n", args->value, args->value);
+}
+
+static void nvhost_file_leave_ioctl_channel_get_syncpoints(struct file *file,
+							   struct nvhost_get_param_args *args)
+{
+	printf("  Syncpoints received: %x\n", args->value);
+}
+
+static void nvhost_file_leave_ioctl_channel_get_waitbases(struct file *file,
+							  struct nvhost_get_param_args *args)
+{
+	printf("  Waitbases received: %x\n", args->value);
 }
 
 static int nvhost_file_leave_ioctl(struct file *file, unsigned long request,
@@ -912,6 +1043,14 @@ static int nvhost_file_leave_ioctl(struct file *file, unsigned long request,
 	switch (request) {
 	case NVHOST_IOCTL_CHANNEL_FLUSH:
 		nvhost_file_leave_ioctl_channel_flush(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CHANNEL_GET_SYNCPOINTS:
+		nvhost_file_leave_ioctl_channel_get_syncpoints(file, arg);
+		break;
+
+	case NVHOST_IOCTL_CHANNEL_GET_WAITBASES:
+		nvhost_file_leave_ioctl_channel_get_waitbases(file, arg);
 		break;
 	}
 
