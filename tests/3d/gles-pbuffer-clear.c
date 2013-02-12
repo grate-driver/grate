@@ -10,8 +10,13 @@
 
 void pbuffer_draw(struct pbuffer *pbuffer)
 {
+	printf("=== calling glViewport()\n");
 	glViewport(0, 0, pbuffer->width, pbuffer->height);
+	glFlush();
+	printf("=== calling glClearColor()\n");
 	glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glFlush();
+	printf("=== calling glClear()\n");
 	glClear(GL_COLOR_BUFFER_BIT);
 	glFlush();
 }
