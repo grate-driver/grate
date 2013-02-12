@@ -18,7 +18,7 @@ LIBRARIES = wrap/libwrap.so
 PROGRAMS  = tests/3d/egl-triangle tests/3d/egl-x11-triangle
 PROGRAMS += tests/3d/egl-clear tests/3d/egl-x11-clear
 PROGRAMS += tests/3d/gles-clear tests/3d/gles-shader-fill
-PROGRAMS += tests/3d/gles-pbuffer-clear
+PROGRAMS += tests/3d/gles-pbuffer-clear tests/3d/gles-pbuffer-fill
 
 all: $(ARCHIVES) $(LIBRARIES) $(PROGRAMS)
 
@@ -51,6 +51,10 @@ tests/3d/gles-shader-fill: tests/3d/libcommon.a
 tests/3d/gles-pbuffer-clear_SOURCES = tests/3d/gles-pbuffer-clear.c
 tests/3d/gles-pbuffer-clear_LIBS = tests/3d/libcommon.a -lpng -lX11 -lEGL -lGLESv2
 tests/3d/gles-pbuffer-clear: tests/3d/libcommon.a
+
+tests/3d/gles-pbuffer-fill_SOURCES = tests/3d/gles-pbuffer-fill.c
+tests/3d/gles-pbuffer-fill_LIBS = tests/3d/libcommon.a -lpng -lX11 -lEGL -lGLESv2
+tests/3d/gles-pbuffer-fill: tests/3d/libcommon.a
 
 define archives_rule
 $(archive)_OBJECTS = $$($(archive)_SOURCES:.c=.o)
