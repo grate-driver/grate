@@ -1,0 +1,9 @@
+egl-clear
+egl-triangle
+egl-x11-clear
+egl-x11-triangle
+gles-clear
+gles-pbuffer-clear
+gles-pbuffer-fill
+gles-shader-fill
+libcommon.la

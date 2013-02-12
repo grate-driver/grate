@@ -190,7 +190,7 @@ int nvmap_handle_mmap(struct nvmap *nvmap, struct nvmap_handle *handle)
 	args.offset = 0;
 	args.length = size;
 	args.flags = 0;
-	args.addr = (uint32_t)handle->ptr;
+	args.addr = (uintptr_t)handle->ptr;
 
 	err = ioctl(nvmap->fd, NVMAP_IOCTL_MMAP, &args);
 	if (err < 0)
@@ -482,7 +482,7 @@ int nvmap_handle_invalidate(struct nvmap *nvmap, struct nvmap_handle *handle,
 	int err;
 
 	memset(&args, 0, sizeof(args));
-	args.addr = (uint32_t)handle->ptr + offset;
+	args.addr = (uintptr_t)handle->ptr + offset;
 	args.handle = handle->id;
 	args.length = length;
 	args.op = 1;
@@ -503,7 +503,7 @@ int nvmap_handle_writeback_invalidate(struct nvmap *nvmap,
 	int err;
 
 	memset(&args, 0, sizeof(args));
-	args.addr = (uint32_t)handle->ptr + offset;
+	args.addr = (uintptr_t)handle->ptr + offset;
 	args.handle = handle->id;
 	args.length = length;
 	args.op = 2;
