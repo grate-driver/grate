@@ -35,5 +35,6 @@ AC_OUTPUT([
 	tests/Makefile
 	tests/gles/Makefile
 	tests/gr2d/Makefile
+	tests/gr3d/Makefile
 	tools/Makefile
 ])

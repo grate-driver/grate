@@ -1,1 +1,1 @@
-SUBDIRS = gles gr2d
+SUBDIRS = gles gr2d gr3d
