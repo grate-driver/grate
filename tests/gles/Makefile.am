@@ -16,4 +16,5 @@ noinst_PROGRAMS = \
 	gles-clear \
 	gles-pbuffer-clear \
 	gles-pbuffer-fill \
+	gles-pbuffer-triangle \
 	gles-shader-fill
