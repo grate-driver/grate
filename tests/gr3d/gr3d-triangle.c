@@ -166,14 +166,15 @@ void nvmap_handle_free(struct nvmap *nvmap, struct nvmap_handle *handle)
 }
 
 int nvmap_handle_alloc(struct nvmap *nvmap, struct nvmap_handle *handle,
-		       unsigned long flags, unsigned long align)
+		       unsigned long heap_mask, unsigned long flags,
+		       unsigned long align)
 {
 	struct nvmap_alloc_handle args;
 	int err;
 
 	memset(&args, 0, sizeof(args));
 	args.handle = handle->id;
-	args.heap_mask = 1 << 0;
+	args.heap_mask = heap_mask;
 	args.flags = flags;
 	args.align = align;
 
@@ -379,14 +380,14 @@ struct nvhost_gr3d *nvhost_gr3d_open(struct nvmap *nvmap, struct nvhost_ctrl *ct
 		return NULL;
 	}
 
-	gr3d->buffer = nvmap_handle_create(nvmap, 8 * 4096);
+	gr3d->buffer = nvmap_handle_create(nvmap, 32 * 4096);
 	if (!gr3d->buffer) {
 		close(gr3d->fd);
 		free(gr3d);
 		return NULL;
 	}
 
-	err = nvmap_handle_alloc(nvmap, gr3d->buffer, 0x0a000001, 0x20);
+	err = nvmap_handle_alloc(nvmap, gr3d->buffer, 1 << 0, 0x0a000001, 0x20);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr3d->buffer);
 		close(gr3d->fd);
@@ -402,11 +403,32 @@ struct nvhost_gr3d *nvhost_gr3d_open(struct nvmap *nvmap, struct nvhost_ctrl *ct
 		return NULL;
 	}
 
-	gr3d->attributes = nvmap_handle_create(nvmap, 8 * 4096);
+	gr3d->attributes = nvmap_handle_create(nvmap, 12 * 4096);
 	if (!gr3d->attributes) {
+		nvmap_handle_free(nvmap, gr3d->buffer);
+		close(gr3d->fd);
+		free(gr3d);
+		return NULL;
 	}
 
-#error implement attributes buffer
+	err = nvmap_handle_alloc(nvmap, gr3d->attributes, 1 << 30, 0x3d000001,
+				 0x4);
+	if (err < 0) {
+		nvmap_handle_free(nvmap, gr3d->attributes);
+		nvmap_handle_free(nvmap, gr3d->buffer);
+		close(gr3d->fd);
+		free(gr3d);
+		return NULL;
+	}
+
+	err = nvmap_handle_mmap(nvmap, gr3d->attributes);
+	if (err < 0) {
+		nvmap_handle_free(nvmap, gr3d->attributes);
+		nvmap_handle_free(nvmap, gr3d->buffer);
+		close(gr3d->fd);
+		free(gr3d);
+		return NULL;
+	}
 
 	return gr3d;
 }
@@ -432,10 +454,18 @@ int nvhost_gr3d_submit(struct nvhost_gr3d *gr3d, uint32_t *fencep)
 
 	memset(&args, 0, sizeof(args));
 	args.syncpt_id = 22;
-	args.syncpt_incrs = 1;
+	/* XXX: count syncpoint increments in command stream */
+	args.syncpt_incrs = 9;
+	/* XXX: does a single command buffer work? */
 	args.num_cmdbufs = 1;
 	args.num_relocs = gr3d->num_relocs;
 	args.submit_version = 2;
+	/*
+	 * XXX: wait checks, the GLES blob produces this:
+	 *
+	 * args.num_waitchks = 1;
+	 * args.waitchk_mask = 0x40000;
+	 */
 	args.num_waitchks = 0;
 	args.waitchk_mask = 0;
 
@@ -449,23 +479,27 @@ int nvhost_gr3d_submit(struct nvhost_gr3d *gr3d, uint32_t *fencep)
 	memset(&cmdbuf, 0, sizeof(cmdbuf));
 	cmdbuf.mem = gr3d->buffer->id;
 	cmdbuf.offset = 0;
-	cmdbuf.words = 23;
+	cmdbuf.words = gr3d->words;
 
 	err = write(gr3d->fd, &cmdbuf, sizeof(cmdbuf));
 	if (err < 0) {
 	}
 
-	err = write(gr3d->fd, gr3d->relocs, sizeof(struct nvhost_reloc) * gr3d->num_relocs);
-	if (err < 0) {
-	}
+	if (gr3d->num_relocs > 0) {
+		err = write(gr3d->fd, gr3d->relocs, sizeof(struct nvhost_reloc) * gr3d->num_relocs);
+		if (err < 0) {
+		}
 
-	err = write(gr3d->fd, gr3d->shifts, sizeof(struct nvhost_reloc_shift) * gr3d->num_relocs);
-	if (err < 0) {
+		err = write(gr3d->fd, gr3d->shifts, sizeof(struct nvhost_reloc_shift) * gr3d->num_relocs);
+		if (err < 0) {
+		}
 	}
 
 	err = ioctl(gr3d->fd, NVHOST_IOCTL_CHANNEL_FLUSH, &fence);
-	if (err < 0)
+	if (err < 0) {
+		printf("NVHOST_IOCTL_CHANNEL_FLUSH failed: %d\n", -errno);
 		return -errno;
+	}
 
 	printf("fence: %u\n", fence.value);
 	*fencep = fence.value;
@@ -534,18 +568,83 @@ int nvmap_handle_writeback_invalidate(struct nvmap *nvmap,
 	return 0;
 }
 
-static inline unsigned long get_offset(struct nvmap_handle *handle,
-				       uint32_t *ptr)
+static inline unsigned long get_offset(struct nvmap_handle *handle, void *ptr)
 {
 	return (unsigned long)ptr - (unsigned long)handle->ptr;
 }
 
+struct nvhost_job_data_pushbuf {
+	unsigned long num_words;
+	uint32_t *words;
+};
+
+struct nvhost_job_data_reloc {
+	uint32_t source_handle;
+	uint32_t source_offset;
+	uint32_t target_handle;
+	uint32_t target_offset;
+	uint32_t shift;
+};
+
+struct nvhost_job_data {
+	struct nvhost_job_data_pushbuf *pushbufs;
+	unsigned long num_pushbufs;
+};
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
+
 void nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d)
 {
+	float *attr = gr3d->attributes->ptr;
 	uint32_t *ptr = gr3d->buffer->ptr;
 	unsigned long length;
+	uint16_t *indices;
 	uint32_t fence;
 	int err;
+
+	gr3d->num_relocs = 0;
+
+	/* colors */
+	/* red */
+	*attr++ = 1.0f;
+	*attr++ = 0.0f;
+	*attr++ = 0.0f;
+	*attr++ = 1.0f;
+
+	/* green */
+	*attr++ = 0.0f;
+	*attr++ = 1.0f;
+	*attr++ = 0.0f;
+	*attr++ = 1.0f;
+
+	/* blue */
+	*attr++ = 0.0f;
+	*attr++ = 0.0f;
+	*attr++ = 1.0f;
+	*attr++ = 1.0f;
+
+	/* geometry */
+	*attr++ =  0.0f;
+	*attr++ =  0.5f;
+	*attr++ =  0.0f;
+	*attr++ =  1.0f;
+
+	*attr++ = -0.5f;
+	*attr++ = -0.5f;
+	*attr++ =  0.0f;
+	*attr++ =  1.0f;
+
+	*attr++ =  0.5f;
+	*attr++ = -0.5f;
+	*attr++ =  0.0f;
+	*attr++ =  1.0f;
+
+	indices = gr3d->attributes->ptr + get_offset(gr3d->attributes, attr);
+
+	/* indices */
+	*indices++ = 0x0000;
+	*indices++ = 0x0001;
+	*indices++ = 0x0002;
 
 	/*
 	  Command Buffer:
@@ -752,8 +851,11 @@ void nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d)
 	*ptr++ = NVHOST_OPCODE_INCR(0x120, 0x01);
 	*ptr++ = 0x00030081;
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x01, 0x00);
+	/* XXX: don't wait for syncpoint */
+	/*
 	*ptr++ = NVHOST_OPCODE_NONINCR(0x008, 0x01);
 	*ptr++ = 0x120000b1;
+	*/
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x60, 0x00);
 	*ptr++ = NVHOST_OPCODE_INCR(0x344, 0x02);
 	*ptr++ = 0x00000000;
@@ -762,8 +864,11 @@ void nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d)
 	*ptr++ = NVHOST_OPCODE_NONINCR(0x000, 0x01);
 	*ptr++ = 0x00000116;
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x01, 0x00);
+	/* XXX: don't wait for syncpoint */
+	/*
 	*ptr++ = NVHOST_OPCODE_NONINCR(0x009, 0x01);
 	*ptr++ = 0x16030005;
+	*/
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x60, 0x00);
 	*ptr++ = NVHOST_OPCODE_IMM(0xa00, 0xe01);
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x60, 0x00);
@@ -775,40 +880,47 @@ void nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d)
 	*ptr++ = NVHOST_OPCODE_SETCL(0x00, 0x60, 0x00);
 	*ptr++ = NVHOST_OPCODE_INCR(0xe01, 0x01);
 
-	gr3d->relocs[0].cmdbuf_mem = gr3d->buffer->id;
-	gr3d->relocs[0].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
-	gr3d->relocs[0].target_mem = /* TODO */;
-	gr3d->relocs[0].target_offset = 0;
-	gr3d->shifts[0].shift = 0;
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_mem = gr3d->buffer->id;
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
+	gr3d->relocs[gr3d->num_relocs].target_mem = gr3d->fb->id;
+	gr3d->relocs[gr3d->num_relocs].target_offset = 0;
+	gr3d->shifts[gr3d->num_relocs].shift = 0;
+	gr3d->num_relocs++;
 
 	*ptr++ = 0xdeadbeef;
 	*ptr++ = NVHOST_OPCODE_INCR(0xe31, 0x01);
 	*ptr++ = 0x00000000;
 	*ptr++ = NVHOST_OPCODE_INCR(0x100, 0x01);
 
-	gr3d->relocs[1].cmdbuf_mem = gr3d->buffer->id;
-	gr3d->relocs[1].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
-	gr3d->relocs[1].target_mem = /* TODO */;
-	gr3d->relocs[1].target_offset = 0;
-	gr3d->shifts[1].shift = 0;
+	/* vertex position attribute */
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_mem = gr3d->buffer->id;
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
+	gr3d->relocs[gr3d->num_relocs].target_mem = gr3d->attributes->id;
+	gr3d->relocs[gr3d->num_relocs].target_offset = 0x30;
+	gr3d->shifts[gr3d->num_relocs].shift = 0;
+	gr3d->num_relocs++;
 
 	*ptr++ = 0xdeadbeef;
 	*ptr++ = NVHOST_OPCODE_INCR(0x102, 0x01);
 
-	gr3d->relocs[2].cmdbuf_mem = gr3d->buffer->id;
-	gr3d->relocs[2].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
-	gr3d->relocs[2].target_mem = /* TODO */;
-	gr3d->relocs[2].target_offset = 0;
-	gr3d->shifts[2].shift = 0;
+	/* vertex color attribute */
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_mem = gr3d->buffer->id;
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
+	gr3d->relocs[gr3d->num_relocs].target_mem = gr3d->attributes->id;
+	gr3d->relocs[gr3d->num_relocs].target_offset = 0;
+	gr3d->shifts[gr3d->num_relocs].shift = 0;
+	gr3d->num_relocs++;
 
 	*ptr++ = 0xdeadbeef;
 	*ptr++ = NVHOST_OPCODE_INCR(0x121, 0x03);
 
-	gr3d->relocs[3].cmdbuf_mem = gr3d->buffer->id;
-	gr3d->relocs[3].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
-	gr3d->relocs[3].target_mem = /* TODO */;
-	gr3d->relocs[3].target_offset = 0;
-	gr3d->shifts[3].shift = 0;
+	/* primitive indices */
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_mem = gr3d->buffer->id;
+	gr3d->relocs[gr3d->num_relocs].cmdbuf_offset = get_offset(gr3d->buffer, ptr);
+	gr3d->relocs[gr3d->num_relocs].target_mem = gr3d->attributes->id;
+	gr3d->relocs[gr3d->num_relocs].target_offset = 0x60;
+	gr3d->shifts[gr3d->num_relocs].shift = 0;
+	gr3d->num_relocs++;
 
 	*ptr++ = 0xdeadbeef;
 	*ptr++ = 0xec000000;
@@ -877,7 +989,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	err = nvmap_handle_alloc(nvmap, buffer, 1 << 0, 0x100);
+	err = nvmap_handle_alloc(nvmap, buffer, 1 << 0, 1 << 0, 0x100);
 	if (err < 0) {
 		return 1;
 	}
