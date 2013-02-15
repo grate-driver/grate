@@ -34,7 +34,6 @@ AC_OUTPUT([
 	src/libwrap/Makefile
 	tests/Makefile
 	tests/gles/Makefile
-	tests/gr2d/Makefile
-	tests/gr3d/Makefile
+	tests/nvhost/Makefile
 	tools/Makefile
 ])
