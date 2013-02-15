@@ -1,6 +1,17 @@
+noinst_LTLIBRARIES = libnvhost.la
+
+libnvhost_la_SOURCES = \
+	gr2d.c \
+	gr2d.h \
+	gr3d.c \
+	gr3d.h \
+	nvhost.c \
+	nvhost.h \
+	nvmap.c \
+	nvmap.h
+
 noinst_PROGRAMS = \
 	gr2d-fill \
 	gr3d-triangle
 
-gr2d_fill_LDADD = $(PNG_LIBS)
-gr3d_triangle_LDADD = $(PNG_LIBS)
+LDADD = libnvhost.la $(PNG_LIBS)
