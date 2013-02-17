@@ -1,6 +1,7 @@
 lib_LTLIBRARIES = libwrap.la
 
 libwrap_la_SOURCES = \
+	cgdrv.c \
 	list.h \
 	nvhost.c \
 	nvhost.h \
