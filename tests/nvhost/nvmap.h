@@ -40,6 +40,7 @@ struct nvmap_framebuffer {
 	unsigned short width;
 	unsigned short height;
 	unsigned short depth;
+	unsigned short pitch;
 
 	struct nvmap_handle *handle;
 	struct nvmap *nvmap;

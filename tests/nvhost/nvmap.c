@@ -81,6 +81,28 @@ struct nvmap_cache_op {
 #define NVMAP_IOCTL_CACHE _IOW(NVMAP_IOCTL_MAGIC, 12, struct nvmap_cache_op)
 #define NVMAP_IOCTL_GET_ID _IOWR(NVMAP_IOCTL_MAGIC, 13, struct nvmap_create_handle)
 
+static void detile(void *target, struct nvmap_framebuffer *fb,
+		   unsigned int tx, unsigned int ty)
+{
+	const unsigned int nx = fb->pitch / tx, ny = fb->height / ty;
+	const unsigned int size = tx * ty, pitch = tx * nx;
+	const void *source = fb->handle->ptr;
+	unsigned int i, j, k;
+
+	for (j = 0; j < ny; j++) {
+		for (i = 0; i < nx; i++) {
+			unsigned int to = (j * nx * size) + (i * tx);
+			unsigned int so = (j * nx + i) * size;
+
+			for (k = 0; k < ty; k++) {
+				memcpy(target + to + k * pitch,
+				       source + so + k * tx,
+				       tx);
+			}
+		}
+	}
+}
+
 struct nvmap *nvmap_open(void)
 {
 	struct nvmap *nvmap;
@@ -249,12 +271,13 @@ struct nvmap_framebuffer *nvmap_framebuffer_create(struct nvmap *nvmap,
 	if (!fb)
 		return NULL;
 
+	fb->pitch = width * (depth / 8);
 	fb->width = width;
 	fb->height = height;
 	fb->depth = depth;
 	fb->nvmap = nvmap;
 
-	fb->handle = nvmap_handle_create(nvmap, width * height * (depth / 8));
+	fb->handle = nvmap_handle_create(nvmap, fb->pitch * height);
 	if (!fb->handle) {
 		free(fb);
 		return NULL;
@@ -282,6 +305,7 @@ int nvmap_framebuffer_save(struct nvmap_framebuffer *fb, const char *filename)
 	png_infop info;
 	unsigned int i;
 	size_t stride;
+	void *buffer;
 	FILE *fp;
 	int err;
 
@@ -334,6 +358,12 @@ int nvmap_framebuffer_save(struct nvmap_framebuffer *fb, const char *filename)
 
 	stride = fb->width * (fb->depth / 8);
 
+	buffer = malloc(stride * fb->height);
+	if (!buffer)
+		return ENOMEM;
+
+	detile(buffer, fb, 16, 16);
+
 	rows = malloc(fb->height * sizeof(png_bytep));
 	if (!rows) {
 		fprintf(stderr, "out-of-memory\n");
@@ -341,11 +371,12 @@ int nvmap_framebuffer_save(struct nvmap_framebuffer *fb, const char *filename)
 	}
 
 	for (i = 0; i < fb->height; i++)
-		rows[fb->height - i - 1] = fb->handle->ptr + i * stride;
+		rows[fb->height - i - 1] = buffer + i * stride;
 
 	png_write_image(png, rows);
 
 	free(rows);
+	free(buffer);
 
 	if (setjmp(png_jmpbuf(png)))
 		return -EIO;
