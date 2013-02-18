@@ -28,6 +28,9 @@ if test "x$enable_werror" = "xyes"; then
 	CFLAGS="$CFLAGS -Werror"
 fi
 
+AC_CHECK_LIB([cgdrv], [CgDrv_Create], [enable_cgc=yes], [enable_cgc=no])
+AM_CONDITIONAL([ENABLE_CGC], [test "x$enable_cgc" = "xyes"])
+
 AC_OUTPUT([
 	Makefile
 	src/Makefile
