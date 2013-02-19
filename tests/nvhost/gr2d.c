@@ -177,17 +177,20 @@ int nvhost_gr2d_clear(struct nvhost_gr2d *gr2d, struct nvmap_framebuffer *fb,
 	struct nvhost_pushbuf *pb;
 	struct nvhost_job *job;
 	uint32_t fence, color;
+	uint32_t pitch;
 	int err;
 
 	if (fb->depth == 16) {
 		color = ((uint32_t)(red   * 31) << 11) |
 			((uint32_t)(green * 63) <<  5) |
 			((uint32_t)(blue  * 31) <<  0);
+		pitch = fb->width * 2;
 	} else {
 		color = ((uint32_t)(alpha * 255) << 24) |
 			((uint32_t)(blue  * 255) << 16) |
 			((uint32_t)(green * 255) <<  8) |
 			((uint32_t)(red   * 255) <<  0);
+		pitch = fb->width * 4;
 	}
 
 	printf("color: %08x\n", color);
@@ -220,30 +223,13 @@ int nvhost_gr2d_clear(struct nvhost_gr2d *gr2d, struct nvmap_framebuffer *fb,
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_MASK(0x2b, 9));
 	nvhost_pushbuf_relocate(pb, fb->handle, 0, 0);
 	nvhost_pushbuf_push(pb, 0xdeadbeef);
-
-	if (fb->depth == 16)
-		nvhost_pushbuf_push(pb, 0x00000040); /* 64 byte stride */
-	else
-		nvhost_pushbuf_push(pb, 0x00000080); /* 128 byte stride */
-
+	nvhost_pushbuf_push(pb, pitch);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x35, 1));
-
-#if 0
-	if (fb->depth == 16) {
-		//nvhost_pushbuf_push(pb, 0x0000f800); /* 16-bit red */
-		nvhost_pushbuf_push(pb, 0x00000000); /* 16-bit black */
-	} else {
-		//nvhost_pushbuf_push(pb, 0xff0000ff); /* 32-bit red */
-		nvhost_pushbuf_push(pb, 0xff000000); /* 32-bit black */
-	}
-#else
 	nvhost_pushbuf_push(pb, color);
-#endif
-
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x46, 1));
 	nvhost_pushbuf_push(pb, 0x00100000);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_MASK(0x38, 5));
-	nvhost_pushbuf_push(pb, 0x00200020);
+	nvhost_pushbuf_push(pb, fb->height << 16 | fb->width);
 	nvhost_pushbuf_push(pb, 0x00000000);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_EXTEND(1, 1));
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x00, 1));
