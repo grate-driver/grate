@@ -5,6 +5,9 @@
 
 #include "gr3d.h"
 
+#define NVHOST_GR3D_FORMAT_RGB565	0x6
+#define NVHOST_GR3D_FORMAT_RGBA8888	0xd
+
 static int nvhost_gr3d_init(struct nvhost_gr3d *gr3d)
 {
 	struct nvhost_pushbuf *pb;
@@ -3951,9 +3954,15 @@ void nvhost_gr3d_close(struct nvhost_gr3d *gr3d)
 int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 			 struct nvmap_framebuffer *fb)
 {
+	union {
+		uint32_t u;
+		float f;
+	} value;
 	float *attr = gr3d->attributes->ptr;
 	struct nvhost_pushbuf *pb;
+	unsigned int depth = 32;
 	struct nvhost_job *job;
+	uint32_t format, pitch;
 	uint16_t *indices;
 	uint32_t fence;
 	int err;
@@ -4026,7 +4035,7 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	    commands: 103
 	*/
 
-	pb = nvhost_job_append(job, gr3d->buffer, 0x3b4c);
+	pb = nvhost_job_append(job, gr3d->buffer, 0);
 	if (!pb)
 		return -ENOMEM;
 
@@ -4049,10 +4058,17 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x000, 0x1));
 	nvhost_pushbuf_push(pb, 0x00000216);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_MASK(0x352, 0x1b));
-	nvhost_pushbuf_push(pb, 0x43800000);
-	nvhost_pushbuf_push(pb, 0x43800000);
-	nvhost_pushbuf_push(pb, 0x43800000);
-	nvhost_pushbuf_push(pb, 0x43800000);
+
+	value.f = fb->width * 8.0f;
+	nvhost_pushbuf_push(pb, value.u);
+	value.f = fb->height * 8.0f;
+	nvhost_pushbuf_push(pb, value.u);
+
+	value.f = fb->width * 8.0f;
+	nvhost_pushbuf_push(pb, value.u);
+	value.f = fb->height * 8.0f;
+	nvhost_pushbuf_push(pb, value.u);
+
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x358, 0x03));
 	nvhost_pushbuf_push(pb, 0x4376f000);
 	nvhost_pushbuf_push(pb, 0x4376f000);
@@ -4060,10 +4076,20 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x343, 0x01));
 	nvhost_pushbuf_push(pb, 0xb8e00000);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x350, 0x02));
-	nvhost_pushbuf_push(pb, 0x00000020);
-	nvhost_pushbuf_push(pb, 0x00000020);
+	nvhost_pushbuf_push(pb, fb->width  & 0xffff);
+	nvhost_pushbuf_push(pb, fb->height & 0xffff);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0xe11, 0x01));
-	nvhost_pushbuf_push(pb, 0x04004019);
+
+	if (depth == 16) {
+		format = NVHOST_GR3D_FORMAT_RGB565;
+		pitch = fb->width * 2;
+	} else {
+		format = NVHOST_GR3D_FORMAT_RGBA8888;
+		pitch = fb->width * 4;
+	}
+
+	nvhost_pushbuf_push(pb, 0x04000000 | (pitch << 8) | format << 2 | 0x1);
+
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x903, 0x01));
 	nvhost_pushbuf_push(pb, 0x00000002);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0xe15, 0x01));
@@ -4140,6 +4166,23 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	    commands: 10
 	*/
 
+	/*
+	 * This seems to write the following vertex shader:
+	 *
+	 * attribute vec4 position;
+	 * attribute vec4 color;
+	 * varying vec4 vcolor;
+	 *
+	 * void main()
+	 * {
+	 *     gl_Position = position;
+	 *     vcolor = color;
+	 * }
+	 *
+	 * Register 0x205 contains an ID, while register 0x206 is a FIFO that
+	 * is used to upload vertex program code.
+	 */
+
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_IMM(0x205, 0x00));
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x206, 0x08));
 	nvhost_pushbuf_push(pb, 0x401f9c6c);
@@ -4179,6 +4222,18 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	    mem: e462aec0, offset: 10, words: 26
 	    commands: 26
 	*/
+
+	/*
+	 * This writes the fragment shader:
+	 *
+	 * precision mediump float;
+	 * varying vec4 vcolor;
+	 *
+	 * void main()
+	 * {
+	 *     gl_FragColor = vcolor;
+	 * }
+	 */
 
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_NONINCR(0x541, 0x01));
 	nvhost_pushbuf_push(pb, 0x00000000);
@@ -4259,16 +4314,16 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 	nvhost_pushbuf_push(pb, 0xdeadbeef);
 	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0xe31, 0x01));
 	nvhost_pushbuf_push(pb, 0x00000000);
-	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x100, 0x01));
 	/* vertex position attribute */
+	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x100, 0x01));
 	nvhost_pushbuf_relocate(pb, gr3d->attributes, 0x30, 0);
 	nvhost_pushbuf_push(pb, 0xdeadbeef);
-	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x102, 0x01));
 	/* vertex color attribute */
+	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x102, 0x01));
 	nvhost_pushbuf_relocate(pb, gr3d->attributes, 0, 0);
 	nvhost_pushbuf_push(pb, 0xdeadbeef);
-	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x121, 0x03));
 	/* primitive indices */
+	nvhost_pushbuf_push(pb, NVHOST_OPCODE_INCR(0x121, 0x03));
 	nvhost_pushbuf_relocate(pb, gr3d->attributes, 0x60, 0);
 	nvhost_pushbuf_push(pb, 0xdeadbeef);
 	nvhost_pushbuf_push(pb, 0xec000000);
