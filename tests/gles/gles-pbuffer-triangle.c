@@ -95,9 +95,19 @@ void pbuffer_draw(struct pbuffer *pbuffer)
 
 int main(int argc, char *argv[])
 {
+	struct gles_options options;
 	struct pbuffer *pbuffer;
+	int err;
 
-	pbuffer = pbuffer_create(32, 32);
+	memset(&options, 0, sizeof(options));
+	options.width = 32;
+	options.height = 32;
+
+	err = gles_parse_command_line(&options, argc, argv);
+	if (err < 0)
+		return 1;
+
+	pbuffer = pbuffer_create(options.width, options.height);
 	if (!pbuffer) {
 		fprintf(stderr, "pbuffer_create() failed\n");
 		return 1;

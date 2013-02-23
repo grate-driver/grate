@@ -8,6 +8,14 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
+struct gles_options {
+	unsigned int width;
+	unsigned int height;
+};
+
+int gles_parse_command_line(struct gles_options *options, int argc,
+			    char *argv[]);
+
 struct window {
 	struct {
 		Display *display;

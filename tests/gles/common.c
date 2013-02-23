@@ -1,3 +1,5 @@
+#include <errno.h>
+#include <getopt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +37,31 @@ png_byte png_depth(png_byte format)
 	}
 
 	return PNG_DEPTH_INVALID;
+}
+
+int gles_parse_command_line(struct gles_options *opts, int argc, char *argv[])
+{
+	static const struct option options[] = {
+		{ "size", 1, NULL, 's' },
+		{ NULL, 0, NULL, 0 }
+	};
+	int opt, num;
+
+	while ((opt = getopt_long(argc, argv, "s:", options, NULL)) != -1) {
+		switch (opt) {
+		case 's':
+			num = sscanf(optarg, "%ux%u", &opts->width,
+				     &opts->height);
+			if (num != 2) {
+				fprintf(stderr, "invalid size: %s\n", optarg);
+				return -EINVAL;
+			}
+
+			break;
+		}
+	}
+
+	return optind;
 }
 
 struct window *window_create(unsigned int x, unsigned int y,
