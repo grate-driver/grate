@@ -17,4 +17,8 @@ noinst_PROGRAMS = \
 	gles-pbuffer-clear \
 	gles-pbuffer-fill \
 	gles-pbuffer-triangle \
+	gles-pbuffer-uniforms \
+	gles-pbuffer-uniforms-rgb \
+	gles-pbuffer-uniforms-rg \
+	gles-pbuffer-vertex-offset \
 	gles-shader-fill
