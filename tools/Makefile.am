@@ -1,5 +1,7 @@
 noinst_PROGRAMS = \
-	hex2float
+	hex2float \
+	fp20 \
+	fx10
 
 if ENABLE_CGC
 noinst_PROGRAMS += \
