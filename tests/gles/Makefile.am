@@ -6,7 +6,8 @@ libcommon_la_SOURCES = \
 
 libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS)
 
-LDADD = libcommon.la
+AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate
+LDADD = $(top_builddir)/src/libgrate/libgrate.la libcommon.la
 
 noinst_PROGRAMS = \
 	egl-clear \
@@ -17,6 +18,7 @@ noinst_PROGRAMS = \
 	gles-pbuffer-clear \
 	gles-pbuffer-fill \
 	gles-pbuffer-triangle \
+	gles-pbuffer-triangle-rotate \
 	gles-pbuffer-uniforms \
 	gles-pbuffer-uniforms-rgb \
 	gles-pbuffer-uniforms-rg \
