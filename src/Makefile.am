@@ -1,1 +1,1 @@
-SUBDIRS = libwrap
+SUBDIRS = libgrate libwrap

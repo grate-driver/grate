@@ -34,6 +34,7 @@ AM_CONDITIONAL([ENABLE_CGC], [test "x$enable_cgc" = "xyes"])
 AC_OUTPUT([
 	Makefile
 	src/Makefile
+	src/libgrate/Makefile
 	src/libwrap/Makefile
 	tests/Makefile
 	tests/gles/Makefile
