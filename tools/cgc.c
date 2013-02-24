@@ -9,48 +9,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cgdrv.h"
+
 #define BIT(x) (1 << (x))
 
-struct cgdrv {
-	unsigned int unknown00;
-	const char *error;
-	const char *log;
-	size_t binary_size1;
-	void *binary1;
-	unsigned int unknown14;
-	void *binary;
-	size_t binary_size;
-	unsigned int unknown20;
-	unsigned int unknown24;
-	unsigned int unknown28;
-	unsigned int unknown2c;
-	unsigned int unknown30;
-	unsigned int unknown34;
-	unsigned int unknown38;
-	unsigned int unknown3c;
-	unsigned int unknown40;
-	unsigned int unknown44;
-	unsigned int unknown48;
-	unsigned int unknown4c;
-};
-
-struct cgdrv *CgDrv_Create(void);
-void CgDrv_Delete(struct cgdrv *cgdrv);
-void CgDrv_CleanUp(struct cgdrv *cgdrv);
-int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
-		  const char *code, size_t length, int unknown2);
-
-enum cgdrv_shader_type {
-	CGDRV_SHADER_VERTEX = 1,
-	CGDRV_SHADER_FRAGMENT = 2,
-};
-
+#if 0
 struct shader_binary {
 	char signature[8];
 	uint32_t unknown1;
 	uint32_t unknown2;
 	uint32_t words[0];
 };
+#endif
 
 struct opts {
 	enum cgdrv_shader_type type;
@@ -58,6 +28,7 @@ struct opts {
 	bool help;
 };
 
+#if 0
 struct instruction {
 	unsigned int length;
 	uint32_t *bits;
@@ -130,6 +101,7 @@ uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 
 	return value;
 }
+#endif
 
 #if 0
 enum {
@@ -457,6 +429,7 @@ void dump_stream(struct stream *stream)
 	}
 }
 
+#if 0
 static void vertex_shader_disassemble(const void *code, size_t length)
 {
 	const char swizzle[4] = { 'x', 'y', 'z', 'w' };
@@ -544,6 +517,7 @@ static void vertex_shader_disassemble(const void *code, size_t length)
 		instruction_free(inst);
 	}
 }
+#endif
 
 struct symbol {
 	uint32_t unknown00;
@@ -583,11 +557,9 @@ struct cgbin {
  */
 int main(int argc, char *argv[])
 {
-	const struct cgbin *cgbin;
-	const char *shader_type;
-	size_t length, i, j;
+	struct cgdrv_shader *shader;
+	size_t length, i;
 	struct opts opts;
-	struct cgdrv *cg;
 	char code[65536];
 	FILE *fp;
 	int err;
@@ -626,11 +598,6 @@ int main(int argc, char *argv[])
 
 	fclose(fp);
 
-	cg = CgDrv_Create();
-	if (!cg) {
-		return 1;
-	}
-
 	printf("Compiling shader (%zu bytes)...\n", length);
 	fputs("| ", stdout);
 
@@ -641,179 +608,11 @@ int main(int argc, char *argv[])
 			fputs("| ", stdout);
 	}
 
-	err = CgDrv_Compile(cg, 1, opts.type, code, length, 0);
-	printf("CgDrv_Compile(): %d\n", err);
-	if (err) {
-		fprintf(stderr, "%s\n", cg->error);
-		fprintf(stderr, "%s\n", cg->log);
-		CgDrv_Delete(cg);
-		return 1;
+	shader = cgdrv_compile(opts.type, code, length);
+	if (shader) {
+		cgdrv_shader_dump(shader, stdout);
+		cgdrv_shader_free(shader);
 	}
 
-	printf("%s\n", cg->log);
-
-#if 0
-	printf("Binary: %zu bytes\n", cg->binary_size);
-	print_hexdump(stdout, DUMP_PREFIX_OFFSET, NULL, cg->binary,
-		      cg->binary_size, 16, true);
-	printf("Binary: %zu bytes\n", cg->binary_size1);
-	print_hexdump(stdout, DUMP_PREFIX_OFFSET, NULL, cg->binary1,
-		      cg->binary_size1, 16, true);
-#endif
-
-	for (i = 0; i < cg->binary_size; i += 4) {
-		uint32_t value = *(uint32_t *)(cg->binary + i);
-		uint8_t *bytes = (uint8_t *)(cg->binary + i);
-
-		printf("%08x: %08x |", i, value);
-
-		for (j = 0; j < 4; j++)
-			printf(" %02x", bytes[j]);
-
-		printf(" | ");
-
-		for (j = 0; j < 4; j++) {
-			if (isprint(bytes[j]))
-				printf("%c", bytes[j]);
-			else
-				printf(".");
-		}
-
-		printf(" |\n");
-	}
-
-	cgbin = cg->binary;
-
-	if (cgbin->type == 0x1b5d)
-		shader_type = "vertex";
-	else if (cgbin->type == 0x1b5e)
-		shader_type = "fragment";
-	else
-		shader_type = "unknown";
-
-	printf("Header: %08x (%s), %08x\n", cgbin->type, shader_type,
-	       cgbin->unknown00);
-	printf("  size: %u, %x\n", cgbin->size, cgbin->size);
-	printf("  foo: %u, %x\n", cgbin->num_foo, cgbin->num_foo);
-	printf("  bar: %u bytes, %x\n", cgbin->bar_size, cgbin->bar_size);
-	printf("    offset: %x\n", cgbin->bar_offset);
-	printf("  binary: %u bytes, %x\n", cgbin->binary_size, cgbin->binary_size);
-	printf("    offset: %x\n", cgbin->binary_offset);
-	printf("  unknown01: %08x\n", cgbin->unknown01);
-	printf("  unknown02: %08x\n", cgbin->unknown02);
-	printf("  unknown03: %08x\n", cgbin->unknown03);
-	printf("  unknown04: %08x\n", cgbin->unknown04);
-
-	printf("  %u foo structures:\n", cgbin->num_foo);
-
-	for (i = 0; i < cgbin->num_foo; i++) {
-		unsigned long offset = (unsigned long)&cgbin->symbol[i] -
-				       (unsigned long)cg->binary;
-
-		printf("    %u: %08lx\n", i, offset);
-		printf("      unknown00: %08x\n", cgbin->symbol[i].unknown00);
-		printf("      unknown01: %08x\n", cgbin->symbol[i].unknown01);
-		printf("      unknown02: %08x\n", cgbin->symbol[i].unknown02);
-		printf("      unknown03: %08x\n", cgbin->symbol[i].unknown03);
-		printf("      name_offset: %08x", cgbin->symbol[i].name_offset);
-		if (cgbin->symbol[i].name_offset != 0) {
-			uint32_t index = cgbin->symbol[i].name_offset;
-			printf(" --> \"%s\"", (char *)cg->binary + index);
-		}
-		printf("\n");
-		//printf("        %s\n", (char *)cg->binary + cgbin->symbol[i].name_offset);
-		printf("      values_offset: %08x\n", cgbin->symbol[i].values_offset);
-
-		if (cgbin->symbol[i].values_offset != 0) {
-			uint32_t index = cgbin->symbol[i].values_offset / 4;
-			uint32_t *binary = cg->binary;
-
-			for (j = 0; j < 4; j++)
-				printf("        %08x\n", binary[index + j]);
-		}
-
-		printf("      unknown06: %08x\n", cgbin->symbol[i].unknown06);
-		printf("      alt_offset: %08x\n", cgbin->symbol[i].alt_offset);
-
-		if (cgbin->symbol[i].alt_offset != 0)
-			printf("        %s\n", (char *)cg->binary + cgbin->symbol[i].alt_offset);
-
-		printf("      unknown08: %08x\n", cgbin->symbol[i].unknown08);
-		printf("      unknown09: %08x\n", cgbin->symbol[i].unknown09);
-		printf("      unknown10: %08x\n", cgbin->symbol[i].unknown10);
-		printf("      unknown11: %08x\n", cgbin->symbol[i].unknown11);
-	}
-
-	if (1) {
-		const uint32_t *binary = cg->binary;
-		uint32_t binary_offset, binary_size;
-		const struct shader_binary *sb;
-		unsigned int num_words;
-		struct stream stream;
-
-		binary_size = binary[6];
-		binary_offset = binary[7];
-
-		printf("binary @0x%08x\n", binary_offset);
-
-		if (opts.type == CGDRV_SHADER_FRAGMENT) {
-			num_words = (binary_size - 16) / 4;
-
-			sb = cg->binary + binary_offset;
-
-			printf("  signature: %.*s\n", 8, sb->signature);
-			printf("  unknown1: %08x\n", sb->unknown1);
-			printf("  unknown2: %08x\n", sb->unknown2);
-			printf("  words:\n");
-
-			stream.words = stream.ptr = sb->words;
-			stream.end = stream.ptr + num_words;
-			dump_stream(&stream);
-		} else {
-			const void *binary = cg->binary + cgbin->binary_offset;
-
-			vertex_shader_disassemble(binary, cgbin->binary_size);
-		}
-	}
-
-#if 0
-	for (i = 0; i < cg->binary_size1; i += 4) {
-		uint32_t value = *(uint32_t *)(cg->binary1 + i);
-		uint8_t *bytes = (uint8_t *)(cg->binary1 + i);
-
-		printf("%08x: %08x |", i, value);
-
-		for (j = 0; j < 4; j++)
-			printf(" %02x", bytes[j]);
-
-		printf(" | ");
-
-		for (j = 0; j < 4; j++) {
-			if (isprint(bytes[j]))
-				printf("%c", bytes[j]);
-			else
-				printf(".");
-		}
-
-		printf(" |\n");
-	}
-
-	if (1) {
-		const uint32_t *binary = (const uint32_t *)cg->binary1;
-		unsigned int offset, size;
-
-		//printf("offset: %x, %u\n", binary[58], binary[58]);
-		//printf("size: %x, %u\n", binary[59], binary[59]);
-
-		offset = binary[58] * 4;
-		size = binary[59];
-
-		printf("offset: %x, size: %u/%u\n", offset, size, size / 4);
-	}
-#endif
-
-	CgDrv_CleanUp(cg);
-
-	CgDrv_Delete(cg);
 	return 0;
 }

@@ -1,1 +1,5 @@
-SUBDIRS = libgrate libwrap
+SUBDIRS = \
+	libcgc \
+	libgrate \
+	libhost1x \
+	libwrap

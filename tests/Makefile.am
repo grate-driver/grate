@@ -1,1 +1,1 @@
-SUBDIRS = gles nvhost
+SUBDIRS = gles grate nvhost

@@ -7,5 +7,9 @@ if ENABLE_CGC
 noinst_PROGRAMS += \
 	cgc
 
-cgc_LDADD = -lcgdrv
+cgc_CPPFLAGS = \
+	-I$(top_srcdir)/include
+
+cgc_LDADD = \
+	../src/libcgc/libcgc.la
 endif
