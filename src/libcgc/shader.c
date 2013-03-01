@@ -3,6 +3,7 @@
 #endif
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,11 +11,157 @@
 
 #include "libcgc.h"
 #include "host1x.h"
-#include "cgdrv.h"
+
+#include "libcgc-private.h"
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 static const char swizzle[4] = { 'x', 'y', 'z', 'w' };
 
-void *memdup(const void *ptr, size_t size)
+/*
+ *           00  01
+ * uniforms:
+ *   bool:  45a cb8
+ *   int:   445 cb8
+ *   uint:  445 cb8
+ *   float: 415 cb8
+ *
+ *   bvec2: 45c cb8
+ *   bvec3: 45d cb8
+ *   bvec4: 45e cb8
+ *
+ *   ivec2: 447 cb8
+ *   ivec3: 448
+ *   ivec4: 449
+ *
+ *   vec2: 416
+ *   vec3: 417
+ *   vec4: 418
+ *
+ *   mat2: 41e
+ *   mat3: 423
+ *   mat4: 428
+ *
+ *   sampler2D: 42a
+ *   sampler3D: 42b
+ *
+ * attribute:
+ *   vec4: 418 841
+ *
+ * other:
+ *   gl_Position: 418 8c3
+ *   gl_PointSize: 415 905
+ *   0.12345: 443 882
+ */
+
+static const struct data_type {
+	enum glsl_type glsl;
+	unsigned int type;
+	const char *name;
+} data_types[] = {
+	{ GLSL_TYPE_FLOAT, 0x15, "float" },
+	{ GLSL_TYPE_VEC2, 0x16, "vec2" },
+	{ GLSL_TYPE_VEC3, 0x17, "vec3" },
+	{ GLSL_TYPE_VEC4, 0x18, "vec4" },
+	{ GLSL_TYPE_MAT2, 0x1e, "mat2" },
+	{ GLSL_TYPE_MAT4, 0x23, "mat3" },
+	{ GLSL_TYPE_MAT4, 0x28, "mat4" },
+	{ GLSL_TYPE_SAMPLER2D, 0x2a, "sampler2D" },
+	{ GLSL_TYPE_SAMPLER3D, 0x2b, "sampler3D" },
+	{ GLSL_TYPE_INT, 0x45, "int" },
+	{ GLSL_TYPE_IVEC2, 0x47, "ivec2" },
+	{ GLSL_TYPE_IVEC3, 0x48, "ivec3" },
+	{ GLSL_TYPE_IVEC4, 0x49, "ivec4" },
+	{ GLSL_TYPE_BOOL, 0x5a, "bool" },
+	{ GLSL_TYPE_BVEC2, 0x5c, "bvec2" },
+	{ GLSL_TYPE_BVEC3, 0x5d, "bvec3" },
+	{ GLSL_TYPE_BVEC4, 0x5e, "bvec4" },
+};
+
+static const char *data_type_name(unsigned int type)
+{
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(data_types); i++)
+		if (data_types[i].type == type)
+			return data_types[i].name;
+
+	return "unknown";
+}
+
+static const char *variable_type_name(unsigned int type)
+{
+	switch (type) {
+	case 0x1005:
+		return "attribute";
+
+	case 0x1006:
+		return "uniform";
+
+	case 0x1007:
+		return "constant";
+	}
+
+	return "unknown";
+}
+
+static int shader_parse_symbols(struct cgc_shader *shader)
+{
+	struct cgc_header *header = shader->binary;
+	struct cgc_symbol *symbol;
+	unsigned int i, j;
+
+	shader->symbols = calloc(header->num_symbols, sizeof(*symbol));
+	if (!shader->symbols)
+		return -ENOMEM;
+
+	shader->num_symbols = header->num_symbols;
+
+	for (i = 0; i < header->num_symbols; i++) {
+		struct cgc_header_symbol *sym = &header->symbols[i];
+		struct cgc_symbol *symbol = &shader->symbols[i];
+		enum glsl_type glsl = GLSL_TYPE_UNKNOWN;
+		const char *name = NULL;
+
+		if (sym->name_offset)
+			name = shader->binary + sym->name_offset;
+
+		for (j = 0; j < ARRAY_SIZE(data_types); j++) {
+			uint8_t type = sym->unknown00 & 0xff;
+
+			if (type == data_types[i].type) {
+				glsl = data_types[i].glsl;
+				break;
+			}
+		}
+
+		switch (sym->unknown02) {
+		case 0x1005:
+			symbol->kind = GLSL_KIND_ATTRIBUTE;
+			break;
+
+		case 0x1006:
+			symbol->kind = GLSL_KIND_UNIFORM;
+			break;
+
+		case 0x1007:
+			symbol->kind = GLSL_KIND_CONSTANT;
+			break;
+
+		default:
+			symbol->kind = GLSL_KIND_UNKNOWN;
+			break;
+		}
+
+		symbol->name = name ? strdup(name) : NULL;
+		symbol->location = sym->unknown03;
+		symbol->type = glsl;
+	}
+
+	return 0;
+}
+
+static void *memdup(const void *ptr, size_t size)
 {
 	void *dup;
 
@@ -27,9 +174,9 @@ void *memdup(const void *ptr, size_t size)
 	return dup;
 }
 
-static void vertex_shader_disassemble(struct cgdrv_shader *shader, FILE *fp)
+static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 {
-	struct cgdrv_shader_header *header = shader->binary;
+	struct cgc_header *header = shader->binary;
 	const uint32_t *ptr;
 	unsigned int i, j;
 
@@ -116,29 +263,27 @@ static void vertex_shader_disassemble(struct cgdrv_shader *shader, FILE *fp)
 	}
 }
 
-static void fragment_shader_disassemble(struct cgdrv_shader *shader, FILE *fp)
+static void fragment_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 {
 }
 
-static void shader_stream_dump(struct cgdrv_shader *shader, FILE *fp)
+static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 {
-	struct cgdrv_shader_header *header;
-	struct cgdrv_fragment_shader *fs;
-	struct cgdrv_vertex_shader *vs;
+	struct cgc_fragment_shader *fs;
+	struct cgc_vertex_shader *vs;
 	struct host1x_stream stream;
+	struct cgc_header *header;
 	size_t length;
 	void *words;
 
-	fprintf(fp, "dumping stream... %d\n", shader->type);
-
 	switch (shader->type) {
-	case CGDRV_SHADER_VERTEX:
+	case CGC_SHADER_VERTEX:
 		vs = shader->stream;
 		words = shader->stream + vs->unknowne8 * 4;
 		length = vs->unknownec;
 		break;
 
-	case CGDRV_SHADER_FRAGMENT:
+	case CGC_SHADER_FRAGMENT:
 		header = shader->binary;
 		fs = shader->binary + header->binary_offset;
 		length = header->binary_size - sizeof(*fs);
@@ -159,9 +304,9 @@ static void shader_stream_dump(struct cgdrv_shader *shader, FILE *fp)
 	host1x_stream_dump(&stream, fp);
 }
 
-static void cgdrv_shader_disassemble(struct cgdrv_shader *shader, FILE *fp)
+static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 {
-	struct cgdrv_shader_header *header = shader->binary;
+	struct cgc_header *header = shader->binary;
 
 	switch (header->type) {
 	case 0x1b5d:
@@ -176,10 +321,10 @@ static void cgdrv_shader_disassemble(struct cgdrv_shader *shader, FILE *fp)
 	}
 }
 
-struct cgdrv_shader *cgdrv_compile(enum cgdrv_shader_type type,
-				   const char *code, size_t size)
+struct cgc_shader *cgc_compile(enum cgc_shader_type type,
+			       const char *code, size_t size)
 {
-	struct cgdrv_shader *shader;
+	struct cgc_shader *shader;
 	const char *shader_type;
 	char source[65536];
 	struct CgDrv *cg;
@@ -187,11 +332,11 @@ struct cgdrv_shader *cgdrv_compile(enum cgdrv_shader_type type,
 	int err;
 
 	switch (type) {
-	case CGDRV_SHADER_VERTEX:
+	case CGC_SHADER_VERTEX:
 		shader_type = "vertex";
 		break;
 
-	case CGDRV_SHADER_FRAGMENT:
+	case CGC_SHADER_FRAGMENT:
 		shader_type = "fragment";
 		break;
 
@@ -242,12 +387,19 @@ struct cgdrv_shader *cgdrv_compile(enum cgdrv_shader_type type,
 	shader->stream = memdup(cg->stream, cg->length);
 	shader->length = cg->length;
 
+	err = shader_parse_symbols(shader);
+	if (err < 0) {
+		fprintf(stderr, "cannot parse symbols\n");
+		CgDrv_Delete(cg);
+		return NULL;
+	}
+
 	CgDrv_Delete(cg);
 
 	return shader;
 }
 
-void cgdrv_shader_free(struct cgdrv_shader *shader)
+void cgc_shader_free(struct cgc_shader *shader)
 {
 	if (shader) {
 		free(shader->stream);
@@ -257,9 +409,55 @@ void cgdrv_shader_free(struct cgdrv_shader *shader)
 	free(shader);
 }
 
-void cgdrv_shader_dump(struct cgdrv_shader *shader, FILE *fp)
+struct cgc_symbol *cgc_shader_get_symbol_by_kind(struct cgc_shader *shader,
+						 enum glsl_kind kind,
+						 unsigned int index)
 {
-	struct cgdrv_shader_header *header = shader->binary;
+	unsigned int i, j;
+
+	for (i = 0, j = 0; i < shader->num_symbols; i++) {
+		struct cgc_symbol *symbol = &shader->symbols[i];
+
+		if (symbol->kind == kind) {
+			if (j == index)
+				return symbol;
+
+			j++;
+		}
+	}
+
+	return NULL;
+}
+
+struct cgc_symbol *cgc_shader_find_symbol_by_kind(struct cgc_shader *shader,
+						  enum glsl_kind kind,
+						  const char *name,
+						  unsigned int *index)
+{
+	unsigned int i, j;
+
+	for (i = 0, j = 0; i < shader->num_symbols; i++) {
+		struct cgc_symbol *symbol = &shader->symbols[i];
+
+		if (symbol->kind == kind) {
+			if (strcmp(name, symbol->name) == 0) {
+				if (index)
+					*index = j;
+
+				return symbol;
+			}
+
+			j++;
+		}
+	}
+
+	return NULL;
+}
+
+void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
+{
+	struct cgc_header *header = shader->binary;
+	struct cgc_symbol *symbol;
 	unsigned int i, j;
 	const char *type;
 
@@ -316,56 +514,78 @@ void cgdrv_shader_dump(struct cgdrv_shader *shader, FILE *fp)
 	else
 		type = "unknown";
 
-	fprintf(fp, "/* %s shader */\n", type);
-	fprintf(fp, "{\n");
-	fprintf(fp, "\t.type = 0x%08x,\n", header->type);
-	fprintf(fp, "\t.unknown00 = 0x%08x,\n", header->unknown00);
-	fprintf(fp, "\t.size = 0x%08x,\n", header->size);
-	fprintf(fp, "\t.num_symbols = %u,\n", header->num_symbols);
-	fprintf(fp, "\t.bar_size = %u,\n", header->bar_size);
-	fprintf(fp, "\t.bar_offset = 0x%08x,\n", header->bar_offset);
-	fprintf(fp, "\t.binary_size = %u,\n", header->binary_size);
-	fprintf(fp, "\t.binary_offset = 0x%08x,\n", header->binary_offset);
-	fprintf(fp, "\t.unknown01 = 0x%08x,\n", header->unknown01);
-	fprintf(fp, "\t.unknown02 = 0x%08x,\n", header->unknown02);
-	fprintf(fp, "\t.unknown03 = 0x%08x,\n", header->unknown03);
-	fprintf(fp, "\t.unknown04 = 0x%08x,\n", header->unknown04);
-	fprintf(fp, "\t.symbols = {\n");
+	fprintf(fp, "%s shader:\n", type);
+	fprintf(fp, "  type: 0x%08x\n", header->type);
+	fprintf(fp, "  unknown00: 0x%08x\n", header->unknown00);
+	fprintf(fp, "  size: 0x%08x\n", header->size);
+	fprintf(fp, "  num_symbols: %u\n", header->num_symbols);
+	fprintf(fp, "  bar_size: %u\n", header->bar_size);
+	fprintf(fp, "  bar_offset: 0x%08x\n", header->bar_offset);
+	fprintf(fp, "  binary_size: %u\n", header->binary_size);
+	fprintf(fp, "  binary_offset: 0x%08x\n", header->binary_offset);
+	fprintf(fp, "  unknown01: 0x%08x\n", header->unknown01);
+	fprintf(fp, "  unknown02: 0x%08x\n", header->unknown02);
+	fprintf(fp, "  unknown03: 0x%08x\n", header->unknown03);
+	fprintf(fp, "  unknown04: 0x%08x\n", header->unknown04);
+	fprintf(fp, "  symbols:\n");
 
 	for (i = 0; i < header->num_symbols; i++) {
-		struct cgdrv_shader_symbol *symbol = &header->symbol[i];
-		const char *name;
+		struct cgc_header_symbol *symbol = &header->symbols[i];
+		const char *name, *data_type;
 
+		data_type = data_type_name(symbol->unknown00 & 0xff);
 		name = shader->binary + symbol->name_offset;
 
-		fprintf(fp, "\t\t[%u] = {\n", i);
-		fprintf(fp, "\t\t\t.unknown00 = 0x%08x,\n", symbol->unknown00);
-		fprintf(fp, "\t\t\t.unknown01 = 0x%08x,\n", symbol->unknown01);
-		fprintf(fp, "\t\t\t.unknown02 = 0x%08x, /* type? */\n", symbol->unknown02);
-		fprintf(fp, "\t\t\t.unknown03 = 0x%08x,\n", symbol->unknown03);
-		fprintf(fp, "\t\t\t.name_offset = 0x%08x, /* \"%s\" */\n",
-			symbol->name_offset, name);
-		fprintf(fp, "\t\t\t.values_offset = 0x%08x,\n",
-			symbol->values_offset);
+		fprintf(fp, "    %u: %s %s\n", i, data_type, name);
+		fprintf(fp, "      unknown00: 0x%08x\n", symbol->unknown00);
+		fprintf(fp, "      unknown01: 0x%08x\n", symbol->unknown01);
+		fprintf(fp, "      unknown02: 0x%08x (%s)\n", symbol->unknown02,
+			variable_type_name(symbol->unknown02));
+		fprintf(fp, "      unknown03: 0x%08x\n", symbol->unknown03);
+		fprintf(fp, "      name_offset: 0x%08x\n", symbol->name_offset);
+		fprintf(fp, "      values_offset: 0x%08x\n", symbol->values_offset);
 
 		if (symbol->values_offset) {
 			const uint32_t *values = shader->binary + symbol->values_offset;
 
 			for (j = 0; j < 4; j++)
-				fprintf(fp, "\t\t\t\t0x%08x\n", values[j]);
+				fprintf(fp, "        0x%08x\n", values[j]);
 		}
 
-		fprintf(fp, "\t\t\t.unknown06 = 0x%08x,\n", symbol->unknown06);
-		fprintf(fp, "\t\t\t.alt_offset = 0x%08x,\n", symbol->alt_offset);
-		fprintf(fp, "\t\t\t.unknown08 = 0x%08x,\n", symbol->unknown08);
-		fprintf(fp, "\t\t\t.unknown09 = 0x%08x,\n", symbol->unknown09);
-		fprintf(fp, "\t\t\t.unknown10 = 0x%08x,\n", symbol->unknown10);
-		fprintf(fp, "\t\t\t.unknown11 = 0x%08x,\n", symbol->unknown11);
-		fprintf(fp, "\t\t},\n");
+		fprintf(fp, "      unknown06: 0x%08x\n", symbol->unknown06);
+		fprintf(fp, "      alt_offset: 0x%08x\n", symbol->alt_offset);
+		fprintf(fp, "      unknown08: 0x%08x\n", symbol->unknown08);
+		fprintf(fp, "      unknown09: 0x%08x\n", symbol->unknown09);
+		fprintf(fp, "      unknown10: 0x%08x\n", symbol->unknown10);
+		fprintf(fp, "      unknown11: 0x%08x\n", symbol->unknown11);
 	}
 
-	fprintf(fp, "\t}\n");
-	fprintf(fp, "}\n");
+	cgc_shader_disassemble(shader, fp);
 
-	cgdrv_shader_disassemble(shader, fp);
+	fprintf(fp, "  attributes:\n");
+	i = 0;
+
+	while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
+		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+			symbol->location);
+		i++;
+	}
+
+	fprintf(fp, "  uniforms:\n");
+	i = 0;
+
+	while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
+		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+			symbol->location);
+		i++;
+	}
+
+	fprintf(fp, "  constants:\n");
+	i = 0;
+
+	while ((symbol = cgc_shader_get_constant(shader, i)) != NULL) {
+		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+			symbol->location);
+		i++;
+	}
 }

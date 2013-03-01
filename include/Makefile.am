@@ -1,2 +1,2 @@
 noinst_HEADERS = \
-	cgdrv.h
+	libcgc.h

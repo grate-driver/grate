@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "cgdrv.h"
+#include "libcgc.h"
 
 #define BIT(x) (1 << (x))
 
@@ -23,7 +23,7 @@ struct shader_binary {
 #endif
 
 struct opts {
-	enum cgdrv_shader_type type;
+	enum cgc_shader_type type;
 	bool version;
 	bool help;
 };
@@ -178,12 +178,12 @@ static int parse_command_line(struct opts *opts, int argc, char *argv[])
 	int opt;
 
 	memset(opts, 0, sizeof(*opts));
-	opts->type = CGDRV_SHADER_FRAGMENT;
+	opts->type = CGC_SHADER_FRAGMENT;
 
 	while ((opt = getopt_long(argc, argv, "FhvV", options, NULL)) != -1) {
 		switch (opt) {
 		case 'F':
-			opts->type = CGDRV_SHADER_FRAGMENT;
+			opts->type = CGC_SHADER_FRAGMENT;
 			break;
 
 		case 'h':
@@ -191,7 +191,7 @@ static int parse_command_line(struct opts *opts, int argc, char *argv[])
 			break;
 
 		case 'v':
-			opts->type = CGDRV_SHADER_VERTEX;
+			opts->type = CGC_SHADER_VERTEX;
 			break;
 
 		case 'V':
@@ -557,7 +557,7 @@ struct cgbin {
  */
 int main(int argc, char *argv[])
 {
-	struct cgdrv_shader *shader;
+	struct cgc_shader *shader;
 	size_t length, i;
 	struct opts opts;
 	char code[65536];
@@ -608,10 +608,10 @@ int main(int argc, char *argv[])
 			fputs("| ", stdout);
 	}
 
-	shader = cgdrv_compile(opts.type, code, length);
+	shader = cgc_compile(opts.type, code, length);
 	if (shader) {
-		cgdrv_shader_dump(shader, stdout);
-		cgdrv_shader_free(shader);
+		cgc_shader_dump(shader, stdout);
+		cgc_shader_free(shader);
 	}
 
 	return 0;

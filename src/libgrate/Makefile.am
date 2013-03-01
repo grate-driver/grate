@@ -26,7 +26,7 @@ libgrate_la_LIBADD = \
 
 if ENABLE_CGC
 libgrate_la_SOURCES += \
-	shader-cgdrv.c
+	shader-cgc.c
 
 libgrate_la_LIBADD += \
 	../libcgc/libcgc.la

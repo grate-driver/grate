@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-#include "cgdrv.h"
+#include "libcgc-private.h"
 
 struct instruction {
 	unsigned int length;

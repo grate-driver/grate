@@ -70,6 +70,10 @@ struct grate_program *grate_program_new(struct grate *grate,
 					struct grate_shader *fs);
 void grate_program_free(struct grate_program *program);
 
+void grate_program_link(struct grate_program *program);
 void grate_use_program(struct grate *grate, struct grate_program *program);
+
+void grate_uniform(struct grate *grate, const char *name, unsigned int count,
+		   float *values);
 
 #endif

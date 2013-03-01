@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = \
 	libcgc.la
 
 noinst_HEADERS = \
-	libcgc.h
+	libcgc-private.h
 
 libcgc_la_CPPFLAGS = \
 	-I$(top_srcdir)/include
