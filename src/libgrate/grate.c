@@ -1,27 +1,12 @@
 #include <stdlib.h>
 
-#include "grate.h"
+#include "libgrate-private.h"
 
 #include "gr2d.h"
 #include "gr3d.h"
 
 struct grate_framebuffer {
 	struct nvmap_framebuffer *base;
-};
-
-struct grate_color {
-	float r, g, b, a;
-};
-
-struct grate {
-	struct grate_program *program;
-	struct grate_framebuffer *fb;
-	struct grate_color clear;
-
-	struct nvhost_ctrl *ctrl;
-	struct nvmap *nvmap;
-	struct nvhost_gr2d *gr2d;
-	struct nvhost_gr3d *gr3d;
 };
 
 struct grate *grate_init(void)

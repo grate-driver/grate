@@ -13,6 +13,7 @@ libgrate_la_SOURCES = \
 	gr3d.h \
 	grate.c \
 	grate.h \
+	libgrate-private.h \
 	nvhost.c \
 	nvhost.h \
 	nvmap.c \

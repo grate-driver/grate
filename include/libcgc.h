@@ -154,6 +154,8 @@ struct cgc_symbol {
 	enum glsl_kind kind;
 	enum glsl_type type;
 	const char *name;
+
+	uint32_t vector[4];
 };
 
 struct cgc_shader {

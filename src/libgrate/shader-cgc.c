@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libgrate-private.h"
 #include "libcgc.h"
 #include "grate.h"
 

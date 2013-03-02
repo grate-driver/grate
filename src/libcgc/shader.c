@@ -145,6 +145,16 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 			break;
 
 		case 0x1007:
+			if (sym->values_offset) {
+				const uint32_t *values = shader->binary +
+							 sym->values_offset;
+				for (i = 0; i < 4; i++)
+					symbol->vector[i] = values[i];
+			} else {
+				fprintf(stderr, "no values for constant %s\n",
+					name);
+			}
+
 			symbol->kind = GLSL_KIND_CONSTANT;
 			break;
 
@@ -586,6 +596,11 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	while ((symbol = cgc_shader_get_constant(shader, i)) != NULL) {
 		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
 			symbol->location);
+		fprintf(fp, "      values:\n");
+
+		for (j = 0; j < 4; j++)
+			fprintf(fp, "        0x%08x\n", symbol->vector[j]);
+
 		i++;
 	}
 }
