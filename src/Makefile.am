@@ -1,5 +1,5 @@
 SUBDIRS = \
+	libhost1x \
 	libcgc \
 	libgrate \
-	libhost1x \
 	libwrap
