@@ -40,6 +40,7 @@ static int nvhost_gr3d_init(struct nvhost_gr3d *gr3d)
 	const unsigned int num_attributes = 16;
 	struct nvhost_pushbuf *pb;
 	struct nvhost_job *job;
+	unsigned int i;
 	uint32_t fence;
 	int err;
 
