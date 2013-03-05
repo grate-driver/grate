@@ -166,7 +166,7 @@ static int nvhost_client_syncpt_init(struct nvhost_client *client)
 	if (!base->syncpts)
 		return -ENOMEM;
 
-	printf("%u syncpoints: %08x\n", base->num_syncpts, args.value);
+	//printf("%u syncpoints: %08x\n", base->num_syncpts, args.value);
 
 	for (i = 0, j = 0; i < 32; i++) {
 		if (args.value & (1 << i)) {
@@ -180,7 +180,7 @@ static int nvhost_client_syncpt_init(struct nvhost_client *client)
 				continue;
 			}
 
-			printf("  %u: %u\n", i, syncpt->value);
+			//printf("  %u: %u\n", i, syncpt->value);
 		}
 	}
 
@@ -361,7 +361,7 @@ int nvhost_client_init(struct nvhost_client *client, struct nvmap *nvmap,
 	if (err < 0)
 		return -errno;
 
-	printf("waitbases: %08x\n", param.value);
+	//printf("waitbases: %08x\n", param.value);
 
 	err = nvhost_client_syncpt_init(client);
 	if (err < 0)

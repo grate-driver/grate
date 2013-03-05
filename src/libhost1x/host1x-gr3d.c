@@ -764,7 +764,7 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	if (err < 0)
 		return err;
 
-	printf("fence: %u\n", fence);
+	//printf("fence: %u\n", fence);
 
 	err = host1x_client_wait(gr3d->client, fence, -1);
 	if (err < 0)

@@ -10,11 +10,27 @@ struct host1x *host1x_open(void)
 {
 	struct host1x *host1x;
 
-	host1x = host1x_drm_open();
-	if (host1x)
-		return host1x;
+	printf("Looking for Tegra DRM interface...");
+	fflush(stdout);
 
-	return host1x_nvhost_open();
+	host1x = host1x_drm_open();
+	if (host1x) {
+		printf("found\n");
+		return host1x;
+	}
+
+	printf("not found\n");
+	printf("Looking for L4T interface...");
+	fflush(stdout);
+
+	host1x = host1x_nvhost_open();
+	if (host1x) {
+		printf("found\n");
+		return host1x;
+	}
+
+	printf("not found\n");
+	return NULL;
 }
 
 void host1x_close(struct host1x *host1x)

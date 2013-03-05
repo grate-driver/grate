@@ -75,7 +75,7 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 		return err;
 	}
 
-	printf("fence: %u\n", fence);
+	//printf("fence: %u\n", fence);
 
 	err = host1x_client_wait(gr2d->client, fence, -1);
 	if (err < 0) {
