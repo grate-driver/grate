@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2012, 2013 Erik Faye-Lund
- * Copyright (c) 2013 Avionic Design GmbH
  * Copyright (c) 2013 Thierry Reding
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
