@@ -9,8 +9,8 @@ libcgc_la_CPPFLAGS = \
 
 libcgc_la_SOURCES = \
 	instruction.c \
-	shader.c
+	shader.c \
+	stream.c
 
 libcgc_la_LIBADD = \
-	../libhost1x/libhost1x.la \
 	-lcgdrv

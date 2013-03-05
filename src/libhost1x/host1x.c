@@ -1,0 +1,160 @@
+#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "host1x.h"
+#include "host1x-private.h"
+
+struct host1x *host1x_open(void)
+{
+	struct host1x *host1x;
+
+	host1x = host1x_drm_open();
+	if (host1x)
+		return host1x;
+
+	return host1x_nvhost_open();
+}
+
+void host1x_close(struct host1x *host1x)
+{
+	host1x->close(host1x);
+}
+
+struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x)
+{
+	return host1x->gr2d;
+}
+
+struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x)
+{
+	return host1x->gr3d;
+}
+
+struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
+				   unsigned long flags)
+{
+	return host1x->bo_create(host1x, size, flags);
+}
+
+void host1x_bo_free(struct host1x_bo *bo)
+{
+	bo->free(bo);
+}
+
+int host1x_bo_mmap(struct host1x_bo *bo)
+{
+	return bo->mmap(bo);
+}
+
+int host1x_bo_invalidate(struct host1x_bo *bo, loff_t offset, size_t length)
+{
+	if (bo->invalidate)
+		return bo->invalidate(bo, offset, length);
+
+	return 0;
+}
+
+struct host1x_job *host1x_job_create(uint32_t syncpt, uint32_t increments)
+{
+	struct host1x_job *job;
+
+	job = calloc(1, sizeof(*job));
+	if (!job)
+		return NULL;
+
+	job->syncpt = syncpt;
+	job->syncpt_incrs = increments;
+
+	return job;
+}
+
+void host1x_job_free(struct host1x_job *job)
+{
+	unsigned int i;
+
+	for (i = 0; i < job->num_pushbufs; i++) {
+		struct host1x_pushbuf *pb = &job->pushbufs[i];
+		free(pb->relocs);
+	}
+
+	free(job->pushbufs);
+	free(job);
+}
+
+struct host1x_pushbuf *host1x_job_append(struct host1x_job *job,
+					 struct host1x_bo *bo,
+					 unsigned long offset)
+{
+	struct host1x_pushbuf *pb;
+	size_t size;
+
+	if (!bo->ptr)
+		return NULL;
+
+	size = (job->num_pushbufs + 1) * sizeof(*pb);
+
+	pb = realloc(job->pushbufs, size);
+	if (!pb)
+		return NULL;
+
+	job->pushbufs = pb;
+
+	pb = &job->pushbufs[job->num_pushbufs++];
+	memset(pb, 0, sizeof(*pb));
+
+	pb->ptr = bo->ptr + offset;
+	pb->offset = offset;
+	pb->bo = bo;
+
+	return pb;
+}
+
+int host1x_pushbuf_push(struct host1x_pushbuf *pb, uint32_t word)
+{
+	*pb->ptr++ = word;
+	pb->length++;
+
+	return 0;
+}
+
+int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
+			    unsigned long offset, unsigned long shift)
+{
+	struct host1x_pushbuf_reloc *reloc;
+	size_t size;
+
+	size = (pb->num_relocs + 1) * sizeof(*reloc);
+
+	reloc = realloc(pb->relocs, size);
+	if (!reloc)
+		return -ENOMEM;
+
+	pb->relocs = reloc;
+
+	reloc = &pb->relocs[pb->num_relocs++];
+
+	reloc->source_offset = host1x_bo_get_offset(pb->bo, pb->ptr);
+	reloc->target_handle = target->handle;
+	reloc->target_offset = offset;
+	reloc->shift = shift;
+
+	return 0;
+}
+
+int host1x_client_submit(struct host1x_client *client, struct host1x_job *job)
+{
+	return client->submit(client, job);
+}
+
+int host1x_client_flush(struct host1x_client *client, uint32_t *fence)
+{
+	return client->flush(client, fence);
+}
+
+int host1x_client_wait(struct host1x_client *client, uint32_t fence,
+		       uint32_t timeout)
+{
+	return client->wait(client, fence, timeout);
+}

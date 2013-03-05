@@ -42,6 +42,7 @@ AC_OUTPUT([
 	tests/Makefile
 	tests/gles/Makefile
 	tests/grate/Makefile
+	tests/host1x/Makefile
 	tests/nvhost/Makefile
 	tools/Makefile
 ])
