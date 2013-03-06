@@ -205,7 +205,7 @@ void CgDrv_GetCgBin(struct cgdrv *cgdrv)
 }
 
 int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
-		  const char *code, size_t length, int unknown2)
+		  const char *code, size_t length, int unknown2, int unknown3)
 {
 	static typeof(CgDrv_Compile) *orig = NULL;
 	size_t i;
@@ -228,7 +228,7 @@ int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
-	ret = orig(cgdrv, unknown, type, code, length, unknown2);
+	ret = orig(cgdrv, unknown, type, code, length, unknown2, unknown3);
 
 	if (cgdrv->error)
 		printf("  error: %s\n", cgdrv->error);
