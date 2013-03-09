@@ -152,7 +152,6 @@ void grate_program_free(struct grate_program *program)
 void grate_program_link(struct grate_program *program)
 {
 	struct cgc_shader *shader;
-	struct cgc_symbol *symbol;
 	unsigned int i;
 
 	shader = program->vs->cgc;
