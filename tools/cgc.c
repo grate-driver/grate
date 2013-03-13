@@ -70,7 +70,7 @@ static int parse_command_line(struct opts *opts, int argc, char *argv[])
 int main(int argc, char *argv[])
 {
 	struct cgc_shader *shader;
-	size_t length, i;
+	size_t length;
 	struct opts opts;
 	char code[65536];
 	FILE *fp;
@@ -109,16 +109,6 @@ int main(int argc, char *argv[])
 	code[length] = '\0';
 
 	fclose(fp);
-
-	printf("Compiling shader (%zu bytes)...\n", length);
-	fputs("| ", stdout);
-
-	for (i = 0; i < length; i++) {
-		fputc(code[i], stdout);
-
-		if (code[i] == '\n' && i != length - 1)
-			fputs("| ", stdout);
-	}
 
 	shader = cgc_compile(opts.type, code, length);
 	if (shader) {
