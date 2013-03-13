@@ -92,7 +92,7 @@ static const struct data_type {
 	{ GLSL_TYPE_VEC3, 0x17, "highp vec3" },
 	{ GLSL_TYPE_VEC4, 0x18, "highp vec4" },
 	{ GLSL_TYPE_MAT2, 0x1e, "mat2" },
-	{ GLSL_TYPE_MAT4, 0x23, "mat3" },
+	{ GLSL_TYPE_MAT3, 0x23, "mat3" },
 	{ GLSL_TYPE_MAT4, 0x28, "mat4" },
 	{ GLSL_TYPE_SAMPLER2D, 0x2a, "sampler2D" },
 	{ GLSL_TYPE_SAMPLER3D, 0x2b, "sampler3D" },
