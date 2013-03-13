@@ -83,15 +83,24 @@ static const struct data_type {
 	unsigned int type;
 	const char *name;
 } data_types[] = {
-	{ GLSL_TYPE_FLOAT, 0x15, "float" },
-	{ GLSL_TYPE_VEC2, 0x16, "vec2" },
-	{ GLSL_TYPE_VEC3, 0x17, "vec3" },
-	{ GLSL_TYPE_VEC4, 0x18, "vec4" },
+	{ GLSL_TYPE_FLOAT, 0x01, "mediump float" },
+	{ GLSL_TYPE_VEC2, 0x02, "mediump vec2" },
+	{ GLSL_TYPE_VEC3, 0x03, "mediump vec3" },
+	{ GLSL_TYPE_VEC4, 0x04, "mediump vec4" },
+	{ GLSL_TYPE_FLOAT, 0x15, "highp float" },
+	{ GLSL_TYPE_VEC2, 0x16, "highp vec2" },
+	{ GLSL_TYPE_VEC3, 0x17, "highp vec3" },
+	{ GLSL_TYPE_VEC4, 0x18, "highp vec4" },
 	{ GLSL_TYPE_MAT2, 0x1e, "mat2" },
 	{ GLSL_TYPE_MAT4, 0x23, "mat3" },
 	{ GLSL_TYPE_MAT4, 0x28, "mat4" },
 	{ GLSL_TYPE_SAMPLER2D, 0x2a, "sampler2D" },
 	{ GLSL_TYPE_SAMPLER3D, 0x2b, "sampler3D" },
+	{ GLSL_TYPE_SAMPLER3D, 0x2d, "samplerCube" },
+	{ GLSL_TYPE_FLOAT, 0x2e, "lowp float" },
+	{ GLSL_TYPE_VEC2, 0x2f, "lowp vec2" },
+	{ GLSL_TYPE_VEC3, 0x30, "lowp vec3" },
+	{ GLSL_TYPE_VEC4, 0x31, "lowp vec4" },
 	{ GLSL_TYPE_INT, 0x45, "int" },
 	{ GLSL_TYPE_IVEC2, 0x47, "ivec2" },
 	{ GLSL_TYPE_IVEC3, 0x48, "ivec3" },
@@ -100,6 +109,7 @@ static const struct data_type {
 	{ GLSL_TYPE_BVEC2, 0x5c, "bvec2" },
 	{ GLSL_TYPE_BVEC3, 0x5d, "bvec3" },
 	{ GLSL_TYPE_BVEC4, 0x5e, "bvec4" },
+	{ GLSL_TYPE_SAMPLER3D, 0x73, "sampler2DArray" },
 };
 
 static const char *data_type_name(unsigned int type)
