@@ -12,10 +12,7 @@ struct grate {
 	struct grate_framebuffer *fb;
 	struct grate_color clear;
 
-	struct nvhost_ctrl *ctrl;
-	struct nvmap *nvmap;
-	struct nvhost_gr2d *gr2d;
-	struct nvhost_gr3d *gr3d;
+	struct host1x *host1x;
 };
 
 #endif

@@ -26,11 +26,10 @@
 
 #include "libgrate-private.h"
 
-#include "gr2d.h"
-#include "gr3d.h"
+#include "host1x.h"
 
 struct grate_framebuffer {
-	struct nvmap_framebuffer *base;
+	struct host1x_framebuffer *base;
 };
 
 struct grate *grate_init(void)
@@ -41,26 +40,8 @@ struct grate *grate_init(void)
 	if (!grate)
 		return NULL;
 
-	grate->nvmap = nvmap_open();
-	if (!grate->nvmap) {
-		free(grate);
-		return NULL;
-	}
-
-	grate->ctrl = nvhost_ctrl_open();
-	if (!grate->ctrl) {
-		free(grate);
-		return NULL;
-	}
-
-	grate->gr2d = nvhost_gr2d_open(grate->nvmap, grate->ctrl);
-	if (!grate->gr2d) {
-		free(grate);
-		return NULL;
-	}
-
-	grate->gr3d = nvhost_gr3d_open(grate->nvmap, grate->ctrl);
-	if (!grate->gr3d) {
+	grate->host1x = host1x_open();
+	if (!grate->host1x) {
 		free(grate);
 		return NULL;
 	}
@@ -70,12 +51,8 @@ struct grate *grate_init(void)
 
 void grate_exit(struct grate *grate)
 {
-	if (grate) {
-		nvhost_gr3d_close(grate->gr3d);
-		nvhost_gr2d_close(grate->gr2d);
-		nvhost_ctrl_close(grate->ctrl);
-		nvmap_close(grate->nvmap);
-	}
+	if (grate)
+		host1x_close(grate->host1x);
 
 	free(grate);
 }
@@ -91,14 +68,15 @@ void grate_clear_color(struct grate *grate, float red, float green,
 
 void grate_clear(struct grate *grate)
 {
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
 	struct grate_color *clear = &grate->clear;
 	int err;
 
 	if (!grate->fb)
 		return;
 
-	err = nvhost_gr2d_clear(grate->gr2d, grate->fb->base, clear->r,
-				clear->g, clear->b, clear->a);
+	err = host1x_gr2d_clear(gr2d, grate->fb->base, clear->r, clear->g,
+				clear->b, clear->a);
 	if (err < 0) {
 	}
 }
@@ -139,7 +117,8 @@ struct grate_framebuffer *grate_framebuffer_new(struct grate *grate,
 	if (!fb)
 		return NULL;
 
-	fb->base = nvmap_framebuffer_create(grate->nvmap, width, height, bpp);
+	fb->base = host1x_framebuffer_create(grate->host1x, width, height, bpp,
+					     0);
 	if (!fb->base) {
 		free(fb);
 		return NULL;
@@ -151,14 +130,14 @@ struct grate_framebuffer *grate_framebuffer_new(struct grate *grate,
 void grate_framebuffer_free(struct grate_framebuffer *fb)
 {
 	if (fb)
-		nvmap_framebuffer_free(fb->base);
+		host1x_framebuffer_free(fb->base);
 
 	free(fb);
 }
 
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path)
 {
-	nvmap_framebuffer_save(fb->base, path);
+	host1x_framebuffer_save(fb->base, path);
 }
 
 void grate_use_program(struct grate *grate, struct grate_program *program)

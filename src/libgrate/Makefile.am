@@ -7,21 +7,14 @@ libgrate_la_CFLAGS = \
 	$(PNG_CFLAGS)
 
 libgrate_la_SOURCES = \
-	gr2d.c \
-	gr2d.h \
-	gr3d.c \
-	gr3d.h \
 	grate.c \
 	grate.h \
 	libgrate-private.h \
-	nvhost.c \
-	nvhost.h \
-	nvmap.c \
-	nvmap.h \
 	matrix.c \
 	matrix.h
 
 libgrate_la_LIBADD = \
+	../libhost1x/libhost1x.la \
 	$(PNG_LIBS) \
 	-lm
 
