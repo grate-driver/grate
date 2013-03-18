@@ -255,11 +255,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		inst = instruction_create_from_words(words, 4);
 
-		op = instruction_extract(inst, 86, 87);
+		op = instruction_extract(inst, 86, 88);
 		switch (op) {
-		case 0x0:
-			printf("      fma\n");
-			break;
 		case 0x1:
 			printf("      fetch\n");
 			break;
@@ -268,6 +265,15 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			break;
 		case 0x3:
 			printf("      add\n");
+			break;
+		case 0x4:
+			printf("      fma\n");
+			break;
+		case 0x5:
+			printf("      dot3\n");
+			break;
+		case 0x7:
+			printf("      dot4\n");
 			break;
 		default:
 			printf("      unknown\n");
