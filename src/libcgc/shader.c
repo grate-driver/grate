@@ -234,7 +234,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	printf("  instructions:\n");
 
 	for (i = 0; i < header->binary_size; i += 16) {
-		uint8_t sx, sy, sz, sw, neg, op, constant, attribute, abs;
+		uint8_t sx, sy, sz, sw, neg, op, op2, constant, attribute, abs;
 		struct instruction *inst;
 		uint32_t words[4], reg;
 
@@ -257,6 +257,20 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		op = instruction_extract(inst, 86, 88);
 		switch (op) {
+		case 0x0:
+			op2 = instruction_extract(inst, 92, 93);
+			switch (op2) {
+			case 0x1:
+				printf("      rcp\n");
+				break;
+			case 0x2:
+				printf("      rsq\n");
+				break;
+			default:
+				printf("      unknown2\n");
+				break;
+			}
+			break;
 		case 0x1:
 			printf("      fetch\n");
 			break;
