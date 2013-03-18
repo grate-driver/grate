@@ -255,7 +255,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		inst = instruction_create_from_words(words, 4);
 
-		op = instruction_extract(inst, 86, 89);
+		op = instruction_extract(inst, 86, 90);
 		switch (op) {
 		case 0x0:
 			op2 = instruction_extract(inst, 91, 94);
@@ -315,6 +315,12 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			break;
 		case 0xf:
 			printf("      floor\n");
+			break;
+		case 0x10:
+			printf("      seq\n");
+			break;
+		case 0x14:
+			printf("      sne\n");
 			break;
 		default:
 			printf("      unknown (%x)\n", op);
