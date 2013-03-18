@@ -257,6 +257,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		op = instruction_extract(inst, 86, 87);
 		switch (op) {
+		case 0x0:
+			printf("      fma\n");
+			break;
 		case 0x1:
 			printf("      fetch\n");
 			break;
@@ -296,7 +299,17 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		sw = instruction_extract(inst, 46, 47);
 		abs = instruction_get_bit(inst, 118);
 
-		printf("      %s%ssrc0.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+		printf("      %s%ssrc1.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+
+		neg = instruction_get_bit(inst, 37);
+		sz = instruction_extract(inst, 35, 36);
+		sw = instruction_extract(inst, 33, 34);
+		sz = instruction_extract(inst, 31, 32);
+		sw = instruction_extract(inst, 29, 30);
+		abs = instruction_get_bit(inst, 119);
+
+		printf("      %s%ssrc2.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
 		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
 		reg = instruction_extract(inst, 2, 6);
