@@ -258,13 +258,25 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		op = instruction_extract(inst, 86, 89);
 		switch (op) {
 		case 0x0:
-			op2 = instruction_extract(inst, 92, 93);
+			op2 = instruction_extract(inst, 91, 94);
 			switch (op2) {
-			case 0x1:
-				printf("      rcp\n");
+			case 0x0:
+				printf("      cos\n");
 				break;
 			case 0x2:
+				printf("      rcp\n");
+				break;
+			case 0x4:
 				printf("      rsq\n");
+				break;
+			case 0xd:
+				printf("      log2\n");
+				break;
+			case 0xe:
+				printf("      exp2\n");
+				break;
+			case 0xf:
+				printf("      sin\n");
 				break;
 			default:
 				printf("      unknown2 (%x)\n", op2);
