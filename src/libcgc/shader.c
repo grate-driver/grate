@@ -267,7 +267,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf("      rsq\n");
 				break;
 			default:
-				printf("      unknown2\n");
+				printf("      unknown2 (%x)\n", op2);
 				break;
 			}
 			break;
@@ -290,7 +290,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			printf("      dot4\n");
 			break;
 		default:
-			printf("      unknown\n");
+			printf("      unknown (%x)\n", op);
 			break;
 		}
 
