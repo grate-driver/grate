@@ -366,13 +366,23 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
 		reg = instruction_extract(inst, 2, 6);
-		sx = instruction_get_bit(inst, 16);
-		sy = instruction_get_bit(inst, 15);
-		sz = instruction_get_bit(inst, 14);
-		sw = instruction_get_bit(inst, 13);
+		if (op) {
+			sx = instruction_get_bit(inst, 16);
+			sy = instruction_get_bit(inst, 15);
+			sz = instruction_get_bit(inst, 14);
+			sw = instruction_get_bit(inst, 13);
 
-		printf("      dst.%s%s%s%s = %x\n", sx ? "x" : "",
-		       sy ? "y" : "", sz ? "z" : "", sw ? "w" : "", reg);
+			printf("      dst.%s%s%s%s = %x\n", sx ? "x" : "",
+			       sy ? "y" : "", sz ? "z" : "", sw ? "w" : "", reg);
+		} else {
+			sx = instruction_get_bit(inst, 20);
+			sy = instruction_get_bit(inst, 19);
+			sz = instruction_get_bit(inst, 18);
+			sw = instruction_get_bit(inst, 17);
+
+			printf("      dst.%s%s%s%s\n", sx ? "x" : "",
+			       sy ? "y" : "", sz ? "z" : "", sw ? "w" : "");
+		}
 
 		if (instruction_get_bit(inst, 0))
 			printf("    done\n");
