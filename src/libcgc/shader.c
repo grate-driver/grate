@@ -234,7 +234,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	printf("  instructions:\n");
 
 	for (i = 0; i < header->binary_size; i += 16) {
-		uint8_t sx, sy, sz, sw, neg, op, op2, constant, attribute, abs;
+		uint8_t sx, sy, sz, sw, wx, wy, wz, ww, neg, op, constant, attribute, abs;
 		struct instruction *inst;
 		uint32_t words[4], reg;
 
@@ -255,133 +255,150 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		inst = instruction_create_from_words(words, 4);
 
-		op = instruction_extract(inst, 86, 90);
-		switch (op) {
-		case 0x0:
-			op2 = instruction_extract(inst, 91, 94);
-			switch (op2) {
-			case 0x0:
-				printf("      cos\n");
-				break;
-			case 0x2:
-				printf("      rcp\n");
-				break;
-			case 0x4:
-				printf("      rsq\n");
-				break;
-			case 0xd:
-				printf("      log2\n");
-				break;
-			case 0xe:
-				printf("      exp2\n");
-				break;
-			case 0xf:
-				printf("      sin\n");
-				break;
-			default:
-				printf("      unknown2 (%x)\n", op2);
-				break;
-			}
-			break;
-		case 0x1:
-			printf("      fetch\n");
-			break;
-		case 0x2:
-			printf("      mul\n");
-			break;
-		case 0x3:
-			printf("      add\n");
-			break;
-		case 0x4:
-			printf("      fma\n");
-			break;
-		case 0x5:
-			printf("      dot3\n");
-			break;
-		case 0x7:
-			printf("      dot4\n");
-			break;
-		case 0x9:
-			printf("      min\n");
-			break;
-		case 0xa:
-			printf("      max\n");
-			break;
-		case 0xb:
-			printf("      slt\n");
-			break;
-		case 0xc:
-			printf("      sge\n");
-			break;
-		case 0xf:
-			printf("      floor\n");
-			break;
-		case 0x10:
-			printf("      seq\n");
-			break;
-		case 0x14:
-			printf("      sne\n");
-			break;
-		default:
-			printf("      unknown (%x)\n", op);
-			break;
-		}
-
 		constant = instruction_extract(inst, 76, 83);
 		attribute = instruction_extract(inst, 72, 75);
+		printf("      constant #%02x\n", constant);
+		printf("      attribute #%02x\n", attribute);
 
-		neg = instruction_get_bit(inst, 71);
-		sx = instruction_extract(inst, 69, 70);
-		sy = instruction_extract(inst, 67, 68);
-		sz = instruction_extract(inst, 65, 66);
-		sw = instruction_extract(inst, 63, 64);
-		abs = instruction_get_bit(inst, 117);
+		wx = instruction_get_bit(inst, 16);
+		wy = instruction_get_bit(inst, 15);
+		wz = instruction_get_bit(inst, 14);
+		ww = instruction_get_bit(inst, 13);
 
-		printf("      %s%ssrc0.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+		if (wx || wy || wz || ww) {
+			printf("      vec op\n");
+			printf("        ");
+			op = instruction_extract(inst, 86, 90);
+			switch (op) {
+			case 0x1:
+				printf("fetch\n");
+				break;
+			case 0x2:
+				printf("mul\n");
+				break;
+			case 0x3:
+				printf("add\n");
+				break;
+			case 0x4:
+				printf("fma\n");
+				break;
+			case 0x5:
+				printf("dot3\n");
+				break;
+			case 0x7:
+				printf("dot4\n");
+				break;
+			case 0x9:
+				printf("min\n");
+				break;
+			case 0xa:
+				printf("max\n");
+				break;
+			case 0xb:
+				printf("slt\n");
+				break;
+			case 0xc:
+				printf("sge\n");
+				break;
+			case 0xf:
+				printf("floor\n");
+				break;
+			case 0x10:
+				printf("seq\n");
+				break;
+			case 0x14:
+				printf("sne\n");
+				break;
+			default:
+				printf("unknown (%x)\n", op);
+				break;
+			}
 
-		if (instruction_get_bit(inst, 55))
-			printf("        constant #%02x\n", constant);
-		else
-			printf("        attribute #%02x\n", attribute);
+			neg = instruction_get_bit(inst, 71);
+			sx = instruction_extract(inst, 69, 70);
+			sy = instruction_extract(inst, 67, 68);
+			sz = instruction_extract(inst, 65, 66);
+			sw = instruction_extract(inst, 63, 64);
+			abs = instruction_get_bit(inst, 117);
 
-		neg = instruction_get_bit(inst, 54);
-		sx = instruction_extract(inst, 52, 53);
-		sy = instruction_extract(inst, 50, 51);
-		sz = instruction_extract(inst, 48, 49);
-		sw = instruction_extract(inst, 46, 47);
-		abs = instruction_get_bit(inst, 118);
+			printf("        %s%ssrc0.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
-		printf("      %s%ssrc1.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			if (instruction_get_bit(inst, 55))
+				printf("          constant #%02x\n", constant);
+			else
+				printf("          attribute #%02x\n", attribute);
 
-		neg = instruction_get_bit(inst, 37);
-		sx = instruction_extract(inst, 35, 36);
-		sy = instruction_extract(inst, 33, 34);
-		sz = instruction_extract(inst, 31, 32);
-		sw = instruction_extract(inst, 29, 30);
-		abs = instruction_get_bit(inst, 119);
+			neg = instruction_get_bit(inst, 54);
+			sx = instruction_extract(inst, 52, 53);
+			sy = instruction_extract(inst, 50, 51);
+			sz = instruction_extract(inst, 48, 49);
+			sw = instruction_extract(inst, 46, 47);
+			abs = instruction_get_bit(inst, 118);
 
-		printf("      %s%ssrc2.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			printf("        %s%ssrc1.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
-		reg = instruction_extract(inst, 2, 6);
-		if (op) {
-			sx = instruction_get_bit(inst, 16);
-			sy = instruction_get_bit(inst, 15);
-			sz = instruction_get_bit(inst, 14);
-			sw = instruction_get_bit(inst, 13);
+			neg = instruction_get_bit(inst, 37);
+			sx = instruction_extract(inst, 35, 36);
+			sy = instruction_extract(inst, 33, 34);
+			sz = instruction_extract(inst, 31, 32);
+			sw = instruction_extract(inst, 29, 30);
+			abs = instruction_get_bit(inst, 119);
 
-			printf("      dst.%s%s%s%s = %x\n", sx ? "x" : "",
-			       sy ? "y" : "", sz ? "z" : "", sw ? "w" : "", reg);
-		} else {
-			sx = instruction_get_bit(inst, 20);
-			sy = instruction_get_bit(inst, 19);
-			sz = instruction_get_bit(inst, 18);
-			sw = instruction_get_bit(inst, 17);
+			printf("        %s%ssrc2.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
-			printf("      dst.%s%s%s%s\n", sx ? "x" : "",
-			       sy ? "y" : "", sz ? "z" : "", sw ? "w" : "");
+			reg = instruction_extract(inst, 2, 6);
+			printf("        dst.%s%s%s%s = %x\n", wx ? "x" : "",
+			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "", reg);
+		}
+
+		wx = instruction_get_bit(inst, 20);
+		wy = instruction_get_bit(inst, 19);
+		wz = instruction_get_bit(inst, 18);
+		ww = instruction_get_bit(inst, 17);
+
+		if (wx || wy || wz || ww) {
+			printf("      scalar op\n");
+			printf("        ");
+			op = instruction_extract(inst, 91, 94);
+			switch (op) {
+			case 0x0:
+				printf("cos\n");
+				break;
+			case 0x2:
+				printf("rcp\n");
+				break;
+			case 0x4:
+				printf("rsq\n");
+				break;
+			case 0xd:
+				printf("log2\n");
+				break;
+			case 0xe:
+				printf("exp2\n");
+				break;
+			case 0xf:
+				printf("sin\n");
+				break;
+			default:
+				printf("unknown2 (%x)\n", op);
+				break;
+			}
+
+			neg = instruction_get_bit(inst, 37);
+			sx = instruction_extract(inst, 35, 36);
+			sy = instruction_extract(inst, 33, 34);
+			sz = instruction_extract(inst, 31, 32);
+			sw = instruction_extract(inst, 29, 30);
+			abs = instruction_get_bit(inst, 119);
+
+			printf("        %s%ssrc.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+
+			printf("        dst.%s%s%s%s\n", wx ? "x" : "",
+			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 		}
 
 		if (instruction_get_bit(inst, 0))
