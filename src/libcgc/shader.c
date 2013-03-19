@@ -356,8 +356,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
 
 		neg = instruction_get_bit(inst, 37);
-		sz = instruction_extract(inst, 35, 36);
-		sw = instruction_extract(inst, 33, 34);
+		sx = instruction_extract(inst, 35, 36);
+		sy = instruction_extract(inst, 33, 34);
 		sz = instruction_extract(inst, 31, 32);
 		sw = instruction_extract(inst, 29, 30);
 		abs = instruction_get_bit(inst, 119);
