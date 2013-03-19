@@ -27,11 +27,14 @@
 |   33..34 | rC swizzle y-component     |
 |   31..32 | rC swizzle z-component     |
 |   29..30 | rC swizzle w-component     |
-|   17..28 | ???                        |
-|       16 | write x-component          |
-|       15 | write y-component          |
-|       14 | write z-component          |
-|       13 | write w-component          |
+|   21..28 | ???                        |
+|       20 | scalar write-mask x        |
+|       19 | scalar write-mask y        |
+|       18 | scalar write-mask z        |
+|       17 | scalar write-mask w        |
+|       16 | vector write-mask x        |
+|       15 | vector write-mask y        |
+|       14 | vector write-mask z        |
+|       13 | vector write-mask w        |
 |    1..12 | ???                        |
 |        0 | end of program (?)         |
-
