@@ -320,9 +320,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 			printf("        ");
 			if (reg == 0x3f)
-				printf("o%02x", varying);
+				printf("o%d", varying);
 			else
-				printf("r%02x", reg);
+				printf("r%d", reg);
 			printf(".%s%s%s%s\n", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
@@ -340,7 +340,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			printf("        %s%s%c%d.%c%c%c%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
@@ -359,7 +359,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			printf("        %s%s%c%d.%c%c%c%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
@@ -378,7 +378,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			printf("        %s%s%c%d.%c%c%c%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
@@ -421,9 +421,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 			printf("        ");
 			if (reg == 0x3f)
-				printf("o%02x", varying);
+				printf("o%d", varying);
 			else
-				printf("r%02x", reg);
+				printf("r%d", reg);
 			printf(".%s%s%s%s\n", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
@@ -441,7 +441,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%02x.%c%s\n",
+			printf("        %s%s%c%d.%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], abs ? ")" : "");
 		}
