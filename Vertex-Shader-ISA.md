@@ -12,19 +12,19 @@
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
 |   76..83 | constant register fetch     |
-|   72..75 | attribute fetch (?)         |
+|   72..75 | attribute fetch             |
 |       71 | rA negate                   |
 |   63..70 | rA swizzle                  |
 |   57..62 | rA register                 |
-|   55..56 | ???                         |
+|   55..56 | rA type                     |
 |       54 | rB negate                   |
 |   46..53 | rB swizzle                  |
 |   40..45 | rB register                 |
-|   38..39 | ???                         |
+|   38..39 | rB type                     |
 |       37 | rC negate                   |
 |   29..36 | rC swizzle                  |
 |   23..28 | rC register                 |
-|   21..22 | ???                         |
+|   21..22 | rC type                     |
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
