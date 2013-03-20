@@ -274,59 +274,58 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			op = instruction_extract(inst, 86, 90);
 			switch (op) {
 			case 0x1:
-				printf("mov\n");
+				printf("mov");
 				break;
 			case 0x2:
-				printf("mul\n");
+				printf("mul");
 				break;
 			case 0x3:
-				printf("add\n");
+				printf("add");
 				break;
 			case 0x4:
-				printf("mad\n");
+				printf("mad");
 				operands = 3;
 				break;
 			case 0x5:
-				printf("dp3\n");
+				printf("dp3");
 				break;
 			case 0x7:
-				printf("dp4\n");
+				printf("dp4");
 				break;
 			case 0x9:
-				printf("min\n");
+				printf("min");
 				break;
 			case 0xa:
-				printf("max\n");
+				printf("max");
 				break;
 			case 0xb:
-				printf("slt\n");
+				printf("slt");
 				break;
 			case 0xc:
-				printf("sge\n");
+				printf("sge");
 				break;
 			case 0xf:
-				printf("flr\n");
+				printf("flr");
 				break;
 			case 0x10:
-				printf("seq\n");
+				printf("seq");
 				break;
 			case 0x14:
-				printf("sne\n");
+				printf("sne");
 				break;
 			default:
-				printf("unknown (%x)\n", op);
+				printf("unknown(%x)", op);
 				operands = 3; /* let's be verbose and output all possible operands */
 				break;
 			}
 
 			reg = instruction_extract(inst, 111, 116);
 
-			printf("        ");
 			if (reg == 0x3f)
-				printf("o%d", varying);
+				printf(" o%d", varying);
 			else
-				printf("r%d", reg);
-			printf(".%s%s%s%s\n", wx ? "x" : "",
+				printf(" r%d", reg);
+			printf(".%s%s%s%s", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
 			neg = instruction_get_bit(inst, 71);
@@ -343,7 +342,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%d.%c%c%c%c%s\n",
+			printf(", %s%s%c%d.%c%c%c%c%s",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
@@ -362,7 +361,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%d.%c%c%c%c%s\n",
+			printf(", %s%s%c%d.%c%c%c%c%s",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
@@ -382,11 +381,12 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				else if (type == 3)
 					reg = constant;
 
-				printf("        %s%s%c%d.%c%c%c%c%s\n",
+				printf(", %s%s%c%d.%c%c%c%c%s",
 				       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 				       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 				       abs ? ")" : "");
 			}
+			printf("\n");
 		}
 
 		wx = instruction_get_bit(inst, 20);
@@ -400,36 +400,35 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			op = instruction_extract(inst, 91, 94);
 			switch (op) {
 			case 0x0:
-				printf("cos\n");
+				printf("cos");
 				break;
 			case 0x2:
-				printf("rcp\n");
+				printf("rcp");
 				break;
 			case 0x4:
-				printf("rsq\n");
+				printf("rsq");
 				break;
 			case 0xd:
-				printf("lg2\n");
+				printf("lg2");
 				break;
 			case 0xe:
-				printf("ex2\n");
+				printf("ex2");
 				break;
 			case 0xf:
-				printf("sin\n");
+				printf("sin");
 				break;
 			default:
-				printf("unknown2 (%x)\n", op);
+				printf("unknown(%x)", op);
 				break;
 			}
 
 			reg = instruction_extract(inst, 7, 12);
 
-			printf("        ");
 			if (reg == 0x3f)
-				printf("o%d", varying);
+				printf(" o%d", varying);
 			else
-				printf("r%d", reg);
-			printf(".%s%s%s%s\n", wx ? "x" : "",
+				printf(" r%d", reg);
+			printf(".%s%s%s%s", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
 			neg = instruction_get_bit(inst, 37);
@@ -446,7 +445,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%d.%c%s\n",
+			printf(", %s%s%c%d.%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], abs ? ")" : "");
 		}
