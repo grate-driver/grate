@@ -268,6 +268,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		ww = instruction_get_bit(inst, 13);
 
 		if (wx || wy || wz || ww) {
+			int operands = 2; /* most opcodes use 2 operands */
 			printf("      vec op\n");
 			printf("        ");
 			op = instruction_extract(inst, 86, 90);
@@ -283,6 +284,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			case 0x4:
 				printf("mad\n");
+				operands = 3;
 				break;
 			case 0x5:
 				printf("dp3\n");
@@ -313,6 +315,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			default:
 				printf("unknown (%x)\n", op);
+				operands = 3; /* let's be verbose and output all possible operands */
 				break;
 			}
 
@@ -364,24 +367,26 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
 
-			neg = instruction_get_bit(inst, 37);
-			sx = instruction_extract(inst, 35, 36);
-			sy = instruction_extract(inst, 33, 34);
-			sz = instruction_extract(inst, 31, 32);
-			sw = instruction_extract(inst, 29, 30);
-			abs = instruction_get_bit(inst, 119);
-			reg = instruction_extract(inst, 23, 28);
+			if (operands > 2) {
+				neg = instruction_get_bit(inst, 37);
+				sx = instruction_extract(inst, 35, 36);
+				sy = instruction_extract(inst, 33, 34);
+				sz = instruction_extract(inst, 31, 32);
+				sw = instruction_extract(inst, 29, 30);
+				abs = instruction_get_bit(inst, 119);
+				reg = instruction_extract(inst, 23, 28);
 
-			type = instruction_extract(inst, 21, 22);
-			if (type == 2)
-				reg = attribute;
-			else if (type == 3)
-				reg = constant;
+				type = instruction_extract(inst, 21, 22);
+				if (type == 2)
+					reg = attribute;
+				else if (type == 3)
+					reg = constant;
 
-			printf("        %s%s%c%d.%c%c%c%c%s\n",
-			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
-			       abs ? ")" : "");
+				printf("        %s%s%c%d.%c%c%c%c%s\n",
+				       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+				       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+				       abs ? ")" : "");
+			}
 		}
 
 		wx = instruction_get_bit(inst, 20);
