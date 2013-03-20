@@ -1,32 +1,35 @@
 ### instruction word
 
-|     Bits | Meaning                    |
-|---------:|:---------------------------|
-| 120..128 | ???                        |
-|      119 | rC absolute value          |
-|      118 | rB absolute value          |
-|      117 | rA absolute value          |
-|  95..116 | ???                        |
-|   91..94 | scalar opcode              |
-|   86..90 | vector opcode              |
-|   84..85 | ???                        |
-|   76..83 | constant register fetch    |
-|   72..75 | attribute fetch (?)        |
-|       71 | rA negate                  |
-|   63..70 | rA swizzle                 |
-|   55..62 | ???                        |
-|       54 | rB negate                  |
-|   46..53 | rB swizzle                 |
-|   38..45 | ???                        |
-|       37 | rC negate                  |
-|   29..36 | rC swizzle                 |
-|   21..28 | ???                        |
-|   17..20 | scalar op write-mask       |
-|   13..16 | vector op write-mask       |
-|    7..12 | ???                        |
-|     2..6 | destination register (?)   |
-|        1 | ???                        |
-|        0 | end of program (?)         |
+|     Bits | Meaning                     |
+|---------:|:----------------------------|
+| 120..128 | ???                         |
+|      119 | rC absolute value           |
+|      118 | rB absolute value           |
+|      117 | rA absolute value           |
+| 111..116 | vector destination register |
+|  95..110 | ???                         |
+|   91..94 | scalar opcode               |
+|   86..90 | vector opcode               |
+|   84..85 | ???                         |
+|   76..83 | constant register fetch     |
+|   72..75 | attribute fetch (?)         |
+|       71 | rA negate                   |
+|   63..70 | rA swizzle                  |
+|   57..62 | rA register                 |
+|   55..56 | ???                         |
+|       54 | rB negate                   |
+|   46..53 | rB swizzle                  |
+|   40..45 | rB register                 |
+|   38..39 | ???                         |
+|       37 | rC negate                   |
+|   29..36 | rC swizzle                  |
+|   23..28 | rC register                 |
+|   21..22 | ???                         |
+|   17..20 | scalar op write-mask        |
+|   13..16 | vector op write-mask        |
+|    7..12 | scalar destination register |
+|     1..6 | ???                         |
+|        0 | end of program (?)          |
 
 ### swizzle
 
