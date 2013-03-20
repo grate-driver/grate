@@ -188,8 +188,8 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 			if (sym->values_offset) {
 				const uint32_t *values = shader->binary +
 							 sym->values_offset;
-				for (i = 0; i < 4; i++)
-					symbol->vector[i] = values[i];
+				for (j = 0; j < 4; j++)
+					symbol->vector[j] = values[j];
 			} else {
 				fprintf(stderr, "no values for constant %s\n",
 					name);
