@@ -234,7 +234,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	printf("  instructions:\n");
 
 	for (i = 0; i < header->binary_size; i += 16) {
-		uint8_t sx, sy, sz, sw, wx, wy, wz, ww, neg, op, constant, attribute, abs;
+		uint8_t sx, sy, sz, sw, wx, wy, wz, ww, neg, op, constant, attribute, varying, abs;
 		struct instruction *inst;
 		uint32_t words[4], reg, type;
 
@@ -257,8 +257,10 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 		constant = instruction_extract(inst, 76, 83);
 		attribute = instruction_extract(inst, 72, 75);
+		varying = instruction_extract(inst, 2, 5);
 		printf("      constant #%02x\n", constant);
 		printf("      attribute #%02x\n", attribute);
+		printf("      varying #%02x\n", varying);
 
 		wx = instruction_get_bit(inst, 16);
 		wy = instruction_get_bit(inst, 15);
@@ -313,6 +315,16 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf("unknown (%x)\n", op);
 				break;
 			}
+
+			reg = instruction_extract(inst, 111, 116);
+
+			printf("        ");
+			if (reg == 0x3f)
+				printf("o%02x", varying);
+			else
+				printf("r%02x", reg);
+			printf(".%s%s%s%s\n", wx ? "x" : "",
+			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
 			neg = instruction_get_bit(inst, 71);
 			sx = instruction_extract(inst, 69, 70);
@@ -370,10 +382,6 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
-
-			reg = instruction_extract(inst, 111, 116);
-			printf("        dst.%s%s%s%s = r%02x\n", wx ? "x" : "",
-			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "", reg);
 		}
 
 		wx = instruction_get_bit(inst, 20);
@@ -409,6 +417,16 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			}
 
+			reg = instruction_extract(inst, 7, 12);
+
+			printf("        ");
+			if (reg == 0x3f)
+				printf("o%02x", varying);
+			else
+				printf("r%02x", reg);
+			printf(".%s%s%s%s\n", wx ? "x" : "",
+			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
+
 			neg = instruction_get_bit(inst, 37);
 			sx = instruction_extract(inst, 35, 36);
 			sy = instruction_extract(inst, 33, 34);
@@ -427,10 +445,6 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
-
-			reg = instruction_extract(inst, 7, 12);
-			printf("        dst.%s%s%s%s = r%02x\n", wx ? "x" : "",
-			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "", reg);
 		}
 
 		if (instruction_get_bit(inst, 0))
