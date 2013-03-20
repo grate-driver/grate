@@ -441,10 +441,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			else if (type == 3)
 				reg = constant;
 
-			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			printf("        %s%s%c%02x.%c%s\n",
 			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
-			       abs ? ")" : "");
+			       swizzle[sx], abs ? ")" : "");
 		}
 
 		if (instruction_get_bit(inst, 0))
