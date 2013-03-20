@@ -28,7 +28,8 @@
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|     2..6 | varying write               |
+|        6 | ???                         |
+|     2..5 | varying write               |
 |        1 | ???                         |
 |        0 | end of program (?)          |
 
