@@ -760,7 +760,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	i = 0;
 
 	while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
 			symbol->location);
 		i++;
 	}
@@ -769,7 +769,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	i = 0;
 
 	while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
 			symbol->location);
 		i++;
 	}
@@ -778,7 +778,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	i = 0;
 
 	while ((symbol = cgc_shader_get_constant(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %u\n", i, symbol->name,
+		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
 			symbol->location);
 		fprintf(fp, "      values:\n");
 

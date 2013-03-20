@@ -174,7 +174,7 @@ enum glsl_type {
 };
 
 struct cgc_symbol {
-	unsigned int location;
+	int location;
 	enum glsl_kind kind;
 	enum glsl_type type;
 	const char *name;
