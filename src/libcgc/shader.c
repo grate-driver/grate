@@ -236,7 +236,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	for (i = 0; i < header->binary_size; i += 16) {
 		uint8_t sx, sy, sz, sw, wx, wy, wz, ww, neg, op, constant, attribute, abs;
 		struct instruction *inst;
-		uint32_t words[4], reg;
+		uint32_t words[4], reg, type;
 
 		for (j = 0; j < 4; j++)
 			words[j] = *ptr++;
@@ -320,14 +320,18 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			sz = instruction_extract(inst, 65, 66);
 			sw = instruction_extract(inst, 63, 64);
 			abs = instruction_get_bit(inst, 117);
+			reg = instruction_extract(inst, 57, 62);
 
-			printf("        %s%ssrc0.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			type = instruction_extract(inst, 55, 56);
+			if (type == 2)
+				reg = attribute;
+			else if (type == 3)
+				reg = constant;
 
-			if (instruction_get_bit(inst, 55))
-				printf("          constant #%02x\n", constant);
-			else
-				printf("          attribute #%02x\n", attribute);
+			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+			       abs ? ")" : "");
 
 			neg = instruction_get_bit(inst, 54);
 			sx = instruction_extract(inst, 52, 53);
@@ -335,9 +339,18 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			sz = instruction_extract(inst, 48, 49);
 			sw = instruction_extract(inst, 46, 47);
 			abs = instruction_get_bit(inst, 118);
+			reg = instruction_extract(inst, 40, 45);
 
-			printf("        %s%ssrc1.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			type = instruction_extract(inst, 38, 39);
+			if (type == 2)
+				reg = attribute;
+			else if (type == 3)
+				reg = constant;
+
+			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+			       abs ? ")" : "");
 
 			neg = instruction_get_bit(inst, 37);
 			sx = instruction_extract(inst, 35, 36);
@@ -345,12 +358,21 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			sz = instruction_extract(inst, 31, 32);
 			sw = instruction_extract(inst, 29, 30);
 			abs = instruction_get_bit(inst, 119);
+			reg = instruction_extract(inst, 23, 28);
 
-			printf("        %s%ssrc2.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			type = instruction_extract(inst, 21, 22);
+			if (type == 2)
+				reg = attribute;
+			else if (type == 3)
+				reg = constant;
 
-			reg = instruction_extract(inst, 2, 6);
-			printf("        dst.%s%s%s%s = %x\n", wx ? "x" : "",
+			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+			       abs ? ")" : "");
+
+			reg = instruction_extract(inst, 111, 116);
+			printf("        dst.%s%s%s%s = r%02x\n", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "", reg);
 		}
 
@@ -393,12 +415,22 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			sz = instruction_extract(inst, 31, 32);
 			sw = instruction_extract(inst, 29, 30);
 			abs = instruction_get_bit(inst, 119);
+			reg = instruction_extract(inst, 23, 28);
 
-			printf("        %s%ssrc.%c%c%c%c%s\n", neg ? "-" : "", abs ? "abs(" : "",
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw], abs ? ")" : "");
+			type = instruction_extract(inst, 21, 22);
+			if (type == 2)
+				reg = attribute;
+			else if (type == 3)
+				reg = constant;
 
-			printf("        dst.%s%s%s%s\n", wx ? "x" : "",
-			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
+			printf("        %s%s%c%02x.%c%c%c%c%s\n",
+			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+			       abs ? ")" : "");
+
+			reg = instruction_extract(inst, 7, 12);
+			printf("        dst.%s%s%s%s = r%02x\n", wx ? "x" : "",
+			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "", reg);
 		}
 
 		if (instruction_get_bit(inst, 0))
