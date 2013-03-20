@@ -1,3 +1,5 @@
+### instruction word
+
 |     Bits | Meaning                    |
 |---------:|:---------------------------|
 | 120..128 | ???                        |
@@ -11,30 +13,40 @@
 |   76..83 | constant register fetch    |
 |   72..75 | attribute fetch (?)        |
 |       71 | rA negate                  |
-|   69..70 | rA swizzle x-component     |
-|   67..68 | rA swizzle y-component     |
-|   65..66 | rA swizzle z-component     |
-|   63..64 | rA swizzle w-component     |
+|   63..70 | rA swizzle                 |
 |   55..62 | ???                        |
 |       54 | rB negate                  |
-|   52..53 | rB swizzle x-component     |
-|   50..51 | rB swizzle y-component     |
-|   48..49 | rB swizzle z-component     |
-|   46..47 | rB swizzle w-component     |
+|   46..53 | rB swizzle                 |
 |   38..45 | ???                        |
 |       37 | rC negate                  |
-|   35..36 | rC swizzle x-component     |
-|   33..34 | rC swizzle y-component     |
-|   31..32 | rC swizzle z-component     |
-|   29..30 | rC swizzle w-component     |
+|   29..36 | rC swizzle                 |
 |   21..28 | ???                        |
-|       20 | scalar write-mask x        |
-|       19 | scalar write-mask y        |
-|       18 | scalar write-mask z        |
-|       17 | scalar write-mask w        |
-|       16 | vector write-mask x        |
-|       15 | vector write-mask y        |
-|       14 | vector write-mask z        |
-|       13 | vector write-mask w        |
+|   17..20 | scalar op write-mask       |
+|   13..16 | vector op write-mask       |
 |    1..12 | ???                        |
 |        0 | end of program (?)         |
+
+### swizzle
+
+| Bits | Meaning            |
+|-----:|:-------------------|
+| 6..7 | select x-component |
+| 4..5 | select y-component |
+| 2..3 | select z-component |
+| 0..1 | select w-component |
+
+| Value | Meaning            |
+|------:|:-------------------|
+|     0 | source x-component |
+|     1 | source y-component |
+|     2 | source z-component |
+|     3 | source w-component |
+
+### write mask
+
+| Bits | Meaning           |
+|-----:|:------------------|
+|    3 | write x-component |
+|    2 | write y-component |
+|    1 | write z-component |
+|    0 | write w-component |
