@@ -273,7 +273,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			op = instruction_extract(inst, 86, 90);
 			switch (op) {
 			case 0x1:
-				printf("fetch\n");
+				printf("mov\n");
 				break;
 			case 0x2:
 				printf("mul\n");
@@ -282,13 +282,13 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf("add\n");
 				break;
 			case 0x4:
-				printf("fma\n");
+				printf("mad\n");
 				break;
 			case 0x5:
-				printf("dot3\n");
+				printf("dp3\n");
 				break;
 			case 0x7:
-				printf("dot4\n");
+				printf("dp4\n");
 				break;
 			case 0x9:
 				printf("min\n");
@@ -303,7 +303,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf("sge\n");
 				break;
 			case 0xf:
-				printf("floor\n");
+				printf("flr\n");
 				break;
 			case 0x10:
 				printf("seq\n");
@@ -404,10 +404,10 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf("rsq\n");
 				break;
 			case 0xd:
-				printf("log2\n");
+				printf("lg2\n");
 				break;
 			case 0xe:
-				printf("exp2\n");
+				printf("ex2\n");
 				break;
 			case 0xf:
 				printf("sin\n");
