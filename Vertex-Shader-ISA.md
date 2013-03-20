@@ -23,7 +23,9 @@
 |   21..28 | ???                        |
 |   17..20 | scalar op write-mask       |
 |   13..16 | vector op write-mask       |
-|    1..12 | ???                        |
+|    7..12 | ???                        |
+|     2..6 | destination register (?)   |
+|        1 | ???                        |
 |        0 | end of program (?)         |
 
 ### swizzle
