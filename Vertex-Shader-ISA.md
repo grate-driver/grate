@@ -59,3 +59,12 @@
 |    2 | write y-component |
 |    1 | write z-component |
 |    0 | write w-component |
+
+### source operand type
+
+| Value | Meaning            |
+|------:|:-------------------|
+|     0 | invalid/unknown    |
+|     1 | temporary          |
+|     2 | attribute          |
+|     3 | varying            |
