@@ -2,7 +2,9 @@
 
 |     Bits | Meaning                     |
 |---------:|:----------------------------|
-| 120..128 | ???                         |
+| 123..128 | ???                         |
+|      122 | saturate result (?)         |
+| 120..121 | ???                         |
 |      119 | rC absolute value           |
 |      118 | rB absolute value           |
 |      117 | rA absolute value           |
