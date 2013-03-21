@@ -57,6 +57,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;
+	int err;
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
@@ -74,6 +75,14 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 	if (!fb->bo) {
 		free(fb);
 		return NULL;
+	}
+
+	if (host1x->framebuffer_init) {
+		err = host1x->framebuffer_init(host1x, fb);
+		if (err < 0) {
+			host1x_framebuffer_free(fb);
+			fb = NULL;
+		}
 	}
 
 	return fb;

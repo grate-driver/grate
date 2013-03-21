@@ -5,6 +5,7 @@ libhost1x_la_CPPFLAGS = \
 	-I$(top_srcdir)/include
 
 libhost1x_la_CFLAGS = \
+	$(DRM_CFLAGS) \
 	$(PNG_CFLAGS)
 
 libhost1x_la_SOURCES = \
@@ -25,4 +26,4 @@ libhost1x_la_SOURCES = \
 	nvhost-nvmap.h \
 	stream.c
 
-libhost1x_la_LIBADD = $(PNG_LIBS)
+libhost1x_la_LIBADD = $(DRM_LIBS) $(PNG_LIBS)

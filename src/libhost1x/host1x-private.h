@@ -41,6 +41,7 @@ struct host1x_framebuffer {
 	unsigned short depth;
 	unsigned long flags;
 	struct host1x_bo *bo;
+	uint32_t handle;
 };
 
 struct host1x_syncpt {
@@ -64,6 +65,18 @@ static inline unsigned long host1x_bo_get_offset(struct host1x_bo *bo,
 {
 	return (unsigned long)ptr - (unsigned long)bo->ptr;
 }
+
+struct host1x_display {
+	int (*create_overlay)(struct host1x_display *display,
+			      struct host1x_overlay **overlayp);
+};
+
+struct host1x_overlay {
+	int (*close)(struct host1x_overlay *overlay);
+	int (*set)(struct host1x_overlay *overlay,
+		   struct host1x_framebuffer *fb, unsigned int x,
+		   unsigned int y, unsigned int width, unsigned int height);
+};
 
 struct host1x_client {
 	struct host1x_syncpt *syncpts;
@@ -96,8 +109,11 @@ void host1x_gr3d_exit(struct host1x_gr3d *gr3d);
 struct host1x {
 	struct host1x_bo *(*bo_create)(struct host1x *host1x, size_t size,
 				       unsigned long flags);
+	int (*framebuffer_init)(struct host1x *host1x,
+				struct host1x_framebuffer *fb);
 	void (*close)(struct host1x *host1x);
 
+	struct host1x_display *display;
 	struct host1x_gr2d *gr2d;
 	struct host1x_gr3d *gr3d;
 };

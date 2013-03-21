@@ -61,6 +61,11 @@ void host1x_close(struct host1x *host1x)
 	host1x->close(host1x);
 }
 
+struct host1x_display *host1x_get_display(struct host1x *host1x)
+{
+	return host1x->display;
+}
+
 struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x)
 {
 	return host1x->gr2d;
@@ -69,6 +74,25 @@ struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x)
 struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x)
 {
 	return host1x->gr3d;
+}
+
+int host1x_overlay_create(struct host1x_overlay **overlayp,
+			  struct host1x_display *display)
+{
+	return display->create_overlay(display, overlayp);
+}
+
+int host1x_overlay_close(struct host1x_overlay *overlay)
+{
+	return overlay->close(overlay);
+}
+
+int host1x_overlay_set(struct host1x_overlay *overlay,
+		       struct host1x_framebuffer *fb, unsigned int x,
+		       unsigned int y, unsigned int width,
+		       unsigned int height)
+{
+	return overlay->set(overlay, fb, x, y, width, height);
 }
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,

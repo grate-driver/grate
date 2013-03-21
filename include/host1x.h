@@ -43,6 +43,9 @@ void host1x_stream_init(struct host1x_stream *stream, const void *buffer,
 			size_t size);
 void host1x_stream_dump(struct host1x_stream *stream, FILE *fp);
 
+struct host1x_framebuffer;
+struct host1x_display;
+struct host1x_overlay;
 struct host1x_client;
 struct host1x_gr2d;
 struct host1x_gr3d;
@@ -52,8 +55,17 @@ struct host1x;
 struct host1x *host1x_open(void);
 void host1x_close(struct host1x *host1x);
 
+struct host1x_display *host1x_get_display(struct host1x *host1x);
 struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x);
 struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x);
+
+int host1x_overlay_create(struct host1x_overlay **overlayp,
+			  struct host1x_display *display);
+int host1x_overlay_close(struct host1x_overlay *overlay);
+int host1x_overlay_set(struct host1x_overlay *overlay,
+		       struct host1x_framebuffer *fb, unsigned int x,
+		       unsigned int y, unsigned int width,
+		       unsigned int height);
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags);
@@ -117,8 +129,6 @@ int host1x_client_submit(struct host1x_client *client, struct host1x_job *job);
 int host1x_client_flush(struct host1x_client *client, uint32_t *fence);
 int host1x_client_wait(struct host1x_client *client, uint32_t fence,
 		       uint32_t timeout);
-
-struct host1x_framebuffer;
 
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned short width,
