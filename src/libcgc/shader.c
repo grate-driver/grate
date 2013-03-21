@@ -306,6 +306,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			case 0xf:
 				printf("flr");
+				operands = 1;
 				break;
 			case 0x10:
 				printf("seq");
@@ -347,24 +348,26 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
 
-			neg = instruction_get_bit(inst, 54);
-			sx = instruction_extract(inst, 52, 53);
-			sy = instruction_extract(inst, 50, 51);
-			sz = instruction_extract(inst, 48, 49);
-			sw = instruction_extract(inst, 46, 47);
-			abs = instruction_get_bit(inst, 118);
-			reg = instruction_extract(inst, 40, 45);
+			if (operands > 1) {
+				neg = instruction_get_bit(inst, 54);
+				sx = instruction_extract(inst, 52, 53);
+				sy = instruction_extract(inst, 50, 51);
+				sz = instruction_extract(inst, 48, 49);
+				sw = instruction_extract(inst, 46, 47);
+				abs = instruction_get_bit(inst, 118);
+				reg = instruction_extract(inst, 40, 45);
 
-			type = instruction_extract(inst, 38, 39);
-			if (type == 2)
-				reg = attribute;
-			else if (type == 3)
-				reg = constant;
+				type = instruction_extract(inst, 38, 39);
+				if (type == 2)
+					reg = attribute;
+				else if (type == 3)
+					reg = constant;
 
-			printf(", %s%s%c%d.%c%c%c%c%s",
-			       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
-			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
-			       abs ? ")" : "");
+				printf(", %s%s%c%d.%c%c%c%c%s",
+				       neg ? "-" : "", abs ? "abs(" : "", "?rvc"[type], reg,
+				       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
+				       abs ? ")" : "");
+			}
 
 			if (operands > 2) {
 				neg = instruction_get_bit(inst, 37);
