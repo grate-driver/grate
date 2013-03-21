@@ -275,6 +275,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			switch (op) {
 			case 0x1:
 				printf("mov");
+				operands = 1;
 				break;
 			case 0x2:
 				printf("mul");
