@@ -610,7 +610,7 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x001, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x009, 0x0001));
 	host1x_pushbuf_push(pb, 0x16030001);
@@ -749,7 +749,7 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x544, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x0001));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000116);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x001, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00c, 0x0001));
 	host1x_pushbuf_push(pb, 0x03000001);
@@ -908,9 +908,9 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x00000002);
 	host1x_pushbuf_push(pb, 0x3f000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x1));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x1));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
 
 	value.f = fb->width * 8.0f;
@@ -1010,9 +1010,9 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 
 	/*
 	  Command Buffer:
@@ -1146,7 +1146,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x60, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x00000116);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x01, 0x00));
 	/* XXX: don't wait for syncpoint */
 	/*
@@ -1157,7 +1157,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x60, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x01, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x009, 0x01));
 	host1x_pushbuf_push(pb, 0x16030006);
@@ -1184,10 +1184,10 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x00200000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x02));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x00000216);
+	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x60, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x00000116);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x01, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x09, 0x01));
 	host1x_pushbuf_push(pb, 0x16030008);
@@ -1197,7 +1197,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x03000008);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x60, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
-	host1x_pushbuf_push(pb, 0x00000116);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x00, 0x01, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x0c, 0x01));
 	host1x_pushbuf_push(pb, 0x03000001);

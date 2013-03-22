@@ -82,7 +82,7 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	host1x_pushbuf_push(pb, 0x00000001);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0x01, 0x00000002));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000112);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
 	err = host1x_client_submit(gr2d->client, job);
 	if (err < 0) {
@@ -197,7 +197,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(1, 1));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 1));
-	host1x_pushbuf_push(pb, 0x00000112);
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
 	err = host1x_client_submit(gr2d->client, job);
 	if (err < 0) {
