@@ -143,6 +143,10 @@ struct host1x_gr3d;
 
 int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 		      float red, float green, float blue, float alpha);
+int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
+		     struct host1x_framebuffer *dst, unsigned int sx,
+		     unsigned int sy, unsigned int dx, unsigned int dy,
+		     unsigned int width, unsigned int height);
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 			 struct host1x_framebuffer *fb);
 

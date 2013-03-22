@@ -269,3 +269,79 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 
 	return 0;
 }
+
+int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
+		     struct host1x_framebuffer *dst, unsigned int sx,
+		     unsigned int sy, unsigned int dx, unsigned int dy,
+		     unsigned int width, unsigned int height)
+{
+	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
+	struct host1x_pushbuf *pb;
+	struct host1x_job *job;
+	uint32_t fence;
+	int err;
+
+	job = host1x_job_create(syncpt->id, 1);
+	if (!job)
+		return -ENOMEM;
+
+	pb = host1x_job_append(job, gr2d->commands, 0);
+	if (!pb) {
+		host1x_job_free(job);
+		return -ENOMEM;
+	}
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x009, 0x9));
+	host1x_pushbuf_push(pb, 0x0000003a); /* trigger */
+	host1x_pushbuf_push(pb, 0x00000000); /* cmdsel */
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x01e, 0x7));
+	host1x_pushbuf_push(pb, 0x00000000); /* controlsecond */
+	/*
+	 * [20:20] source color depth (0: mono, 1: same)
+	 * [17:16] destination color depth (0: 8 bpp, 1: 16 bpp, 2: 32 bpp)
+	 */
+	host1x_pushbuf_push(pb, 0x00120000); /* controlmain */
+	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
+	/*
+	 * [20:20] destination write tile mode (0: linear, 1: tiled)
+	 * [ 0: 0] tile mode Y/RGB (0: linear, 1: tiled)
+	 */
+	host1x_pushbuf_push(pb, 0x00100001); /* tilemode */
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
+	host1x_pushbuf_relocate(pb, dst->bo, 0, 0);
+	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
+	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
+	host1x_pushbuf_relocate(pb, src->bo, 0, 0);
+	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
+	host1x_pushbuf_push(pb, src->pitch); /* srcst */
+	host1x_pushbuf_push(pb, height << 16 | width); /* dstsize */
+	host1x_pushbuf_push(pb, sy << 16 | sx); /* srcps */
+	host1x_pushbuf_push(pb, dy << 16 | dx); /* dstps */
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 1));
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
+
+	err = host1x_client_submit(gr2d->client, job);
+	if (err < 0) {
+		host1x_job_free(job);
+		return err;
+	}
+
+	host1x_job_free(job);
+
+	err = host1x_client_flush(gr2d->client, &fence);
+	if (err < 0)
+		return err;
+
+	err = host1x_client_wait(gr2d->client, fence, -1);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
