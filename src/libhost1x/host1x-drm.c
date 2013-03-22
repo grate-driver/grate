@@ -386,7 +386,8 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
 	bo->drm = drm;
 
 	memset(&args, 0, sizeof(args));
-	args.flags = DRM_TEGRA_GEM_CREATE_TILED;
+	args.flags = DRM_TEGRA_GEM_CREATE_BOTTOM_UP |
+		     DRM_TEGRA_GEM_CREATE_TILED;
 	args.size = size;
 
 	err = ioctl(drm->fd, DRM_IOCTL_TEGRA_GEM_CREATE, &args);
