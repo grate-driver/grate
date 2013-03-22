@@ -45,7 +45,6 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	}
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x051, 0x00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x052, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0x00, 0x00000002));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x009, 0x0009));
 	host1x_pushbuf_push(pb, 0x00000038);
@@ -94,16 +93,12 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	host1x_job_free(job);
 
 	err = host1x_client_flush(gr2d->client, &fence);
-	if (err < 0) {
+	if (err < 0)
 		return err;
-	}
-
-	//printf("fence: %u\n", fence);
 
 	err = host1x_client_wait(gr2d->client, fence, -1);
-	if (err < 0) {
+	if (err < 0)
 		return err;
-	}
 
 	return 0;
 }
@@ -165,8 +160,6 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 		pitch = fb->width * 4;
 	}
 
-	printf("color: %08x\n", color);
-
 	job = host1x_job_create(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
@@ -177,7 +170,6 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 		return -ENOMEM;
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0, 0x01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x09, 9));
@@ -216,16 +208,12 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	host1x_job_free(job);
 
 	err = host1x_client_flush(gr2d->client, &fence);
-	if (err < 0) {
+	if (err < 0)
 		return err;
-	}
-
-	printf("fence: %u\n", fence);
 
 	err = host1x_client_wait(gr2d->client, fence, -1);
-	if (err < 0) {
+	if (err < 0)
 		return err;
-	}
 
 	return 0;
 }
