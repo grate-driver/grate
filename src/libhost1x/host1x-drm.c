@@ -415,11 +415,11 @@ static int drm_framebuffer_init(struct host1x *host1x,
 
 	/* XXX: support other formats */
 	if (fb->depth != 32) {
-		fprintf(stderr, "ERROR: only 32-bit (XRGB8888) supported\n");
+		fprintf(stderr, "ERROR: only 32-bit (XBGR8888) supported\n");
 		return -EINVAL;
 	}
 
-	format = DRM_FORMAT_XRGB8888;
+	format = DRM_FORMAT_XBGR8888;
 	handles[0] = fb->bo->handle;
 	pitches[0] = fb->pitch;
 	offsets[0] = 0;
