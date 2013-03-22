@@ -26,6 +26,49 @@
 #include "host1x.h"
 #include "host1x-private.h"
 
+#define HOST1X_GR2D_TEST 0
+
+static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
+{
+	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
+	struct host1x_pushbuf *pb;
+	struct host1x_job *job;
+	uint32_t fence;
+	int err = 0;
+
+	job = host1x_job_create(syncpt->id, 1);
+	if (!job)
+		return -ENOMEM;
+
+	pb = host1x_job_append(job, gr2d->commands, 0);
+	if (!pb) {
+		host1x_job_free(job);
+		return -ENOMEM;
+	}
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x051, 0x00));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
+
+	err = host1x_client_submit(gr2d->client, job);
+	if (err < 0) {
+		host1x_job_free(job);
+		return err;
+	}
+
+	host1x_job_free(job);
+
+	err = host1x_client_flush(gr2d->client, &fence);
+	if (err < 0)
+		return err;
+
+	err = host1x_client_wait(gr2d->client, fence, -1);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
 static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
@@ -119,6 +162,15 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 	if (!gr2d->scratch) {
 		host1x_bo_free(gr2d->commands);
 		return -ENOMEM;
+	}
+
+	if (HOST1X_GR2D_TEST) {
+		err = host1x_gr2d_test(gr2d);
+		if (err < 0) {
+			fprintf(stderr, "host1x_gr2d_test() failed: %d\n",
+				err);
+			return err;
+		}
 	}
 
 	err = host1x_gr2d_reset(gr2d);

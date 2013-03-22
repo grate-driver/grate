@@ -29,11 +29,54 @@
 #include "nvhost-gr3d.h"
 #include "host1x.h"
 
+#define HOST1X_GR3D_TEST 0
+
 #define NVHOST_GR3D_FORMAT_RGB565	0x6
 #define NVHOST_GR3D_FORMAT_RGBA8888	0xd
 
 #define NVHOST_GR3D_SCISSOR_HORIZONTAL	0x350
 #define NVHOST_GR3D_SCISSOR_VERTICAL	0x351
+
+static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
+{
+	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
+	struct host1x_pushbuf *pb;
+	struct host1x_job *job;
+	uint32_t fence;
+	int err = 0;
+
+	job = host1x_job_create(syncpt->id, 1);
+	if (!job)
+		return -ENOMEM;
+
+	pb = host1x_job_append(job, gr3d->commands, 0);
+	if (!pb) {
+		host1x_job_free(job);
+		return -ENOMEM;
+	}
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
+	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
+
+	err = host1x_client_submit(gr3d->client, job);
+	if (err < 0) {
+		host1x_job_free(job);
+		return err;
+	}
+
+	host1x_job_free(job);
+
+	err = host1x_client_flush(gr3d->client, &fence);
+	if (err < 0)
+		return err;
+
+	err = host1x_client_wait(gr3d->client, fence, -1);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
 
 static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 {
@@ -775,6 +818,17 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 	if (!gr3d->attributes) {
 		host1x_bo_free(gr3d->commands);
 		return -ENOMEM;
+	}
+
+	if (HOST1X_GR3D_TEST) {
+		err = host1x_gr3d_test(gr3d);
+		if (err < 0) {
+			fprintf(stderr, "host1x_gr3d_test() failed: %d\n",
+				err);
+			host1x_bo_free(gr3d->attributes);
+			host1x_bo_free(gr3d->commands);
+			return err;
+		}
 	}
 
 	err = host1x_gr3d_reset(gr3d);
