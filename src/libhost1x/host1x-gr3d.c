@@ -820,6 +820,13 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 		return -ENOMEM;
 	}
 
+	err = host1x_bo_mmap(gr3d->attributes);
+	if (err < 0) {
+		host1x_bo_free(gr3d->attributes);
+		host1x_bo_free(gr3d->commands);
+		return err;
+	}
+
 	if (HOST1X_GR3D_TEST) {
 		err = host1x_gr3d_test(gr3d);
 		if (err < 0) {
