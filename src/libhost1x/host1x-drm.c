@@ -176,20 +176,12 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 	struct drm *drm = display->drm;
 	int err;
 
-	printf("> %s(overlay=%p, fb=%p, x=%u, y=%u, width=%u, height=%u)\n",
-	       __func__, overlay, fb, x, y, width, height);
-	printf("  plane: %u\n", plane->plane);
-	printf("  fb: %u\n", fb->handle);
-
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
 			      fb->width << 16, fb->height << 16);
-	if (err < 0) {
-		printf("< %s() = %d\n", __func__, -errno);
+	if (err < 0)
 		return -errno;
-	}
 
-	printf("< %s()\n", __func__);
 	return 0;
 }
 
