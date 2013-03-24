@@ -236,6 +236,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	for (i = 0; i < header->binary_size; i += 16) {
 		uint8_t sx, sy, sz, sw, neg, op, constant, attribute, varying, abs;
 		uint8_t wx, wy, wz, ww, sat, write_varying, write_pred;
+		uint8_t pred, pneg, psx, psy, psz, psw;
 		struct instruction *inst;
 		uint32_t words[4], reg, type;
 
@@ -263,6 +264,13 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		printf("      attribute #%02x\n", attribute);
 		printf("      varying #%02x\n", varying);
 
+		pred = instruction_get_bit(inst, 109);
+		pneg = instruction_get_bit(inst, 107);
+		psx = instruction_extract(inst, 104, 105);
+		psy = instruction_extract(inst, 102, 103);
+		psz = instruction_extract(inst, 100, 101);
+		psw = instruction_extract(inst, 98, 99);
+
 		write_varying = instruction_get_bit(inst, 126);
 		write_pred = instruction_get_bit(inst, 125);
 		sat = instruction_get_bit(inst, 122);
@@ -276,6 +284,12 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			int operands = 2; /* most opcodes use 2 operands */
 			printf("      vec op\n");
 			printf("        ");
+
+			if (pred) {
+				printf("(%sp0.%c%c%c%c) ", pneg ? "!" : "",
+				       swizzle[psx], swizzle[psy], swizzle[psz], swizzle[psw]);
+			}
+
 			op = instruction_extract(inst, 86, 90);
 			switch (op) {
 			case 0x1:
@@ -420,6 +434,12 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		if (wx || wy || wz || ww) {
 			printf("      scalar op\n");
 			printf("        ");
+
+			if (pred) {
+				printf("(%sp0.%c%c%c%c) ", pneg ? "!" : "",
+				       swizzle[psx], swizzle[psy], swizzle[psz], swizzle[psw]);
+			}
+
 			op = instruction_extract(inst, 91, 94);
 			switch (op) {
 			case 0x0:
