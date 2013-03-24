@@ -3,7 +3,7 @@
 |     Bits | Meaning                     |
 |---------:|:----------------------------|
 | 123..128 | ???                         |
-|      122 | saturate result (?)         |
+|      122 | saturate result             |
 | 120..121 | ???                         |
 |      119 | rC absolute value           |
 |      118 | rB absolute value           |
@@ -33,7 +33,7 @@
 |        6 | temp register write         |
 |     2..5 | varying write               |
 |        1 | ???                         |
-|        0 | end of program (?)          |
+|        0 | end of program              |
 
 ### swizzle
 
