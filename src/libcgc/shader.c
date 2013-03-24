@@ -421,6 +421,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			case 0x0:
 				printf("cos");
 				break;
+			case 0x1:
+				printf("mov");
+				break;
 			case 0x2:
 				printf("rcp");
 				break;
