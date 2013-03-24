@@ -235,7 +235,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 	for (i = 0; i < header->binary_size; i += 16) {
 		uint8_t sx, sy, sz, sw, neg, op, constant, attribute, varying, abs;
-		uint8_t wx, wy, wz, ww, sat;
+		uint8_t wx, wy, wz, ww, sat, write_varying;
 		struct instruction *inst;
 		uint32_t words[4], reg, type;
 
@@ -263,6 +263,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		printf("      attribute #%02x\n", attribute);
 		printf("      varying #%02x\n", varying);
 
+		write_varying = instruction_get_bit(inst, 126);
 		sat = instruction_get_bit(inst, 122);
 
 		wx = instruction_get_bit(inst, 16);
@@ -336,7 +337,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 			reg = instruction_extract(inst, 111, 116);
 
-			if (reg == 0x3f)
+			if (write_varying && reg == 0x3f)
 				printf(" o%d", varying);
 			else
 				printf(" r%d", reg);
@@ -446,7 +447,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 			reg = instruction_extract(inst, 7, 12);
 
-			if (reg == 0x3f)
+			if (write_varying && reg == 0x3f)
 				printf(" o%d", varying);
 			else
 				printf(" r%d", reg);
