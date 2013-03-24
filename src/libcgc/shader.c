@@ -281,7 +281,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		ww = instruction_get_bit(inst, 13);
 
 		if (wx || wy || wz || ww) {
-			int operands = 2; /* most opcodes use 2 operands */
+			int rb = 1, rc = 0; /* most opcodes use 2 operands */
 			printf("      vec op\n");
 			printf("        ");
 
@@ -294,17 +294,19 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			switch (op) {
 			case 0x1:
 				printf("mov");
-				operands = 1;
+				rb = 0;
 				break;
 			case 0x2:
 				printf("mul");
 				break;
 			case 0x3:
 				printf("add");
+				rb = 0;
+				rc = 1;
 				break;
 			case 0x4:
 				printf("mad");
-				operands = 3;
+				rc = 1;
 				break;
 			case 0x5:
 				printf("dp3");
@@ -326,11 +328,11 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			case 0xe:
 				printf("frc");
-				operands = 1;
+				rb = 0;
 				break;
 			case 0xf:
 				printf("flr");
-				operands = 1;
+				rb = 0;
 				break;
 			case 0x10:
 				printf("seq");
@@ -346,7 +348,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			default:
 				printf("unknown(%x)", op);
-				operands = 3; /* let's be verbose and output all possible operands */
+				rc = 1; /* let's be verbose and output all possible operands */
 				break;
 			}
 
@@ -382,7 +384,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			       swizzle[sx], swizzle[sy], swizzle[sz], swizzle[sw],
 			       abs ? ")" : "");
 
-			if (operands > 1) {
+			if (rb) {
 				neg = instruction_get_bit(inst, 54);
 				sx = instruction_extract(inst, 52, 53);
 				sy = instruction_extract(inst, 50, 51);
@@ -403,7 +405,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				       abs ? ")" : "");
 			}
 
-			if (operands > 2) {
+			if (rc) {
 				neg = instruction_get_bit(inst, 37);
 				sx = instruction_extract(inst, 35, 36);
 				sy = instruction_extract(inst, 33, 34);
