@@ -2,14 +2,17 @@
 
 |     Bits | Meaning                     |
 |---------:|:----------------------------|
-| 123..128 | ???                         |
+| 127..128 | ???                         |
+|      126 | varying write enable        |
+|      125 | write condition flags (?)   |
+| 123..124 | ???                         |
 |      122 | saturate result             |
 | 120..121 | ???                         |
 |      119 | rC absolute value           |
 |      118 | rB absolute value           |
 |      117 | rA absolute value           |
 | 111..116 | vector destination register |
-|  95..110 | ???                         |
+|  95..110 | ??? (condition codes)       |
 |   91..94 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
@@ -30,7 +33,7 @@
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|        6 | temp register write         |
+|        6 | ???                         |
 |     2..5 | varying write               |
 |        1 | ???                         |
 |        0 | end of program              |
