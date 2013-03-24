@@ -319,6 +319,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			case 0x12:
 				printf("sgt");
 				break;
+			case 0x13:
+				printf("sle");
+				break;
 			case 0x14:
 				printf("sne");
 				break;
