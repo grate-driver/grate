@@ -234,7 +234,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	printf("  instructions:\n");
 
 	for (i = 0; i < header->binary_size; i += 16) {
-		uint8_t sx, sy, sz, sw, wx, wy, wz, ww, neg, op, constant, attribute, varying, abs;
+		uint8_t sx, sy, sz, sw, neg, op, constant, attribute, varying, abs;
+		uint8_t wx, wy, wz, ww, sat;
 		struct instruction *inst;
 		uint32_t words[4], reg, type;
 
@@ -261,6 +262,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		printf("      constant #%02x\n", constant);
 		printf("      attribute #%02x\n", attribute);
 		printf("      varying #%02x\n", varying);
+
+		sat = instruction_get_bit(inst, 122);
 
 		wx = instruction_get_bit(inst, 16);
 		wy = instruction_get_bit(inst, 15);
@@ -337,6 +340,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf(" o%d", varying);
 			else
 				printf(" r%d", reg);
+			if (sat)
+				printf("_sat");
 			printf(".%s%s%s%s", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
@@ -442,6 +447,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				printf(" o%d", varying);
 			else
 				printf(" r%d", reg);
+			if (sat)
+				printf("_sat");
 			printf(".%s%s%s%s", wx ? "x" : "",
 			       wy ? "y" : "", wz ? "z" : "", ww ? "w" : "");
 
