@@ -12,7 +12,13 @@
 |      118 | rB absolute value           |
 |      117 | rA absolute value           |
 | 111..116 | vector destination register |
-|  95..110 | ??? (condition codes)       |
+|      110 | ???                         |
+|      109 | predicate enable            |
+|      108 | ???                         |
+|      107 | predicate negate            |
+|      106 | ???                         |
+|  98..105 | predicate swizzle           |
+|   95..97 | ???                         |
 |   91..94 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
