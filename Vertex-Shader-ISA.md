@@ -18,7 +18,8 @@
 |      107 | predicate negate            |
 |      106 | ???                         |
 |  98..105 | predicate swizzle           |
-|   95..97 | ???                         |
+|   96..97 | ???                         |
+|       95 | scalar op enable (?)        |
 |   91..94 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
