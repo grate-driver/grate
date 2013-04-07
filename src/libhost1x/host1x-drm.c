@@ -734,7 +734,7 @@ struct host1x *host1x_drm_open(void)
 	drm->base.close = drm_close;
 
 	err = drm_display_create(&drm->display, drm);
-	if (err < 0) {
+	if (err < 0 && err != -ENODEV) {
 		fprintf(stderr, "drm_display_create() failed: %d\n", err);
 		free(drm);
 		close(fd);
