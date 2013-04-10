@@ -99,3 +99,34 @@ uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 
 	return value;
 }
+
+void instruction_set_bit(struct instruction *inst, unsigned int pos, int value)
+{
+	unsigned int word = pos / 32;
+	unsigned int bit = pos % 32;
+
+	if (pos >= inst->length)
+		fprintf(stderr, "WARNING: bit out of range: %u\n", pos);
+
+	inst->bits[word] &= ~(1 << bit);
+	inst->bits[word] |= (value & 1) << bit;
+}
+
+void instruction_insert(struct instruction *inst, unsigned int from,
+			unsigned int to, uint32_t value)
+{
+	unsigned int bits = to - from, i;
+
+	if (to < from || bits > 32)
+		fprintf(stderr, "WARNING: invalid bitfield: %u-%u\n", from,
+			to);
+
+	for (i = from; i <= to; i++) {
+		unsigned int word = i / 32;
+		unsigned int bit = i % 32;
+
+		inst->bits[word] &= ~(1 << bit);
+		if (value & (1 << (i - from)))
+			inst->bits[word] |= (1 << bit);
+	}
+}

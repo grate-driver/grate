@@ -64,5 +64,8 @@ void instruction_free(struct instruction *inst);
 unsigned int instruction_get_bit(struct instruction *inst, unsigned int pos);
 uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 			     unsigned int to);
+void instruction_set_bit(struct instruction *inst, unsigned int pos, int value);
+void instruction_insert(struct instruction *inst, unsigned int from,
+			unsigned int to, uint32_t value);
 
 #endif
