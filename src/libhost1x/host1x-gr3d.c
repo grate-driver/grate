@@ -132,27 +132,19 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 		host1x_pushbuf_push(pb, 0x00000000);
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x121, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x122, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x124, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x124, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000007);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x125, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x126, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x200, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x200, 0x0005));
 	host1x_pushbuf_push(pb, 0x00000011);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x201, 0x0001));
 	host1x_pushbuf_push(pb, 0x0000ffff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x202, 0x0001));
 	host1x_pushbuf_push(pb, 0x00ff0000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x203, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x204, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x207, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -167,11 +159,9 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 		host1x_pushbuf_push(pb, 0x00000000);
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x209, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x209, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x20a, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x20b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000003);
 
 	/* XXX */
@@ -180,106 +170,61 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 64; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0019));
 	host1x_pushbuf_push(pb, 0xb8e00000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x345, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000105);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x347, 0x0001));
 	host1x_pushbuf_push(pb, 0x3f000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x348, 0x0001));
 	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x349, 0x0001));
 	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34a, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34d, 0x0001));
 	host1x_pushbuf_push(pb, 0x3f000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34e, 0x0001));
 	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34f, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x350, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x351, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x352, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x353, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x354, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x355, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x356, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x357, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x359, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x35a, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x35b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000205);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x363, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x363, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x364, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x400, 0x0002));
 	host1x_pushbuf_push(pb, 0x000007ff);
 	host1x_pushbuf_push(pb, 0x000007ff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x402, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x402, 0x0012));
 	host1x_pushbuf_push(pb, 0x00000040);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x403, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000310);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x404, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x405, 0x0001));
 	host1x_pushbuf_push(pb, 0x000fffff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x406, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x407, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x408, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x409, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40a, 0x0001));
 	host1x_pushbuf_push(pb, 0x1fff1fff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40c, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000006);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40d, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40e, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000008);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x40f, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000048);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x410, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x411, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x412, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x413, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x500, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x500, 0x0004));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x501, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000007);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x502, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x503, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
 	/* XXX */
@@ -297,15 +242,11 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 64; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x542, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x542, 0x0005));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x543, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x544, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x545, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x546, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x600, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -358,11 +299,9 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 		host1x_pushbuf_push(pb, 0x00000000);
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x740, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x740, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x741, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x742, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
 	/* XXX */
@@ -420,47 +359,30 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 64; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x904, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x907, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x907, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x908, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x909, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x90a, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x90a, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x90b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa00, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa00, 0x000d));
 	host1x_pushbuf_push(pb, 0x00000e00);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa01, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa03, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa04, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa05, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa06, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa07, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa08, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000100);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa09, 0x0001));
 	host1x_pushbuf_push(pb, 0x0f0f0f0f);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa0a, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa0b, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa0c, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb01, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -472,22 +394,16 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb08, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0a, 0x0002));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0a, 0x0009));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0c, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0d, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0e, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb10, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb11, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb12, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000); /* 0xb12 -- why aren't 0xb13 written? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb14, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
@@ -503,24 +419,17 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 16; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe21, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe22, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe25, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe26, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe27, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe28, 0x0002));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe2a, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe2b, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe25, 0x0007));
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 
 	/* XXX */
@@ -529,9 +438,8 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 16; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe40, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe40, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe41, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x205, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -551,71 +459,31 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0002));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x0003));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0003));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x0010));
 	host1x_pushbuf_push(pb, 0x0c00002c);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe11, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe12, 0x0001));
 	host1x_pushbuf_push(pb, 0x0c00000c);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe13, 0x0001));
 	host1x_pushbuf_push(pb, 0x0c000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe14, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000050);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe15, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe16, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe17, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe18, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe19, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1a, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1b, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1c, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1d, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1e, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1f, 0x0001));
 	host1x_pushbuf_push(pb, 0x08000019);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe26, 0x0924));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x101, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x103, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x105, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x107, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x109, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x10b, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x10d, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x10f, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x111, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x113, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x115, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x117, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x119, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x11b, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x11d, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x11f, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000104d);
+
+	/* write 16 vertex attribute specifiers */
+	for (i = 0; i < 16; ++i) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x101 + i * 2, 0x0001));
+		host1x_pushbuf_push(pb, 0x0000104d);
+	}
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0001));
 	host1x_pushbuf_push(pb, 0xb8e08000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0001));
@@ -869,7 +737,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	uint32_t format, pitch;
 	uint16_t *indices;
 	uint32_t fence;
-	int err;
+	int err, i;
 
 	/* XXX: count syncpoint increments in command stream */
 	job = host1x_job_create(syncpt->id, 9);
@@ -990,19 +858,13 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
 	host1x_pushbuf_push(pb, 0x00000002);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe15, 0x01));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe15, 0x07));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe16, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe17, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe18, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe19, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1a, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe1b, 0x01));
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x01));
 	host1x_pushbuf_push(pb, 0x0c000000);
@@ -1016,43 +878,19 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x3f800000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x01));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x403, 0x610));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x6));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
+
+	for (i = 0; i < 4; ++i) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x00000030);
+		host1x_pushbuf_push(pb, 0x00000020);
+		host1x_pushbuf_push(pb, 0x00000030);
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
+	}
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
