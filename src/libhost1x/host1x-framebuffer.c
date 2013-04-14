@@ -110,7 +110,7 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 		return -EINVAL;
 	}
 
-	err = host1x_bo_mmap(fb->bo);
+	err = host1x_bo_mmap(fb->bo, NULL);
 	if (err < 0)
 		return -EFAULT;
 

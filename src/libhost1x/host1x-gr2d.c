@@ -154,7 +154,7 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 	if (!gr2d->commands)
 		return -ENOMEM;
 
-	err = host1x_bo_mmap(gr2d->commands);
+	err = host1x_bo_mmap(gr2d->commands, NULL);
 	if (err < 0)
 		return err;
 

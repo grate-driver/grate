@@ -77,7 +77,7 @@ struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 void host1x_bo_free(struct host1x_bo *bo);
 
 int host1x_bo_invalidate(struct host1x_bo *bo, loff_t offset, size_t length);
-int host1x_bo_mmap(struct host1x_bo *bo);
+int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
 
 #define HOST1X_OPCODE_SETCL(offset, classid, mask) \
 	((0x0 << 28) | (((offset) & 0xfff) << 16) | (((classid) & 0x3ff) << 6) | ((mask) & 0x3f))

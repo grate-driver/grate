@@ -121,9 +121,18 @@ void host1x_bo_free(struct host1x_bo *bo)
 	bo->free(bo);
 }
 
-int host1x_bo_mmap(struct host1x_bo *bo)
+int host1x_bo_mmap(struct host1x_bo *bo, void **ptr)
 {
-	return bo->mmap(bo);
+	int err;
+
+	err = bo->mmap(bo);
+	if (err < 0)
+		return err;
+
+	if (ptr)
+		*ptr = bo->ptr;
+
+	return 0;
 }
 
 int host1x_bo_invalidate(struct host1x_bo *bo, loff_t offset, size_t length)

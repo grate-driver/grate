@@ -676,7 +676,7 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 	if (!gr3d->commands)
 		return -ENOMEM;
 
-	err = host1x_bo_mmap(gr3d->commands);
+	err = host1x_bo_mmap(gr3d->commands, NULL);
 	if (err < 0) {
 		host1x_bo_free(gr3d->commands);
 		return err;
@@ -688,7 +688,7 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 		return -ENOMEM;
 	}
 
-	err = host1x_bo_mmap(gr3d->attributes);
+	err = host1x_bo_mmap(gr3d->attributes, NULL);
 	if (err < 0) {
 		host1x_bo_free(gr3d->attributes);
 		host1x_bo_free(gr3d->commands);
