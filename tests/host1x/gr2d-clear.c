@@ -52,8 +52,23 @@ int main(int argc, char *argv[])
 	display = host1x_get_display(host1x);
 	if (display) {
 		err = host1x_overlay_create(&overlay, display);
-		if (err < 0)
+		if (err < 0) {
 			fprintf(stderr, "overlay support missing\n");
+
+			/*
+			 * If overlay support is missing but we still have
+			 * on-screen display support, make the framebuffer
+			 * the same resolution as the display to make sure
+			 * it can be properly displayed.
+			 */
+
+			err = host1x_display_get_resolution(display, &width,
+							    &height);
+			if (err < 0) {
+				fprintf(stderr, "host1x_display_get_resolution() failed: %d\n", err);
+				return 1;
+			}
+		}
 	}
 
 	gr2d = host1x_get_gr2d(host1x);
@@ -74,16 +89,22 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (display && overlay) {
-		err = host1x_overlay_set(overlay, fb, 0, 0, width, height);
-		if (err < 0) {
-			fprintf(stderr, "host1x_overlay_set() failed: %d\n",
-				err);
-		} else {
-			sleep(5);
-		}
+	if (display) {
+		if (overlay) {
+			err = host1x_overlay_set(overlay, fb, 0, 0, width, height);
+			if (err < 0)
+				fprintf(stderr, "host1x_overlay_set() failed: %d\n", err);
+			else
+				sleep(5);
 
-		host1x_overlay_close(overlay);
+			host1x_overlay_close(overlay);
+		} else {
+			err = host1x_display_set(display, fb);
+			if (err < 0)
+				fprintf(stderr, "host1x_display_set() failed: %d\n", err);
+			else
+				sleep(5);
+		}
 	} else {
 		host1x_framebuffer_save(fb, "test.png");
 	}

@@ -59,6 +59,11 @@ struct host1x_display *host1x_get_display(struct host1x *host1x);
 struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x);
 struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x);
 
+int host1x_display_get_resolution(struct host1x_display *display,
+				  unsigned int *width, unsigned int *height);
+int host1x_display_set(struct host1x_display *display,
+		       struct host1x_framebuffer *fb);
+
 int host1x_overlay_create(struct host1x_overlay **overlayp,
 			  struct host1x_display *display);
 int host1x_overlay_close(struct host1x_overlay *overlay);

@@ -212,6 +212,20 @@ static int drm_overlay_create(struct host1x_display *display,
 	return 0;
 }
 
+static int drm_display_set(struct host1x_display *display,
+			   struct host1x_framebuffer *fb)
+{
+	struct drm_display *drm = to_drm_display(display);
+	int err;
+
+	err = drmModeSetCrtc(drm->drm->fd, drm->crtc, fb->handle, 0, 0,
+			     &drm->connector, 1, &drm->mode);
+	if (err < 0)
+		return -errno;
+
+	return 0;
+}
+
 static int drm_display_setup(struct drm_display *display)
 {
 	struct drm *drm = display->drm;
@@ -295,7 +309,10 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 		return err;
 	}
 
+	display->base.width = display->mode.hdisplay;
+	display->base.height = display->mode.vdisplay;
 	display->base.create_overlay = drm_overlay_create;
+	display->base.set = drm_display_set;
 
 	*displayp = display;
 
