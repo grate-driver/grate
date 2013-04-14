@@ -31,11 +31,11 @@
 
 #define HOST1X_GR3D_TEST 0
 
-#define NVHOST_GR3D_FORMAT_RGB565	0x6
-#define NVHOST_GR3D_FORMAT_RGBA8888	0xd
+#define HOST1X_GR3D_FORMAT_RGB565	0x6
+#define HOST1X_GR3D_FORMAT_RGBA8888	0xd
 
-#define NVHOST_GR3D_SCISSOR_HORIZONTAL	0x350
-#define NVHOST_GR3D_SCISSOR_VERTICAL	0x351
+#define HOST1X_GR3D_SCISSOR_HORIZONTAL	0x350
+#define HOST1X_GR3D_SCISSOR_VERTICAL	0x351
 
 static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 {
@@ -847,10 +847,10 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe11, 0x01));
 
 	if (depth == 16) {
-		format = NVHOST_GR3D_FORMAT_RGB565;
+		format = HOST1X_GR3D_FORMAT_RGB565;
 		pitch = fb->width * 2;
 	} else {
-		format = NVHOST_GR3D_FORMAT_RGBA8888;
+		format = HOST1X_GR3D_FORMAT_RGBA8888;
 		pitch = fb->width * 4;
 	}
 
