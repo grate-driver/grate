@@ -1,5 +1,6 @@
 noinst_PROGRAMS = \
 	clear \
+	quad \
 	triangle \
 	triangle-rotate
 
