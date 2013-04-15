@@ -45,7 +45,7 @@
 |        1 | ??? (related to ARL)        |
 |        0 | end of program              |
 
-### opcodes
+### vector opcodes
 
 |  Value | Mnemonic | Meaning                       |
 |-------:|:---------|:------------------------------|
@@ -71,6 +71,18 @@
 |     19 | SLE      | rD = lessThanEqual(rA, rB)    |
 |     20 | SNE      | rD = notEqual(rA, rB)         |
 | 21..31 | ???      | ???                           |
+
+### scalar opcodes
+
+|  Value | Mnemonic | Meaning             |
+|-------:|:---------|:--------------------|
+|      0 | COS      | rD = cos(rA)        |
+|      1 | MOV      | rD = rA             |
+|      2 | RCP      | rD = 1.0 / rA       |
+|      4 | RSQ      | rD = 1.0 / sqrt(rA) |
+|     13 | LG2      | rD = log2(rA)       |
+|     14 | EX2      | rD = exp2(rA)       |
+|     15 | SIN      | rD = sin(rA)        |
 
 ### swizzle
 
