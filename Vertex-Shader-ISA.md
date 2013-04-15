@@ -14,9 +14,9 @@
 | 111..116 | vector destination register |
 |      110 | ???                         |
 |      109 | predicate enable            |
-|      108 | ???                         |
+|      108 | ??? (predicate-related?)    |
 |      107 | predicate negate            |
-|      106 | ???                         |
+|      106 | ??? (predicate-related?)    |
 |  98..105 | predicate swizzle           |
 |   96..97 | ???                         |
 |       95 | scalar op enable (?)        |
