@@ -326,6 +326,10 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 			case 0xc:
 				printf("sge");
 				break;
+			case 0xd:
+				printf("arl");
+				rb = 0;
+				break;
 			case 0xe:
 				printf("frc");
 				rb = 0;
