@@ -45,6 +45,33 @@
 |        1 | ??? (related to ARL)        |
 |        0 | end of program              |
 
+### opcodes
+
+|  Value | Mnemonic | Meaning                       |
+|-------:|:---------|:------------------------------|
+|      0 | ???      | ???                           |
+|      1 | mov      | rD = rA                       |
+|      2 | mul      | rD = rA * rB                  |
+|      3 | add      | rD = rA + rC                  |
+|      4 | mad      | rD = rA * rB + rC             |
+|      5 | dp3      | rD = dot((rA).xyz, (rB).xyz)  |
+|      6 | ???      | ???                           |
+|      7 | dp4      | rD = dot(rA, rB)              |
+|      8 | ???      | ???                           |
+|      9 | min      | rD = min(rA, rB)              |
+|     10 | max      | rD = max(rA, rB)              |
+|     11 | slt      | rD = lessThan(rA, rB)         |
+|     12 | sge      | rD = greaterThanEqual(rA, rB) |
+|     13 | arl      | rD.x = floor(rA).x            |
+|     14 | frc      | rD = fract(rA)                |
+|     15 | flr      | rD = floor(rA)                |
+|     16 | seq      | rD = equal(rA, rB)            |
+|     17 | ???      | ???                           |
+|     18 | sgt      | rD = greaterThan(rA, rB)      |
+|     19 | sle      | rD = lessThanEqual(rA, rB)    |
+|     20 | sne      | rD = notEqual(rA, rB)         |
+| 21..31 | ???      | ???                           |
+
 ### swizzle
 
 | Bits | Meaning            |
