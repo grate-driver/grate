@@ -40,9 +40,9 @@
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|        6 | ???                         |
+|        6 | ??? (related to ARL)        |
 |     2..5 | varying write               |
-|        1 | ???                         |
+|        1 | ??? (related to ARL)        |
 |        0 | end of program              |
 
 ### swizzle
