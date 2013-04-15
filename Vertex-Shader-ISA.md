@@ -62,7 +62,7 @@
 |     10 | MAX      | rD = max(rA, rB)              |
 |     11 | SLT      | rD = lessThan(rA, rB)         |
 |     12 | SGE      | rD = greaterThanEqual(rA, rB) |
-|     13 | ARL      | rD.x = floor(rA).x            |
+|     13 | ARL      | rD = floor(rA)                |
 |     14 | FRC      | rD = fract(rA)                |
 |     15 | FLR      | rD = floor(rA)                |
 |     16 | SEQ      | rD = equal(rA, rB)            |
