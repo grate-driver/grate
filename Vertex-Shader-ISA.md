@@ -18,8 +18,8 @@
 |      107 | predicate negate            |
 |      106 | ??? (predicate-related?)    |
 |  98..105 | predicate swizzle           |
-|   96..97 | ???                         |
-|       95 | scalar op enable (?)        |
+|   96..97 | address register select     |
+|       95 | ???                         |
 |   91..94 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
