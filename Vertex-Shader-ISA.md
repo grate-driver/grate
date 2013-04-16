@@ -76,13 +76,13 @@
 
 |  Value | Mnemonic | Meaning             |
 |-------:|:---------|:--------------------|
-|      0 | COS      | rD = cos(rA)        |
-|      1 | MOV      | rD = rA             |
-|      2 | RCP      | rD = 1.0 / rA       |
-|      4 | RSQ      | rD = 1.0 / sqrt(rA) |
-|     13 | LG2      | rD = log2(rA)       |
-|     14 | EX2      | rD = exp2(rA)       |
-|     15 | SIN      | rD = sin(rA)        |
+|      0 | COS      | rD = cos(rC)        |
+|      1 | MOV      | rD = rC             |
+|      2 | RCP      | rD = 1.0 / rC       |
+|      4 | RSQ      | rD = 1.0 / sqrt(rC) |
+|     13 | LG2      | rD = log2(rC)       |
+|     14 | EX2      | rD = exp2(rC)       |
+|     15 | SIN      | rD = sin(rC)        |
 
 ### swizzle
 
