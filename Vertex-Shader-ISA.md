@@ -42,7 +42,7 @@
 |    7..12 | scalar destination register |
 |        6 | ??? (related to ARL)        |
 |     2..5 | varying write               |
-|        1 | address register offset rA  |
+|        1 | constant fetch offset       |
 |        0 | end of program              |
 
 ### vector opcodes
