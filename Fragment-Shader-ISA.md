@@ -1,0 +1,34 @@
+|   Bits | Meaning                  |
+|-------:|:-------------------------|
+| 62..63 | opcode                   |
+| 59..61 | ???                      |
+| 57..58 | scale result             |
+|     56 | saturate result          |
+| 52..55 | ???                      |
+| 46..51 | destination register     |
+|     45 | ???                      |
+|     44 | enable extended operands |
+|     43 | rA read constant         |
+| 37..42 | rA register              |
+|     36 | ???                      |
+|     35 | rA read fixed10          |
+|     34 | rA absolute value        |
+|     33 | rA negate                |
+|     32 | rA scale by two          |
+|     31 | ???                      |
+|     30 | rB read constant         |
+| 24..29 | rB register              |
+|     23 | ???                      |
+|     22 | rB read fixed10          |
+|     21 | rB absolute value        |
+|     20 | rB negate                |
+|     19 | rB scale by two          |
+|     18 | ???                      |
+|     17 | rC read constant         |
+| 11..16 | rC register              |
+|     10 | ???                      |
+|      9 | rC read fixed10          |
+|      8 | rC absolute value        |
+|      7 | rC negate                |
+|      6 | rC scale by two          |
+|   0..5 | ???                      |
