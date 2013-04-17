@@ -513,8 +513,86 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
-static void fragment_shader_disassemble(struct cgc_shader *shader, FILE *fp)
+static void fragment_instruction_disasm(uint32_t *words)
 {
+	int i, op, reg, sat, scale;
+	struct instruction *inst;
+	const char *dscale_str[] = {
+		"", "_mul2", "_mul4", "_div2"
+	};
+
+	printf("    ");
+
+	for (i = 0; i < 2; i++)
+		printf("%08x", words[i]);
+
+	printf(" |");
+
+	for (i = 0; i < 2; i++)
+		printf(" %08x", words[i]);
+
+	printf("\n");
+
+	inst = instruction_create_from_words(words, 2);
+
+	op = instruction_extract(inst, 62, 63);
+
+	printf("    ");
+	switch (op) {
+	case 0:
+		printf("mad");
+		break;
+	case 1:
+		printf("min");
+		break;
+	case 2:
+		printf("max");
+		break;
+	case 3:
+		printf("cnd");
+		break;
+	}
+
+	scale = instruction_extract(inst, 57, 58);
+	sat = instruction_get_bit(inst, 56);
+	reg = instruction_extract(inst, 46, 51);
+	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
+
+	printf("\n");
+	instruction_free(inst);
+}
+
+static void fragment_shader_disassemble(uint32_t *words, size_t length)
+{
+	int i, j;
+	uint32_t *alu = NULL;
+	int alu_length = 0;
+
+	for (i = 0; i < length; ) {
+		uint32_t word = words[i++];
+		uint32_t opcode = (word >> 28) & 0xf, offset, count;
+
+		if (opcode != 1 && opcode != 2) {
+			fprintf(stderr, "unknown opcode %d\n", opcode);
+			return;
+		}
+
+		offset = (word >> 16) & 0xfff;
+		count = word & 0xfff;
+
+		switch (offset) {
+		case 0x804:
+			alu = words + i;
+			alu_length = count;
+			break;
+		}
+		i += count;
+	}
+
+	printf("  alu instructions:\n");
+	for (i = 0; i < alu_length; i += 8)
+		for (j = 0; j < 4; ++j)
+			fragment_instruction_disasm(alu + i + j * 2);
 }
 
 static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
@@ -538,6 +616,8 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 		fs = shader->binary + header->binary_offset;
 		length = header->binary_size - sizeof(*fs);
 		words = fs->words;
+
+		fragment_shader_disassemble(words, length / 4);
 
 		fprintf(fp, "signature: %.*s\n", 8, fs->signature);
 		fprintf(fp, "unknown0: 0x%08x\n", fs->unknown0);
@@ -565,7 +645,6 @@ static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 		break;
 
 	case 0x1b5e:
-		fragment_shader_disassemble(shader, fp);
 		shader_stream_dump(shader, fp);
 		break;
 	}
