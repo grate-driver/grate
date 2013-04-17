@@ -558,6 +558,20 @@ static void fragment_instruction_disasm(uint32_t *words)
 	reg = instruction_extract(inst, 46, 51);
 	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
 
+	for (i = 0; i < 3; ++i) {
+		int uni, reg, abs, neg;
+		int offset = 32 - 13 * i;
+		uni = instruction_get_bit(inst, offset + 11);
+		reg = instruction_extract(inst, offset + 5, offset + 10);
+		abs = instruction_get_bit(inst, offset + 2);
+		neg = instruction_get_bit(inst, offset + 1);
+		scale = instruction_get_bit(inst, offset);
+		printf(", ");
+		printf("%s%s%c%d%s", neg ? "-" : "", abs ? "abs(" : "", "rc"[uni], reg, abs ? ")" : "");
+		if (scale)
+			printf(" * #2.0");
+	}
+
 	printf("\n");
 	instruction_free(inst);
 }
