@@ -65,6 +65,15 @@ void mat4_identity(struct mat4 *m)
 	m->xx = m->yy = m->zz = m->ww = 1.0f;
 }
 
+void mat4_translate(struct mat4 *m, GLfloat x, GLfloat y, GLfloat z)
+{
+	mat4_identity(m);
+
+	m->xw = x;
+	m->yw = y;
+	m->zw = z;
+}
+
 void mat4_rotate_x(struct mat4 *m, GLfloat angle)
 {
 	GLfloat c = cos(angle * M_PI / 180.0);
@@ -102,4 +111,29 @@ void mat4_rotate_z(struct mat4 *m, GLfloat angle)
 	m->xy = -s;
 	m->yx =  s;
 	m->yy =  c;
+}
+
+void mat4_perspective(struct mat4 *m, GLfloat fov, GLfloat aspect,
+		      GLfloat near, GLfloat far)
+{
+	GLfloat radians = fov / 2 * M_PI / 180;
+	double sine, cosine, cotangent;
+	double depth = far - near;
+
+	mat4_identity(m);
+
+	sine = sin(radians);
+	cosine = cos(radians);
+
+	if (depth == 0 || sine == 0 || aspect == 0)
+		return;
+
+	cotangent = cosine / sine;
+
+	m->xx = cotangent / aspect;
+	m->yy = cotangent;
+	m->zz = -(far + near) / depth;
+	m->zw = -1.0f;
+	m->wz = -2.0f * near * far / depth;
+	m->ww = 0.0f;
 }
