@@ -95,6 +95,7 @@ struct window *window_create(unsigned int x, unsigned int y,
 		EGL_RED_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
 		EGL_BLUE_SIZE, 8,
+		EGL_DEPTH_SIZE, 8,
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_NONE
 	};
@@ -264,6 +265,7 @@ struct pbuffer *pbuffer_create(unsigned int width, unsigned int height)
 	const EGLint config_attribs[] = {
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
+		EGL_DEPTH_SIZE, 8,
 		EGL_NONE
 	};
 	const EGLint surface_attribs[] = {
