@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "libcgc.h"
 #include "host1x.h"
@@ -542,7 +543,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 static void fragment_instruction_disasm(uint32_t *words)
 {
-	int i, op, reg, sat, scale;
+	int i, op, reg, sat, scale, xreg;
 	struct instruction *inst;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
@@ -600,18 +601,37 @@ static void fragment_instruction_disasm(uint32_t *words)
 	reg = instruction_extract(inst, 46, 51);
 	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
 
+	xreg = instruction_get_bit(inst, 44);
+
 	for (i = 0; i < 3; ++i) {
-		int uni, reg, abs, neg;
+		int uni, reg, x10, abs, neg;
 		int offset = 32 - 13 * i;
 		uni = instruction_get_bit(inst, offset + 11);
 		reg = instruction_extract(inst, offset + 5, offset + 10);
+		x10 = instruction_get_bit(inst, offset + 3);
 		abs = instruction_get_bit(inst, offset + 2);
 		neg = instruction_get_bit(inst, offset + 1);
 		scale = instruction_get_bit(inst, offset);
 		printf(", ");
-		printf("%s%s%c%d%s", neg ? "-" : "", abs ? "abs(" : "", "rc"[uni], reg, abs ? ")" : "");
-		if (scale)
-			printf(" * #2.0");
+		printf("%s%s", neg ? "-" : "", abs ? "abs(" : "");
+		if (!uni) {
+			if (xreg && reg == 18 && !x10)
+				printf("vPos.y");
+			else if (xreg && reg == 22 && x10)
+				printf("vFace");
+			else if (xreg && reg == 56 && !x10)
+				printf("vPos.x");
+			else if (reg >= 62 && x10)
+				printf("#%d", reg - 62);
+			else {
+				assert(x10 || !(reg & 1));
+				printf("r%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
+			}
+		} else {
+			assert(x10 || !(reg & 1));
+			printf("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
+		}
+		printf("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
 
 	printf("\n");
