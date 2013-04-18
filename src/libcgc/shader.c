@@ -562,9 +562,14 @@ static void fragment_instruction_disasm(uint32_t *words)
 
 	inst = instruction_create_from_words(words, 2);
 
-	op = instruction_extract(inst, 62, 63);
+	printf("      ");
+	if (words[0] == 0x000fe7e8 && words[1] == 0x3e41f200) {
+		// a NOP is an instruction that writes 0.0 to r63
+		printf("nop\n");
+		return;
+	}
 
-	printf("    ");
+	op = instruction_extract(inst, 62, 63);
 	switch (op) {
 	case 0:
 		printf("mad");
