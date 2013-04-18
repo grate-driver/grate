@@ -41,6 +41,7 @@ AC_OUTPUT([
 	src/libhost1x/Makefile
 	src/libwrap/Makefile
 	tests/Makefile
+	tests/drm/Makefile
 	tests/gles/Makefile
 	tests/grate/Makefile
 	tests/host1x/Makefile
