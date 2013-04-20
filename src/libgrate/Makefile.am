@@ -11,7 +11,8 @@ libgrate_la_SOURCES = \
 	grate.h \
 	libgrate-private.h \
 	matrix.c \
-	matrix.h
+	matrix.h \
+	profile.c
 
 libgrate_la_LIBADD = \
 	../libhost1x/libhost1x.la \

@@ -100,4 +100,11 @@ void grate_use_program(struct grate *grate, struct grate_program *program);
 void grate_uniform(struct grate *grate, const char *name, unsigned int count,
 		   float *values);
 
+struct grate_profile;
+
+struct grate_profile *grate_profile_start(struct grate *grate);
+void grate_profile_free(struct grate_profile *profile);
+void grate_profile_sample(struct grate_profile *profile);
+void grate_profile_finish(struct grate_profile *profile);
+
 #endif
