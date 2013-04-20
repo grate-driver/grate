@@ -15,6 +15,7 @@ noinst_PROGRAMS = \
 	egl-x11-clear \
 	egl-x11-triangle \
 	gles-clear \
+	gles-cube \
 	gles-pbuffer-clear \
 	gles-pbuffer-cube \
 	gles-pbuffer-fill \
@@ -25,6 +26,10 @@ noinst_PROGRAMS = \
 	gles-pbuffer-uniforms-rg \
 	gles-pbuffer-vertex-offset \
 	gles-shader-fill
+
+gles_cube_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	libcommon.la
 
 gles_pbuffer_triangle_rotate_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
