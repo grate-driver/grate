@@ -4,7 +4,13 @@ egl-x11-clear
 egl-x11-triangle
 gles-clear
 gles-pbuffer-clear
+gles-pbuffer-cube
 gles-pbuffer-fill
 gles-pbuffer-triangle
+gles-pbuffer-triangle-rotate
+gles-pbuffer-uniforms
+gles-pbuffer-uniforms-rg
+gles-pbuffer-uniforms-rgb
+gles-pbuffer-vertex-offset
 gles-shader-fill
 libcommon.la
