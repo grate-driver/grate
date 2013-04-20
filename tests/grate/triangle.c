@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <string.h>
+
 #include "grate.h"
 
 static const char *vertex_shader[] = {
@@ -67,15 +69,35 @@ int main(int argc, char *argv[])
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs;
-	unsigned int height = 32;
-	unsigned int width = 32;
+	struct grate_options options;
+	unsigned long offset = 0;
 	struct grate *grate;
+	struct grate_bo *bo;
+	void *buffer;
+	int location;
 
-	grate = grate_init();
+	if (!grate_parse_command_line(&options, argc, argv))
+		return 1;
+
+	grate = grate_init(&options);
 	if (!grate)
 		return 1;
 
-	fb = grate_framebuffer_new(grate, width, height, GRATE_RGBA8888);
+	bo = grate_bo_create(grate, 4096, 0);
+	if (!bo) {
+		grate_exit(grate);
+		return 1;
+	}
+
+	buffer = grate_bo_map(bo);
+	if (!buffer) {
+		grate_bo_free(bo);
+		grate_exit(grate);
+		return 1;
+	}
+
+	fb = grate_framebuffer_create(grate, options.width, options.height,
+				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
 	if (!fb)
 		return 1;
 
@@ -90,16 +112,37 @@ int main(int argc, char *argv[])
 	program = grate_program_new(grate, vs, fs);
 	grate_program_link(program);
 
+	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
 	grate_use_program(grate, program);
 
-	grate_attribute_pointer(grate, "position", sizeof(float), 4, 3,
-				vertices);
-	grate_attribute_pointer(grate, "color", sizeof(float), 4, 3, colors);
+	location = grate_get_attribute_location(grate, "position");
+	if (location < 0) {
+		fprintf(stderr, "\"position\": attribute not found\n");
+		return 1;
+	}
 
-	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, indices);
+	memcpy(buffer + offset, vertices, sizeof(vertices));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+				offset);
+	offset += sizeof(vertices);
+
+	location = grate_get_attribute_location(grate, "color");
+	if (location < 0) {
+		fprintf(stderr, "\"color\": attribute not found\n");
+		return 1;
+	}
+
+	memcpy(buffer + offset, colors, sizeof(colors));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+				offset);
+	offset += sizeof(colors);
+
+	memcpy(buffer + offset, indices, sizeof(indices));
+	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
 	grate_flush(grate);
 
-	grate_framebuffer_save(fb, "test.png");
+	grate_swap_buffers(grate);
+	grate_wait_for_key(grate);
 
 	grate_exit(grate);
 	return 0;

@@ -22,6 +22,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "grate.h"
 #include "matrix.h"
 
@@ -67,24 +71,47 @@ static const unsigned short indices[] = {
 int main(int argc, char *argv[])
 {
 	struct grate_program *program;
+	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs;
-	unsigned int height = 32;
-	unsigned int width = 32;
+	struct grate_options options;
+	unsigned long offset = 0;
+	GLfloat angle = 0.0f;
 	struct grate *grate;
+	struct grate_bo *bo;
 	struct mat4 matrix;
+	void *buffer;
+	int location;
 
-	grate = grate_init();
+	if (!grate_parse_command_line(&options, argc, argv))
+		return 1;
+
+	grate = grate_init(&options);
 	if (!grate)
 		return 1;
 
-	fb = grate_framebuffer_new(grate, width, height, GRATE_RGBA8888);
-	if (!fb)
+	bo = grate_bo_create(grate, 4096, 0);
+	if (!bo) {
+		grate_exit(grate);
 		return 1;
+	}
+
+	buffer = grate_bo_map(bo);
+	if (!buffer) {
+		grate_bo_free(bo);
+		grate_exit(grate);
+		return 1;
+	}
+
+	fb = grate_framebuffer_create(grate, options.width, options.height,
+				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
+	if (!fb) {
+		fprintf(stderr, "grate_framebuffer_create() failed\n");
+		return 1;
+	}
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
-	grate_clear(grate);
 
 	vs = grate_shader_new(grate, GRATE_SHADER_VERTEX, vertex_shader,
 			      ARRAY_SIZE(vertex_shader));
@@ -93,19 +120,57 @@ int main(int argc, char *argv[])
 	program = grate_program_new(grate, vs, fs);
 	grate_program_link(program);
 
+	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
 	grate_use_program(grate, program);
 
-	grate_attribute_pointer(grate, "position", sizeof(float), 4, 3,
-				vertices);
-	grate_attribute_pointer(grate, "color", sizeof(float), 4, 3, colors);
+	location = grate_get_attribute_location(grate, "position");
+	if (location < 0) {
+		fprintf(stderr, "\"position\": attribute not found\n");
+		return 1;
+	}
 
-	mat4_rotate_z(&matrix, 90.0f);
-	grate_uniform(grate, "modelview", 16, (float *)&matrix);
+	memcpy(buffer + offset, vertices, sizeof(vertices));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+				offset);
+	offset += sizeof(vertices);
 
-	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, indices);
-	grate_flush(grate);
+	location = grate_get_attribute_location(grate, "color");
+	if (location < 0) {
+		fprintf(stderr, "\"color\": attribute not found\n");
+		return 1;
+	}
 
-	grate_framebuffer_save(fb, "test.png");
+	memcpy(buffer + offset, colors, sizeof(colors));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+				offset);
+	offset += sizeof(colors);
+
+	memcpy(buffer + offset, indices, sizeof(indices));
+
+	profile = grate_profile_start(grate);
+
+	while (true) {
+		grate_clear(grate);
+
+		mat4_rotate_z(&matrix, angle);
+
+		location = grate_get_uniform_location(grate, "modelview");
+
+		grate_uniform(grate, location, 16, (float *)&matrix);
+
+		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
+		grate_flush(grate);
+		grate_swap_buffers(grate);
+
+		if (grate_key_pressed(grate))
+			break;
+
+		grate_profile_sample(profile);
+		angle += 1.0f;
+	}
+
+	grate_profile_finish(profile);
+	grate_profile_free(profile);
 
 	grate_exit(grate);
 	return 0;

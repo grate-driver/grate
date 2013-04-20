@@ -34,6 +34,10 @@
 #define BIT(x) (1 << (x))
 #endif
 
+/* gr3d pixel formats */
+#define HOST1X_GR3D_FORMAT_RGB565	0x6
+#define HOST1X_GR3D_FORMAT_RGBA8888	0xd
+
 struct host1x_stream {
 	const uint32_t *words;
 	const uint32_t *ptr;

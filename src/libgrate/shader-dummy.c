@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "host1x.h"
 #include "grate.h"
 
 struct grate_shader {
@@ -44,6 +45,10 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 void grate_shader_free(struct grate_shader *shader)
 {
 	free(shader);
+}
+
+void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
+{
 }
 
 struct grate_program {

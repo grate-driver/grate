@@ -31,9 +31,6 @@
 
 #define HOST1X_GR3D_TEST 0
 
-#define HOST1X_GR3D_FORMAT_RGB565	0x6
-#define HOST1X_GR3D_FORMAT_RGBA8888	0xd
-
 #define HOST1X_GR3D_SCISSOR_HORIZONTAL	0x350
 #define HOST1X_GR3D_SCISSOR_VERTICAL	0x351
 
@@ -146,10 +143,11 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00ff0000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
+
+	/* Vertex processor constants (256 vectors of 4 elements each) */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x207, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* Vertex processor constants (256 vectors of 4 elements each) */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x208, 256 * 4));
 
 	for (i = 0; i < 256; i++) {

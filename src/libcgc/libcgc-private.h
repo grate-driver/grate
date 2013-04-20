@@ -54,7 +54,7 @@ struct CgDrv *CgDrv_Create(void);
 void CgDrv_Delete(struct CgDrv *cgdrv);
 void CgDrv_CleanUp(struct CgDrv *cgdrv);
 int CgDrv_Compile(struct CgDrv *cgdrv, int unknown, int type,
-		  const char *code, size_t length, int unknown2);
+		  const char *code, size_t length, int unknown2, int unknown3);
 
 struct instruction;
 

@@ -27,15 +27,18 @@
 int main(int argc, char *argv[])
 {
 	struct grate_framebuffer *fb;
-	unsigned int height = 32;
-	unsigned int width = 32;
+	struct grate_options options;
 	struct grate *grate;
 
-	grate = grate_init();
+	if (!grate_parse_command_line(&options, argc, argv))
+		return 1;
+
+	grate = grate_init(&options);
 	if (!grate)
 		return 1;
 
-	fb = grate_framebuffer_new(grate, width, height, GRATE_RGBA8888);
+	fb = grate_framebuffer_create(grate, options.width, options.height,
+				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
 	if (!fb)
 		return 1;
 
@@ -43,7 +46,8 @@ int main(int argc, char *argv[])
 	grate_bind_framebuffer(grate, fb);
 	grate_clear(grate);
 
-	grate_framebuffer_save(fb, "test.png");
+	grate_swap_buffers(grate);
+	grate_wait_for_key(grate);
 
 	grate_exit(grate);
 	return 0;

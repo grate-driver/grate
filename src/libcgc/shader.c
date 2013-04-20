@@ -177,10 +177,32 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 
 		switch (sym->unknown02) {
 		case 0x1005:
+			/*
+			 * unknown01:
+			 *   0x84x: vertex attribute
+			 *   0x8cx: builtin outputs
+			 *   0xc9x: varying
+			 */
+
+			if (sym->unknown01 & (1 << 10)) {
+				/* varying */
+				symbol->location = sym->unknown03;
+				symbol->input = false;
+			} else if (sym->unknown01 & (1 << 7)) {
+				/* builtin output */
+				symbol->location = sym->unknown03;
+				symbol->input = false;
+			} else {
+				/* vertex attribute */
+				symbol->location = (sym->unknown01 & 0x1f) - 1;
+				symbol->input = true;
+			}
+
 			symbol->kind = GLSL_KIND_ATTRIBUTE;
 			break;
 
 		case 0x1006:
+			symbol->location = sym->unknown03;
 			symbol->kind = GLSL_KIND_UNIFORM;
 			break;
 
@@ -195,6 +217,7 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 					name);
 			}
 
+			symbol->location = sym->unknown03;
 			symbol->kind = GLSL_KIND_CONSTANT;
 			break;
 
@@ -204,8 +227,12 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 		}
 
 		symbol->name = name ? strdup(name) : NULL;
-		symbol->location = sym->unknown03;
 		symbol->type = glsl;
+
+		if (sym->unknown10 == 0x00000001)
+			symbol->used = true;
+		else
+			symbol->used = false;
 	}
 
 	return 0;
@@ -706,7 +733,7 @@ struct cgc_shader *cgc_compile(enum cgc_shader_type type,
 
 	fputs("\n", stdout);
 
-	err = CgDrv_Compile(cg, 1, type, source, size, 0);
+	err = CgDrv_Compile(cg, 1, type, source, size, 0, 0);
 	if (err) {
 		fprintf(stderr, "%s\n", cg->error);
 		fprintf(stderr, "%s\n", cg->log);

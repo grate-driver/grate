@@ -25,6 +25,7 @@
 #ifndef GRATE_GRATE_H
 #define GRATE_GRATE_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +34,9 @@
 #define BIT(x) (1 << (x))
 
 struct grate_framebuffer;
+struct grate_display;
+struct grate_overlay;
+struct grate_bo;
 struct grate;
 
 enum grate_type {
@@ -44,25 +48,65 @@ enum grate_format {
 	GRATE_RGBA8888,
 };
 
-struct grate_framebuffer *grate_framebuffer_new(struct grate *grate,
-						unsigned int width,
-						unsigned int height,
-						enum grate_format format);
+#define GRATE_DOUBLE_BUFFERED (1 << 0)
+
+struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
+						   unsigned int width,
+						   unsigned int height,
+						   enum grate_format format,
+						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path);
 
-struct grate *grate_init(void);
+struct grate_display *grate_display_open(struct grate *grate);
+void grate_display_close(struct grate_display *display);
+void grate_display_get_resolution(struct grate_display *display,
+				  unsigned int *width, unsigned int *height);
+void grate_display_show(struct grate_display *display,
+			struct grate_framebuffer *fb, bool vsync);
+
+struct grate_overlay *grate_overlay_create(struct grate_display *display);
+void grate_overlay_free(struct grate_overlay *overlay);
+void grate_overlay_show(struct grate_overlay *overlay,
+			struct grate_framebuffer *fb, unsigned int x,
+			unsigned int y, unsigned int width,
+			unsigned int height, bool vsync);
+
+struct grate_bo *grate_bo_create(struct grate *grate, size_t size,
+				 unsigned long flags);
+void grate_bo_free(struct grate_bo *bo);
+void *grate_bo_map(struct grate_bo *bo);
+void grate_bo_unmap(struct grate_bo *bo, void *ptr);
+
+struct grate_options {
+	unsigned int x, y, width, height;
+	bool fullscreen;
+	bool vsync;
+};
+
+bool grate_parse_command_line(struct grate_options *options, int argc,
+			      char *argv[]);
+struct grate *grate_init(struct grate_options *options);
 void grate_exit(struct grate *grate);
 
 void grate_clear_color(struct grate *grate, float red, float green, float blue,
 		       float alpha);
 void grate_clear(struct grate *grate);
 
+void grate_viewport(struct grate *grate, float x, float y, float width,
+		    float height);
+
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb);
 
-void grate_attribute_pointer(struct grate *grate, const char *name,
+int grate_get_attribute_location(struct grate *grate, const char *name);
+void grate_attribute_pointer(struct grate *grate, unsigned int location,
 			     unsigned int size, unsigned int stride,
-			     unsigned int count, const void *buffer);
+			     unsigned int count, struct grate_bo *bo,
+			     unsigned long offset);
+
+int grate_get_uniform_location(struct grate *grate, const char *name);
+void grate_uniform(struct grate *grate, unsigned int location,
+		   unsigned int count, float *values);
 
 enum grate_primitive {
 	GRATE_TRIANGLES,
@@ -70,9 +114,12 @@ enum grate_primitive {
 
 void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 			 unsigned int size, unsigned int count,
-			 const void *indices);
+			 struct grate_bo *bo, unsigned long offset);
 
 void grate_flush(struct grate *grate);
+void grate_swap_buffers(struct grate *grate);
+void grate_wait_for_key(struct grate *grate);
+bool grate_key_pressed(struct grate *grate);
 
 enum grate_shader_type {
 	GRATE_SHADER_VERTEX,
@@ -96,9 +143,6 @@ void grate_program_free(struct grate_program *program);
 
 void grate_program_link(struct grate_program *program);
 void grate_use_program(struct grate *grate, struct grate_program *program);
-
-void grate_uniform(struct grate *grate, const char *name, unsigned int count,
-		   float *values);
 
 struct grate_profile;
 

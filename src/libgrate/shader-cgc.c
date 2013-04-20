@@ -26,12 +26,24 @@
 #include <string.h>
 
 #include "libgrate-private.h"
+#include "host1x.h"
 #include "libcgc.h"
 #include "grate.h"
 
 struct grate_shader {
 	struct cgc_shader *cgc;
+
+	unsigned int num_words;
+	uint32_t *words;
 };
+
+void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
+{
+	unsigned int i;
+
+	for (i = 0; i < shader->num_words; i++)
+		host1x_pushbuf_push(pb, shader->words[i]);
+}
 
 struct grate_shader *grate_shader_new(struct grate *grate,
 				      enum grate_shader_type type,
@@ -40,9 +52,13 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 {
 	size_t length = 0, offset = 0, len;
 	enum cgc_shader_type shader_type;
+	struct cgc_fragment_shader *fs;
+	struct cgc_vertex_shader *vs;
 	struct grate_shader *shader;
+	struct cgc_header *header;
 	struct cgc_shader *cgc;
 	unsigned int i;
+	size_t size;
 	char *code;
 
 	switch (type) {
@@ -89,6 +105,31 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 
 	shader->cgc = cgc;
 
+	switch (cgc->type) {
+	case CGC_SHADER_VERTEX:
+		vs = cgc->stream;
+		fprintf(stdout, "DEBUG: vertex shader: %u words\n", vs->unknownec / 4);
+		shader->words = cgc->stream + vs->unknowne8 * 4;
+		shader->num_words = vs->unknownec / 4;
+		break;
+
+	case CGC_SHADER_FRAGMENT:
+		header = cgc->binary;
+
+		fs = cgc->binary + header->binary_offset;
+		size = header->binary_size - sizeof(*fs);
+
+		fprintf(stdout, "DEBUG: fragment shader: %u words\n", size / 4);
+		shader->num_words = size / 4;
+		shader->words = fs->words;
+		break;
+
+	default:
+		shader->num_words = 0;
+		shader->words = NULL;
+		break;
+	}
+
 	free(code);
 
 	return shader;
@@ -101,27 +142,6 @@ void grate_shader_free(struct grate_shader *shader)
 
 	free(shader);
 }
-
-struct grate_attribute {
-	unsigned int position;
-	const char *name;
-};
-
-struct grate_uniform {
-	unsigned int position;
-	const char *name;
-};
-
-struct grate_program {
-	struct grate_shader *vs;
-	struct grate_shader *fs;
-
-	struct grate_attribute *attributes;
-	unsigned int num_attributes;
-
-	struct grate_uniform *uniforms;
-	unsigned int num_uniforms;
-};
 
 struct grate_program *grate_program_new(struct grate *grate,
 					struct grate_shader *vs,
@@ -149,6 +169,52 @@ void grate_program_free(struct grate_program *program)
 	free(program);
 }
 
+static void grate_program_add_attribute(struct grate_program *program,
+					struct cgc_symbol *symbol)
+{
+	struct grate_attribute *attribute;
+	size_t size;
+
+	size = (program->num_attributes + 1) * sizeof(*attribute);
+
+	attribute = realloc(program->attributes, size);
+	if (!attribute) {
+		fprintf(stderr, "ERROR: failed to allocate attribute\n");
+		return;
+	}
+
+	program->attributes = attribute;
+
+	attribute = &program->attributes[program->num_attributes];
+	attribute->position = symbol->location;
+	attribute->name = symbol->name;
+
+	program->num_attributes++;
+}
+
+static void grate_program_add_uniform(struct grate_program *program,
+				      struct cgc_symbol *symbol)
+{
+	struct grate_uniform *uniform;
+	size_t size;
+
+	size = (program->num_uniforms + 1) * sizeof(*uniform);
+
+	uniform = realloc(program->uniforms, size);
+	if (!uniform) {
+		fprintf(stderr, "ERROR: failed to allocate uniform\n");
+		return;
+	}
+
+	program->uniforms = uniform;
+
+	uniform = &program->uniforms[program->num_uniforms];
+	uniform->position = symbol->location;
+	uniform->name = symbol->name;
+
+	program->num_uniforms++;
+}
+
 void grate_program_link(struct grate_program *program)
 {
 	struct cgc_shader *shader;
@@ -161,23 +227,39 @@ void grate_program_link(struct grate_program *program)
 
 		switch (symbol->kind) {
 		case GLSL_KIND_ATTRIBUTE:
-			printf("attribute %s @%u\n", symbol->name,
+			printf("attribute %s @%u", symbol->name,
 			       symbol->location);
+
+			if (symbol->input)
+				grate_program_add_attribute(program, symbol);
+
 			break;
 
 		case GLSL_KIND_UNIFORM:
-			printf("uniform %s @%u\n", symbol->name,
+			printf("uniform %s @%u", symbol->name,
 			       symbol->location);
+
+			grate_program_add_uniform(program, symbol);
 			break;
 
 		case GLSL_KIND_CONSTANT:
-			printf("constant %s @%u\n", symbol->name,
+			printf("constant %s @%u", symbol->name,
 			       symbol->location);
 			break;
 
 		default:
 			break;
 		}
+
+		if (symbol->input)
+			printf(" (input)");
+		else
+			printf(" (output)");
+
+		if (!symbol->used)
+			printf(" (unused)");
+
+		printf("\n");
 	}
 
 	shader = program->fs->cgc;
@@ -187,27 +269,32 @@ void grate_program_link(struct grate_program *program)
 
 		switch (symbol->kind) {
 		case GLSL_KIND_ATTRIBUTE:
-			printf("attribute %s @%u\n", symbol->name,
+			printf("attribute %s @%u", symbol->name,
 			       symbol->location);
 			break;
 
 		case GLSL_KIND_UNIFORM:
-			printf("uniform %s @%u\n", symbol->name,
+			printf("uniform %s @%u", symbol->name,
 			       symbol->location);
 			break;
 
 		case GLSL_KIND_CONSTANT:
-			printf("constant %s @%u\n", symbol->name,
+			printf("constant %s @%u", symbol->name,
 			       symbol->location);
 			break;
 
 		default:
 			break;
 		}
-	}
-}
 
-void grate_uniform(struct grate *grate, const char *name, unsigned int count,
-		   float *values)
-{
+		if (symbol->input)
+			printf(" (input)");
+		else
+			printf(" (output)");
+
+		if (!symbol->used)
+			printf(" (unused)");
+
+		printf("\n");
+	}
 }

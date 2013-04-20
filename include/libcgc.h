@@ -25,6 +25,7 @@
 #ifndef GRATE_LIBCGC_H
 #define GRATE_LIBCGC_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -178,6 +179,8 @@ struct cgc_symbol {
 	enum glsl_kind kind;
 	enum glsl_type type;
 	const char *name;
+	bool input;
+	bool used;
 
 	uint32_t vector[4];
 };

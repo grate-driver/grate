@@ -7,6 +7,7 @@ libgrate_la_CFLAGS = \
 	$(PNG_CFLAGS)
 
 libgrate_la_SOURCES = \
+	display.c \
 	grate.c \
 	grate.h \
 	libgrate-private.h \
