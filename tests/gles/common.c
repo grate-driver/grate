@@ -129,7 +129,7 @@ struct window *window_create(unsigned int x, unsigned int y,
 
 	memset(&swa, 0, sizeof(swa));
 	swa.event_mask = StructureNotifyMask | ExposureMask |
-			 VisibilityChangeMask;
+			 KeyPressMask | VisibilityChangeMask;
 	mask = CWEventMask;
 
 	window->x.window = XCreateWindow(window->x.display, root, 0, 0, width,
@@ -235,9 +235,9 @@ void window_show(struct window *window)
 	glViewport(0, 0, window->width, window->height);
 }
 
-void window_event_loop(struct window *window)
+bool window_event_loop(struct window *window)
 {
-	while (True) {
+	if (XPending(window->x.display)) {
 		XEvent event;
 
 		XNextEvent(window->x.display, &event);
@@ -252,12 +252,14 @@ void window_event_loop(struct window *window)
 			break;
 
 		case KeyPress:
-			break;
+			return false;
 
 		default:
 			break;
 		}
 	}
+
+	return true;
 }
 
 struct pbuffer *pbuffer_create(unsigned int width, unsigned int height)

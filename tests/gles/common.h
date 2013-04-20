@@ -60,7 +60,7 @@ struct window *window_create(unsigned int x, unsigned int y,
 			     unsigned int width, unsigned int height);
 void window_close(struct window *window);
 void window_show(struct window *window);
-void window_event_loop(struct window *window);
+bool window_event_loop(struct window *window);
 
 struct pbuffer {
 	EGLDisplay display;
