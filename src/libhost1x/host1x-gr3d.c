@@ -668,6 +668,33 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	return 0;
 }
 
+void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
+			  float width, float height)
+{
+	union {
+		uint32_t u;
+		float f;
+	} value;
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
+
+	/* X bias */
+	value.f = x * 16.0f + width * 8.0f;
+	host1x_pushbuf_push(pb, value.u);
+
+	/* Y bias */
+	value.f = y * 16.0f + height * 8.0f;
+	host1x_pushbuf_push(pb, value.u);
+
+	/* X scale */
+	value.f = width * 8.0f;
+	host1x_pushbuf_push(pb, value.u);
+
+	/* Y scale */
+	value.f = height * 8.0f;
+	host1x_pushbuf_push(pb, value.u);
+}
+
 int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 {
 	int err;
