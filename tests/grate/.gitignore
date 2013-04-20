@@ -1,4 +1,5 @@
 clear
+cube
 quad
 triangle
 triangle-rotate
