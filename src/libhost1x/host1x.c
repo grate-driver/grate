@@ -86,9 +86,9 @@ int host1x_display_get_resolution(struct host1x_display *display,
 }
 
 int host1x_display_set(struct host1x_display *display,
-		       struct host1x_framebuffer *fb)
+		       struct host1x_framebuffer *fb, bool vsync)
 {
-	return display->set(display, fb);
+	return display->set(display, fb, vsync);
 }
 
 int host1x_overlay_create(struct host1x_overlay **overlayp,
@@ -105,9 +105,9 @@ int host1x_overlay_close(struct host1x_overlay *overlay)
 int host1x_overlay_set(struct host1x_overlay *overlay,
 		       struct host1x_framebuffer *fb, unsigned int x,
 		       unsigned int y, unsigned int width,
-		       unsigned int height)
+		       unsigned int height, bool vsync)
 {
-	return overlay->set(overlay, fb, x, y, width, height);
+	return overlay->set(overlay, fb, x, y, width, height, vsync);
 }
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,

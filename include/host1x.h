@@ -25,6 +25,7 @@
 #ifndef GRATE_HOST1X_H
 #define GRATE_HOST1X_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,7 +63,7 @@ struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x);
 int host1x_display_get_resolution(struct host1x_display *display,
 				  unsigned int *width, unsigned int *height);
 int host1x_display_set(struct host1x_display *display,
-		       struct host1x_framebuffer *fb);
+		       struct host1x_framebuffer *fb, bool vsync);
 
 int host1x_overlay_create(struct host1x_overlay **overlayp,
 			  struct host1x_display *display);
@@ -70,7 +71,7 @@ int host1x_overlay_close(struct host1x_overlay *overlay);
 int host1x_overlay_set(struct host1x_overlay *overlay,
 		       struct host1x_framebuffer *fb, unsigned int x,
 		       unsigned int y, unsigned int width,
-		       unsigned int height);
+		       unsigned int height, bool vsync);
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags);

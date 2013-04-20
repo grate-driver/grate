@@ -23,6 +23,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -169,12 +170,27 @@ static int drm_overlay_close(struct host1x_overlay *overlay)
 static int drm_overlay_set(struct host1x_overlay *overlay,
 			   struct host1x_framebuffer *fb, unsigned int x,
 			   unsigned int y, unsigned int width,
-			   unsigned int height)
+			   unsigned int height, bool vsync)
 {
 	struct drm_overlay *plane = to_drm_overlay(overlay);
 	struct drm_display *display = plane->display;
 	struct drm *drm = display->drm;
 	int err;
+
+	if (vsync) {
+		drmVBlank vblank = {
+			.request = {
+				.type = DRM_VBLANK_RELATIVE,
+				.sequence = 1,
+			},
+		};
+
+		err = drmWaitVBlank(drm->fd, &vblank);
+		if (err < 0) {
+			fprintf(stderr, "drmWaitVBlank() failed: %m\n");
+			return -errno;
+		}
+	}
 
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
@@ -212,16 +228,62 @@ static int drm_overlay_create(struct host1x_display *display,
 	return 0;
 }
 
+static void drm_display_on_page_flip(int fd, unsigned int frame,
+				     unsigned int sec, unsigned int usec,
+				     void *data)
+{
+}
+
+static void drm_display_on_vblank(int fd, unsigned int frame,
+				  unsigned int sec, unsigned int usec,
+				  void *data)
+{
+}
+
 static int drm_display_set(struct host1x_display *display,
-			   struct host1x_framebuffer *fb)
+			   struct host1x_framebuffer *fb, bool vsync)
 {
 	struct drm_display *drm = to_drm_display(display);
 	int err;
 
-	err = drmModeSetCrtc(drm->drm->fd, drm->crtc, fb->handle, 0, 0,
-			     &drm->connector, 1, &drm->mode);
-	if (err < 0)
-		return -errno;
+	if (vsync) {
+		struct timeval timeout;
+		fd_set fds;
+
+		err = drmModePageFlip(drm->drm->fd, drm->crtc, fb->handle,
+				      DRM_MODE_PAGE_FLIP_EVENT, drm);
+		if (err < 0) {
+			fprintf(stderr, "drmModePageFlip() failed: %m\n");
+			return -errno;
+		}
+
+		memset(&timeout, 0, sizeof(timeout));
+		timeout.tv_sec = 1;
+		timeout.tv_usec = 0;
+
+		FD_ZERO(&fds);
+		FD_SET(drm->drm->fd, &fds);
+
+		err = select(drm->drm->fd + 1, &fds, NULL, NULL, &timeout);
+		if (err <= 0) {
+		}
+
+		if (FD_ISSET(drm->drm->fd, &fds)) {
+			drmEventContext context;
+
+			memset(&context, 0, sizeof(context));
+			context.version = DRM_EVENT_CONTEXT_VERSION;
+			context.page_flip_handler = drm_display_on_page_flip;
+			context.vblank_handler = drm_display_on_vblank;
+
+			drmHandleEvent(drm->drm->fd, &context);
+		}
+	} else {
+		err = drmModeSetCrtc(drm->drm->fd, drm->crtc, fb->handle, 0,
+				     0, &drm->connector, 1, &drm->mode);
+		if (err < 0)
+			return -errno;
+	}
 
 	return 0;
 }

@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
 
 	if (display) {
 		if (overlay) {
-			err = host1x_overlay_set(overlay, fb, 0, 0, width, height);
+			err = host1x_overlay_set(overlay, fb, 0, 0, width, height, false);
 			if (err < 0)
 				fprintf(stderr, "host1x_overlay_set() failed: %d\n", err);
 			else
 				sleep(1);
 
-			err = host1x_overlay_set(overlay, copy, 0, 0, width, height);
+			err = host1x_overlay_set(overlay, copy, 0, 0, width, height, false);
 			if (err < 0)
 				fprintf(stderr, "host1x_overlay_set() failed: %d\n", err);
 			else
@@ -136,13 +136,13 @@ int main(int argc, char *argv[])
 
 			host1x_overlay_close(overlay);
 		} else {
-			err = host1x_display_set(display, fb);
+			err = host1x_display_set(display, fb, false);
 			if (err < 0)
 				fprintf(stderr, "host1x_display_set() failed: %d\n", err);
 			else
 				sleep(1);
 
-			err = host1x_display_set(display, copy);
+			err = host1x_display_set(display, copy, false);
 			if (err < 0)
 				fprintf(stderr, "host1x_display_set() failed: %d\n", err);
 			else
