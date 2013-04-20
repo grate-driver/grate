@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "libgrate-private.h"
 #include "host1x.h"
-#include "grate.h"
 
 struct grate_shader {
 };
@@ -51,9 +51,6 @@ void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
 {
 }
 
-struct grate_program {
-};
-
 struct grate_program *grate_program_new(struct grate *grate,
 					struct grate_shader *vs,
 					struct grate_shader *fs)
@@ -73,10 +70,5 @@ void grate_program_free(struct grate_program *program)
 }
 
 void grate_program_link(struct grate_program *program)
-{
-}
-
-void grate_uniform(struct grate *grate, const char *name, unsigned int count,
-		   float *values)
 {
 }
