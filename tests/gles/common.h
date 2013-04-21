@@ -94,4 +94,12 @@ void framebuffer_free(struct framebuffer *framebuffer);
 void framebuffer_bind(struct framebuffer *framebuffer);
 bool framebuffer_save(struct framebuffer *framebuffer, const char *filename);
 
+struct gles_texture {
+	GLenum format;
+	GLuint id;
+};
+
+struct gles_texture *gles_texture_load(const char *filename);
+void gles_texture_free(struct gles_texture *texture);
+
 #endif
