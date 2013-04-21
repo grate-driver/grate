@@ -16,6 +16,7 @@ noinst_PROGRAMS = \
 	egl-x11-triangle \
 	gles-clear \
 	gles-cube \
+	gles-cube-textured \
 	gles-pbuffer-clear \
 	gles-pbuffer-cube \
 	gles-pbuffer-fill \
@@ -28,6 +29,10 @@ noinst_PROGRAMS = \
 	gles-shader-fill
 
 gles_cube_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	libcommon.la
+
+gles_cube_textured_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
 	libcommon.la
 

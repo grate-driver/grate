@@ -4,6 +4,7 @@ egl-x11-clear
 egl-x11-triangle
 gles-clear
 gles-cube
+gles-cube-textured
 gles-pbuffer-clear
 gles-pbuffer-cube
 gles-pbuffer-fill
