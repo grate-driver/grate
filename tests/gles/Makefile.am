@@ -26,6 +26,7 @@ noinst_PROGRAMS = \
 	gles-pbuffer-uniforms-rgb \
 	gles-pbuffer-uniforms-rg \
 	gles-pbuffer-vertex-offset \
+	gles-quad-textured \
 	gles-shader-fill
 
 gles_cube_LDADD = \
@@ -41,5 +42,9 @@ gles_pbuffer_triangle_rotate_LDADD = \
 	libcommon.la
 
 gles_pbuffer_cube_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	libcommon.la
+
+gles_quad_textured_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
 	libcommon.la
