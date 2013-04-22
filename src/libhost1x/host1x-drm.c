@@ -493,9 +493,13 @@ static int drm_framebuffer_init(struct host1x *host1x,
 	struct drm *drm = to_drm(host1x);
 	int err;
 
+	if (fb->flags & HOST1X_FRAMEBUFFER_DEPTH)
+		return 0;
+
 	/* XXX: support other formats */
-	if (fb->depth != 32) {
-		fprintf(stderr, "ERROR: only 32-bit (XBGR8888) supported\n");
+	if (fb->depth != 32 && fb->depth != 16) {
+		fprintf(stderr, "ERROR: %u-bit depth not supported\n",
+			fb->depth);
 		return -EINVAL;
 	}
 

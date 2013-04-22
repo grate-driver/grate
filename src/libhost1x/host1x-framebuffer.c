@@ -28,6 +28,11 @@
 
 #include "host1x-private.h"
 
+static inline unsigned long align(unsigned long value, unsigned long alignment)
+{
+	return (value + alignment - 1) & ~(alignment - 1);
+}
+
 static void detile(void *target, struct host1x_framebuffer *fb,
 		   unsigned int tx, unsigned int ty)
 {
@@ -57,21 +62,25 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;
+	size_t size;
 	int err;
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
 		return NULL;
 
-	/* XXX: depth buffer */
-	//depth += 16;
-
 	fb->pitch = width * (depth / 8);
 	fb->width = width;
-	fb->height = height;
+	fb->height = align(height, 16);
 	fb->depth = depth;
+	fb->flags = flags;
 
-	fb->bo = host1x_bo_create(host1x, fb->pitch * height, 1);
+	if (fb->height != height)
+		printf("height aligned from %u to %u\n", height, fb->height);
+
+	size = fb->pitch * fb->height;
+
+	fb->bo = host1x_bo_create(host1x, size, 1);
 	if (!fb->bo) {
 		free(fb);
 		return NULL;

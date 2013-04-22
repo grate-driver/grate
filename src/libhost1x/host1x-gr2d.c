@@ -212,6 +212,12 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 		pitch = fb->width * 4;
 	}
 
+	/* XXX */
+	if (fb->flags & HOST1X_FRAMEBUFFER_DEPTH) {
+		pitch = fb->width * (fb->depth / 8);
+		color = red * 65535;
+	}
+
 	job = host1x_job_create(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;

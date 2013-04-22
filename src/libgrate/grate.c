@@ -183,6 +183,11 @@ void grate_clear_color(struct grate *grate, float red, float green,
 	grate->clear.a = alpha;
 }
 
+void grate_clear_depth(struct grate *grate, float depth)
+{
+	grate->clear_depth = depth;
+}
+
 void grate_clear(struct grate *grate)
 {
 	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
@@ -198,6 +203,13 @@ void grate_clear(struct grate *grate)
 				clear->b, clear->a);
 	if (err < 0)
 		grate_error("host1x_gr2d_clear() failed: %d\n", err);
+
+	if (grate->fb->depth) {
+		err = host1x_gr2d_clear(gr2d, grate->fb->depth,
+					grate->clear_depth, 0.0f, 0.0f, 0.0f);
+		if (err < 0)
+			grate_error("host1x_gr2d_clear() failed: %d\n", err);
+	}
 }
 
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
@@ -418,8 +430,21 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, 0x08000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x01));
-	host1x_pushbuf_push(pb, 0x0c000000);
+
+	/* XXX */
+	if (grate->fb->depth) {
+		/* XXX only 16-bit depth buffer for now */
+		unsigned int pitch = fb->width * 2;
+
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x01));
+		host1x_pushbuf_push(pb, 0x04 << 24 | pitch << 8 | 0x2c);
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
+		host1x_pushbuf_push(pb, 0x00000003);
+	} else {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x01));
+		host1x_pushbuf_push(pb, 0x0c000000);
+	}
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe13, 0x01));
 	host1x_pushbuf_push(pb, 0x0c000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe12, 0x01));
@@ -431,7 +456,27 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, 0x3f800000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x01));
 
-	for (i = 0; i < 4; i++) {
+	for (i = 0; i < 2; i++) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x000001ff);
+		host1x_pushbuf_push(pb, 0x00000030);
+		host1x_pushbuf_push(pb, 0x00000020);
+		host1x_pushbuf_push(pb, 0x00000030);
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe00));
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
+	}
+
+	/* XXX depth test */
+	if (grate->fb->depth) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x403, 0x338));
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40c, 0x006));
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
+		host1x_pushbuf_push(pb, 0x00010003);
+	}
+
+	for (i = 0; i < 2; i++) {
 		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
 		host1x_pushbuf_push(pb, 0x000001ff);
 		host1x_pushbuf_push(pb, 0x000001ff);
@@ -505,6 +550,15 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
+
+	/* relocate depth render target */
+	if (grate->fb->depth) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe00, 0x01));
+		host1x_pushbuf_relocate(pb, grate->fb->depth->bo, 0, 0);
+		host1x_pushbuf_push(pb, 0xdeadbeef);
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe30, 0x01));
+		host1x_pushbuf_push(pb, 0x00000000);
+	}
 
 	/* relocate color render target */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
@@ -587,17 +641,34 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 	if (!fb)
 		return NULL;
 
-	fb->front = host1x_framebuffer_create(grate->host1x, width, height,
-					      bpp, 0);
-	if (!fb->front) {
-		free(fb);
-		return NULL;
+	if (flags & GRATE_FRAMEBUFFER_FRONT) {
+		fb->front = host1x_framebuffer_create(grate->host1x, width,
+						      height, bpp, 0);
+		if (!fb->front) {
+			free(fb);
+			return NULL;
+		}
 	}
 
-	if (flags & GRATE_DOUBLE_BUFFERED) {
+	if (flags & GRATE_FRAMEBUFFER_BACK) {
 		fb->back = host1x_framebuffer_create(grate->host1x, width,
 						     height, bpp, 0);
 		if (!fb->back) {
+			host1x_framebuffer_free(fb->front);
+			free(fb);
+			return NULL;
+		}
+	} else {
+		fb->back = fb->front;
+	}
+
+	if (flags & GRATE_FRAMEBUFFER_DEPTH) {
+		unsigned long usage = HOST1X_FRAMEBUFFER_DEPTH;
+
+		fb->depth = host1x_framebuffer_create(grate->host1x, width,
+						      height, 16, usage);
+		if (!fb->depth) {
+			host1x_framebuffer_free(fb->back);
 			host1x_framebuffer_free(fb->front);
 			free(fb);
 			return NULL;
@@ -610,8 +681,9 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 void grate_framebuffer_free(struct grate_framebuffer *fb)
 {
 	if (fb) {
-		host1x_framebuffer_free(fb->front);
+		host1x_framebuffer_free(fb->depth);
 		host1x_framebuffer_free(fb->back);
+		host1x_framebuffer_free(fb->front);
 	}
 
 	free(fb);

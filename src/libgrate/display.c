@@ -36,12 +36,17 @@ struct grate_overlay {
 struct grate_display *grate_display_open(struct grate *grate)
 {
 	struct grate_display *display;
+	struct host1x_display *base;
+
+	base = host1x_get_display(grate->host1x);
+	if (!base)
+		return NULL;
 
 	display = calloc(1, sizeof(*display));
 	if (!display)
 		return NULL;
 
-	display->base = host1x_get_display(grate->host1x);
+	display->base = base;
 
 	return display;
 }

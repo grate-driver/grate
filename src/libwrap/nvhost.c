@@ -27,6 +27,8 @@
 
 #include "nvhost.h"
 
+unsigned int verbose = 0;
+
 struct nvmap_file {
 	struct list_head handles;
 	struct file file;
@@ -108,14 +110,14 @@ static void nvmap_file_enter_ioctl_create(struct nvmap_file *nvmap,
 {
 	printf("  Creating handle:\n");
 	printf("    size: %u\n", args->size);
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 }
 
 static void nvmap_file_enter_ioctl_alloc(struct nvmap_file *nvmap,
 					 struct nvmap_alloc_handle *args)
 {
 	printf("  Allocating handle:\n");
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    heap_mask: %x\n", args->heap_mask);
 	printf("    flags: %x\n", args->flags);
 	printf("    align: %x\n", args->align);
@@ -127,7 +129,7 @@ static void nvmap_file_enter_ioctl_mmap(struct nvmap_file *nvmap,
 	struct nvmap_handle *handle;
 
 	printf("  Mapping handle:\n");
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    offset: %x\n", args->offset);
 	printf("    length: %u\n", args->length);
 	printf("    flags: %x\n", args->flags);
@@ -151,7 +153,7 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 
 	printf("  Write operation:\n");
 	printf("    address: %x\n", op->addr);
-	printf("    handle: %x\n", op->handle);
+	//printf("    handle: %x\n", op->handle);
 	printf("    offset: %x\n", op->offset);
 	printf("    elem_size: %u\n", op->elem_size);
 	printf("    hmem_stride: %u\n", op->hmem_stride);
@@ -182,7 +184,7 @@ static void nvmap_file_enter_ioctl_param(struct nvmap_file *nvmap,
 					 struct nvmap_handle_param *args)
 {
 	printf("  Parameter:\n");
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    param: %x\n", args->param);
 }
 
@@ -206,7 +208,7 @@ static void nvmap_file_enter_ioctl_cache(struct nvmap_file *nvmap,
 {
 	printf("  Cache maintenance:\n");
 	printf("    address: %x\n", args->addr);
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    length: %u\n", args->length);
 	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 }
@@ -256,7 +258,7 @@ static void nvmap_file_leave_ioctl_create(struct nvmap_file *nvmap,
 
 	printf("  Handle created:\n");
 	printf("    size: %u\n", args->size);
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 
 	handle = nvmap_handle_new(args->handle, args->size);
 	if (!handle) {
@@ -271,7 +273,7 @@ static void nvmap_file_leave_ioctl_alloc(struct nvmap_file *nvmap,
 					 struct nvmap_alloc_handle *args)
 {
 	printf("  Handle allocated:\n");
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    heap_mask: %x\n", args->heap_mask);
 	printf("    flags: %x\n", args->flags);
 	printf("    align: %x\n", args->align);
@@ -281,7 +283,7 @@ static void nvmap_file_leave_ioctl_mmap(struct nvmap_file *nvmap,
 					struct nvmap_map_caller *args)
 {
 	printf("  Handle mapped:\n");
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    offset: %x\n", args->offset);
 	printf("    length: %u\n", args->length);
 	printf("    flags: %x\n", args->flags);
@@ -311,12 +313,13 @@ static void nvmap_file_leave_ioctl_cache(struct nvmap_file *nvmap,
 
 	printf("  Maintenance complete:\n");
 	printf("    address: %x\n", args->addr);
-	printf("    handle: %x\n", args->handle);
+	//printf("    handle: %x\n", args->handle);
 	printf("    length: %u\n", args->length);
 	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 
-	print_hexdump(stdout, DUMP_PREFIX_OFFSET, "    ", virt, args->length,
-		      16, true);
+	if (verbose > 0)
+		print_hexdump(stdout, DUMP_PREFIX_OFFSET, "    ", virt,
+			      args->length, 16, true);
 }
 
 static int nvmap_file_leave_ioctl(struct file *file, unsigned long request,

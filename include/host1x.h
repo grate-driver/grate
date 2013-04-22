@@ -38,6 +38,11 @@
 #define HOST1X_GR3D_FORMAT_RGB565	0x6
 #define HOST1X_GR3D_FORMAT_RGBA8888	0xd
 
+enum host1x_format {
+	HOST1X_FORMAT_RGB565 = 0x6,
+	HOST1X_FORMAT_RGBA8888 = 0xd,
+};
+
 struct host1x_stream {
 	const uint32_t *words;
 	const uint32_t *ptr;
@@ -49,6 +54,7 @@ void host1x_stream_init(struct host1x_stream *stream, const void *buffer,
 void host1x_stream_dump(struct host1x_stream *stream, FILE *fp);
 
 struct host1x_framebuffer;
+struct host1x_texture;
 struct host1x_display;
 struct host1x_overlay;
 struct host1x_client;
@@ -140,6 +146,8 @@ int host1x_client_flush(struct host1x_client *client, uint32_t *fence);
 int host1x_client_wait(struct host1x_client *client, uint32_t fence,
 		       uint32_t timeout);
 
+#define HOST1X_FRAMEBUFFER_DEPTH (1 << 0)
+
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned short width,
 						     unsigned short height,
@@ -147,6 +155,10 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned long flags);
 void host1x_framebuffer_free(struct host1x_framebuffer *fb);
 int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path);
+
+struct host1x_texture *host1x_texture_load(struct host1x *host1x,
+					   const char *path);
+void host1x_texture_free(struct host1x_texture *texture);
 
 struct host1x_gr2d;
 struct host1x_gr3d;

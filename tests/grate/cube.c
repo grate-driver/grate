@@ -142,12 +142,12 @@ static const unsigned short indices[] = {
 int main(int argc, char *argv[])
 {
 	GLfloat x = 0.0f, y = 0.0f, z = 0.0f;
+	unsigned long offset = 0, flags;
 	struct grate_program *program;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs;
 	struct grate_options options;
-	unsigned long offset = 0;
 	struct grate *grate;
 	struct grate_bo *bo;
 	GLfloat aspect;
@@ -174,8 +174,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	flags = GRATE_FRAMEBUFFER_FRONT | GRATE_FRAMEBUFFER_BACK |
+		GRATE_FRAMEBUFFER_DEPTH;
+
 	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
+				      GRATE_RGBA8888, flags);
 	if (!fb) {
 		fprintf(stderr, "grate_framebuffer_create() failed\n");
 		return 1;
@@ -184,6 +187,7 @@ int main(int argc, char *argv[])
 	aspect = options.width / (GLfloat)options.height;
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
+	grate_clear_depth(grate, 1.0f);
 	grate_bind_framebuffer(grate, fb);
 
 	vs = grate_shader_new(grate, GRATE_SHADER_VERTEX, vertex_shader,
@@ -203,7 +207,7 @@ int main(int argc, char *argv[])
 	}
 
 	memcpy(buffer + offset, vertices, sizeof(vertices));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 24, bo,
 				offset);
 	offset += sizeof(vertices);
 
@@ -214,7 +218,7 @@ int main(int argc, char *argv[])
 	}
 
 	memcpy(buffer + offset, colors, sizeof(colors));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 24, bo,
 				offset);
 	offset += sizeof(colors);
 
@@ -227,7 +231,7 @@ int main(int argc, char *argv[])
 
 		grate_clear(grate);
 
-		mat4_perspective(&projection, 60.0f, aspect, 1.0f, 1024.0f);
+		mat4_perspective(&projection, 35.0f, aspect, 1.0f, 1024.0f);
 		mat4_identity(&modelview);
 
 		mat4_rotate_x(&transform, x);
@@ -244,7 +248,7 @@ int main(int argc, char *argv[])
 		location = grate_get_uniform_location(grate, "mvp");
 		grate_uniform(grate, location, 16, (float *)&mvp);
 
-		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
+		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 36, bo, offset);
 		grate_flush(grate);
 		grate_swap_buffers(grate);
 

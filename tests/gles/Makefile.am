@@ -17,9 +17,12 @@ noinst_PROGRAMS = \
 	gles-clear \
 	gles-cube \
 	gles-cube-textured \
+	gles-info \
 	gles-pbuffer-clear \
 	gles-pbuffer-cube \
 	gles-pbuffer-fill \
+	gles-pbuffer-quad \
+	gles-pbuffer-quad-textured \
 	gles-pbuffer-triangle \
 	gles-pbuffer-triangle-rotate \
 	gles-pbuffer-uniforms \

@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2012, 2013 Erik Faye-Lund
- * Copyright (c) 2013 Avionic Design GmbH
  * Copyright (c) 2013 Thierry Reding
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -22,36 +21,39 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "libgrate-private.h"
 #include "grate.h"
+#include "host1x.h"
 
-int main(int argc, char *argv[])
+struct grate_texture {
+	struct host1x_texture *base;
+};
+
+struct grate_texture *grate_texture_load(struct grate *grate,
+					 const char *path)
 {
-	struct grate_framebuffer *fb;
-	struct grate_options options;
-	struct grate *grate;
-	unsigned long flags;
+	struct grate_texture *texture;
+	struct host1x_texture *base;
 
-	if (!grate_parse_command_line(&options, argc, argv))
-		return 1;
+	base = host1x_texture_load(grate->host1x, path);
+	if (!base)
+		return NULL;
 
-	grate = grate_init(&options);
-	if (!grate)
-		return 1;
+	texture = calloc(1, sizeof(*texture));
+	if (!texture) {
+		host1x_texture_free(base);
+		return NULL;
+	}
 
-	flags = GRATE_FRAMEBUFFER_FRONT;
+	texture->base = base;
 
-	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      GRATE_RGBA8888, flags);
-	if (!fb)
-		return 1;
+	return texture;
+}
 
-	grate_clear_color(grate, 1.0f, 0.0f, 1.0f, 1.0f);
-	grate_bind_framebuffer(grate, fb);
-	grate_clear(grate);
+void grate_texture_free(struct grate_texture *texture)
+{
+	if (texture)
+		host1x_texture_free(texture->base);
 
-	grate_swap_buffers(grate);
-	grate_wait_for_key(grate);
-
-	grate_exit(grate);
-	return 0;
+	free(texture);
 }

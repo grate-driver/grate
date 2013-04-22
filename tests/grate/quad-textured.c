@@ -22,64 +22,77 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdbool.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "grate.h"
-#include "matrix.h"
 
-static const GLchar *vertex_shader[] = {
+static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
-	"uniform mat4 modelview;\n",
-	"attribute vec4 color;\n",
-	"varying vec4 vcolor;\n",
+	"attribute vec2 texcoord;\n",
+	"varying vec2 vtexcoord;\n",
+	"uniform mat4 mvp;\n",
 	"\n",
 	"void main()\n",
 	"{\n",
-	"    gl_Position = position * modelview;\n",
-	"    vcolor = color;\n",
+	"    gl_Position = position * mvp;\n",
+	"    vtexcoord = texcoord;\n",
 	"}"
 };
 
-static const GLchar *fragment_shader[] = {
+static const char *fragment_shader[] = {
 	"precision mediump float;\n",
-	"varying vec4 vcolor;\n",
+	"varying vec2 vtexcoord;\n",
+	"uniform sampler2D tex;\n",
 	"\n",
 	"void main()\n",
 	"{\n",
-	"    gl_FragColor = vcolor;\n",
+	"    gl_FragColor = texture2D(tex, vtexcoord);\n",
 	"}"
 };
 
 static const float vertices[] = {
-	 0.0f,  0.5f, 0.0f, 1.0f,
-	-0.5f, -0.5f, 0.0f, 1.0f,
-	 0.5f, -0.5f, 0.0f, 1.0f,
+	-0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.0f, 1.0f,
+	-0.5f,  0.5f,  0.0f, 1.0f,
 };
 
-static const float colors[] = {
-	1.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f, 1.0f,
+static const float uv[] = {
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 1.0f,
 };
 
 static const unsigned short indices[] = {
-	0, 1, 2,
+	 0,  1,  2,
+	 0,  2,  3,
 };
+
+static inline float itof(unsigned int value)
+{
+	union {
+		unsigned int u;
+		float f;
+	} val = { .u = value };
+
+	return val.f;
+}
 
 int main(int argc, char *argv[])
 {
 	unsigned long offset = 0, flags;
 	struct grate_program *program;
-	struct grate_profile *profile;
+	struct grate_texture *texture;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs;
 	struct grate_options options;
-	GLfloat angle = 0.0f;
 	struct grate *grate;
 	struct grate_bo *bo;
-	struct mat4 matrix;
+	union {
+		unsigned int u;
+		float f;
+	} itof;
 	void *buffer;
 	int location;
 
@@ -103,17 +116,22 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	flags = GRATE_FRAMEBUFFER_FRONT | GRATE_FRAMEBUFFER_BACK;
+	flags = GRATE_FRAMEBUFFER_FRONT;
 
 	fb = grate_framebuffer_create(grate, options.width, options.height,
 				      GRATE_RGBA8888, flags);
-	if (!fb) {
-		fprintf(stderr, "grate_framebuffer_create() failed\n");
+	if (!fb)
+		return 1;
+
+	texture = grate_texture_load(grate, "data/tegra-256x256.png");
+	if (!texture) {
+		fprintf(stderr, "failed to load texture from \"data/tegra.png\"\n");
 		return 1;
 	}
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
+	grate_clear(grate);
 
 	vs = grate_shader_new(grate, GRATE_SHADER_VERTEX, vertex_shader,
 			      ARRAY_SIZE(vertex_shader));
@@ -132,47 +150,36 @@ int main(int argc, char *argv[])
 	}
 
 	memcpy(buffer + offset, vertices, sizeof(vertices));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 4, bo,
 				offset);
 	offset += sizeof(vertices);
 
-	location = grate_get_attribute_location(grate, "color");
+	location = grate_get_attribute_location(grate, "texcoord");
 	if (location < 0) {
-		fprintf(stderr, "\"color\": attribute not found\n");
+		fprintf(stderr, "\"texcoord\": attribute not found\n");
 		return 1;
 	}
 
-	memcpy(buffer + offset, colors, sizeof(colors));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 3, bo,
+	memcpy(buffer + offset, uv, sizeof(uv));
+	grate_attribute_pointer(grate, location, sizeof(float), 2, 2, bo,
 				offset);
-	offset += sizeof(colors);
+	offset += sizeof(uv);
 
-	memcpy(buffer + offset, indices, sizeof(indices));
-
-	profile = grate_profile_start(grate);
-
-	while (true) {
-		grate_clear(grate);
-
-		mat4_rotate_z(&matrix, angle);
-
-		location = grate_get_uniform_location(grate, "modelview");
-
-		grate_uniform(grate, location, 16, (float *)&matrix);
-
-		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
-		grate_flush(grate);
-		grate_swap_buffers(grate);
-
-		if (grate_key_pressed(grate))
-			break;
-
-		grate_profile_sample(profile);
-		angle += 1.0f;
+	location = grate_get_uniform_location(grate, "tex");
+	if (location < 0) {
+		fprintf(stderr, "\"tex\": uniform not found\n");
+		return 1;
 	}
 
-	grate_profile_finish(profile);
-	grate_profile_free(profile);
+	itof.u = location;
+	grate_uniform(grate, location, 1, &itof.f);
+
+	memcpy(buffer + offset, indices, sizeof(indices));
+	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 6, bo, offset);
+	grate_flush(grate);
+
+	grate_swap_buffers(grate);
+	grate_wait_for_key(grate);
 
 	grate_exit(grate);
 	return 0;

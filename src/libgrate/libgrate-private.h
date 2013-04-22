@@ -58,6 +58,7 @@ void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader);
 struct grate_framebuffer {
 	struct host1x_framebuffer *front;
 	struct host1x_framebuffer *back;
+	struct host1x_framebuffer *depth;
 };
 
 void grate_framebuffer_swap(struct grate_framebuffer *fb);
@@ -78,6 +79,7 @@ struct grate {
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
 	struct grate_color clear;
+	float clear_depth;
 
 	struct grate_vertex_attribute attributes[GRATE_MAX_ATTRIBUTES];
 

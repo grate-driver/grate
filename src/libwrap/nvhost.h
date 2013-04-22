@@ -31,6 +31,8 @@
 
 #include "utils.h"
 
+extern unsigned int verbose;
+
 struct nvhost_get_param_args {
 	uint32_t value;
 };

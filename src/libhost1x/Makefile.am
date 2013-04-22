@@ -16,6 +16,7 @@ libhost1x_la_SOURCES = \
 	host1x-gr3d.c \
 	host1x-nvhost.c \
 	host1x-private.h \
+	host1x-texture.c \
 	nvhost.c \
 	nvhost-gr2d.c \
 	nvhost-gr2d.h \

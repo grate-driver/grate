@@ -34,6 +34,7 @@
 #define BIT(x) (1 << (x))
 
 struct grate_framebuffer;
+struct grate_texture;
 struct grate_display;
 struct grate_overlay;
 struct grate_bo;
@@ -48,7 +49,9 @@ enum grate_format {
 	GRATE_RGBA8888,
 };
 
-#define GRATE_DOUBLE_BUFFERED (1 << 0)
+#define GRATE_FRAMEBUFFER_FRONT (1 << 0)
+#define GRATE_FRAMEBUFFER_BACK  (1 << 1)
+#define GRATE_FRAMEBUFFER_DEPTH (1 << 2)
 
 struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned int width,
@@ -57,6 +60,10 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path);
+
+struct grate_texture *grate_texture_load(struct grate *grate,
+					 const char *path);
+void grate_texture_free(struct grate_texture *texture);
 
 struct grate_display *grate_display_open(struct grate *grate);
 void grate_display_close(struct grate_display *display);
@@ -91,6 +98,7 @@ void grate_exit(struct grate *grate);
 
 void grate_clear_color(struct grate *grate, float red, float green, float blue,
 		       float alpha);
+void grate_clear_depth(struct grate *grate, float depth);
 void grate_clear(struct grate *grate);
 
 void grate_viewport(struct grate *grate, float x, float y, float width,

@@ -18,7 +18,7 @@ PKG_CHECK_MODULES(X11, x11)
 PKG_CHECK_MODULES(PNG, libpng)
 PKG_CHECK_MODULES(DRM, libdrm)
 
-CFLAGS="$CFLAGS -Wall"
+CFLAGS="$CFLAGS -O0 -g3 -Wall"
 
 AC_ARG_ENABLE([werror],
 	[AS_HELP_STRING([--enable-werror],

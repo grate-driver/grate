@@ -66,11 +66,11 @@ static const unsigned short indices[] = {
 
 int main(int argc, char *argv[])
 {
+	unsigned long offset = 0, flags;
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs;
 	struct grate_options options;
-	unsigned long offset = 0;
 	struct grate *grate;
 	struct grate_bo *bo;
 	void *buffer;
@@ -96,8 +96,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	flags = GRATE_FRAMEBUFFER_FRONT;
+
 	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
+				      GRATE_RGBA8888, flags);
 	if (!fb)
 		return 1;
 

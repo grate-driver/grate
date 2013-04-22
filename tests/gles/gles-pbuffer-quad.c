@@ -30,18 +30,16 @@
 
 #include <GLES2/gl2.h>
 
-#include "matrix.h"
 #include "common.h"
 
 static const GLchar *vertex_shader[] = {
 	"attribute vec4 position;\n",
 	"attribute vec4 color;\n",
 	"varying vec4 vcolor;\n",
-	"uniform mat4 mvp;\n",
 	"\n",
 	"void main()\n",
 	"{\n",
-	"    gl_Position = position * mvp;\n",
+	"    gl_Position = position;\n",
 	"    vcolor = color;\n",
 	"}"
 };
@@ -56,95 +54,29 @@ static const GLchar *fragment_shader[] = {
 	"}"
 };
 
-void pbuffer_draw(struct pbuffer *pbuffer, GLuint width, GLuint height)
+static const float vertices[] = {
+	-0.5f, -0.5f, 0.0f, 1.0f,
+	 0.5f, -0.5f, 0.0f, 1.0f,
+	 0.5f,  0.5f, 0.0f, 1.0f,
+	-0.5f,  0.5f, 0.0f, 1.0f,
+};
+
+static const float colors[] = {
+	1.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 0.0f, 1.0f,
+};
+
+static const unsigned short indices[] = {
+	0, 1, 2,
+	0, 2, 3,
+};
+
+void pbuffer_draw(struct pbuffer *pbuffer)
 {
-	static const GLfloat vertices[] = {
-		/* front */
-		-0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f,  0.5f,  0.5f, 1.0f,
-		-0.5f,  0.5f,  0.5f, 1.0f,
-		/* back */
-		-0.5f, -0.5f, -0.5f, 1.0f,
-		 0.5f, -0.5f, -0.5f, 1.0f,
-		 0.5f,  0.5f, -0.5f, 1.0f,
-		-0.5f,  0.5f, -0.5f, 1.0f,
-		/* left */
-		-0.5f, -0.5f,  0.5f, 1.0f,
-		-0.5f,  0.5f,  0.5f, 1.0f,
-		-0.5f,  0.5f, -0.5f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 1.0f,
-		/* right */
-		 0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f,  0.5f,  0.5f, 1.0f,
-		 0.5f,  0.5f, -0.5f, 1.0f,
-		 0.5f, -0.5f, -0.5f, 1.0f,
-		/* top */
-		-0.5f,  0.5f,  0.5f, 1.0f,
-		 0.5f,  0.5f,  0.5f, 1.0f,
-		 0.5f,  0.5f, -0.5f, 1.0f,
-		-0.5f,  0.5f, -0.5f, 1.0f,
-		/* bottom */
-		-0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f, -0.5f, -0.5f, 1.0f,
-		-0.5f, -0.5f, -0.5f, 1.0f,
-	};
-	static const GLfloat colors[] = {
-		/* front */
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 0.0f, 1.0f,
-		/* back */
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f, 1.0f,
-		/* left */
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f, 1.0f,
-		/* right */
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 0.0f, 1.0f,
-		/* top */
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		1.0f, 0.0f, 1.0f, 1.0f,
-		/* bottom */
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f, 1.0f,
-	};
-	static const GLushort indices[] = {
-		/* front */
-		 0,  1,  2,
-		 0,  2,  3,
-		/* back */
-		 4,  5,  6,
-		 4,  6,  7,
-		/* left */
-		 8,  9, 10,
-		 8, 10, 11,
-		/* right */
-		12, 13, 14,
-		12, 14, 15,
-		/* top */
-		16, 17, 18,
-		16, 18, 19,
-		/* bottom */
-		20, 21, 22,
-		20, 22, 23,
-	};
-	struct mat4 mvp, mv, t, r, rx, ry, p;
-	GLint position, color, matrix;
 	GLuint vs, fs, program;
+	GLint position, color;
 
 	vs = glsl_shader_load(GL_VERTEX_SHADER, vertex_shader,
 			      ARRAY_SIZE(vertex_shader));
@@ -156,14 +88,9 @@ void pbuffer_draw(struct pbuffer *pbuffer, GLuint width, GLuint height)
 
 	position = glGetAttribLocation(program, "position");
 	color = glGetAttribLocation(program, "color");
-	matrix = glGetUniformLocation(program, "mvp");
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearDepthf(1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glVertexAttribPointer(position, 4, GL_FLOAT, GL_FALSE,
 			      4 * sizeof(GLfloat), vertices);
@@ -172,15 +99,6 @@ void pbuffer_draw(struct pbuffer *pbuffer, GLuint width, GLuint height)
 	glVertexAttribPointer(color, 4, GL_FLOAT, GL_FALSE,
 			      4 * sizeof(GLfloat), colors);
 	glEnableVertexAttribArray(color);
-
-	mat4_perspective(&p, 35.0f, width / (GLfloat)height, 1.0f, 1024.0f);
-	mat4_rotate_y(&ry, 45.0f);
-	mat4_rotate_x(&rx, 45.0f);
-	mat4_multiply(&r, &rx, &ry);
-	mat4_translate(&t, 0.0f, 0.0f, -2.0f);
-	mat4_multiply(&mv, &t, &r);
-	mat4_multiply(&mvp, &p, &mv);
-	glUniformMatrix4fv(matrix, 1, GL_FALSE, (GLfloat *)&mvp);
 
 	glDrawElements(GL_TRIANGLES, ARRAY_SIZE(indices), GL_UNSIGNED_SHORT,
 		       indices);
@@ -194,8 +112,8 @@ int main(int argc, char *argv[])
 	int err;
 
 	memset(&options, 0, sizeof(options));
-	options.width = 2048;
-	options.height = 32;
+	options.width = 256;
+	options.height = 256;
 
 	err = gles_parse_command_line(&options, argc, argv);
 	if (err < 0)
@@ -207,7 +125,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	pbuffer_draw(pbuffer, options.width, options.height);
+	pbuffer_draw(pbuffer);
 	pbuffer_save(pbuffer, "test.png");
 	pbuffer_free(pbuffer);
 
