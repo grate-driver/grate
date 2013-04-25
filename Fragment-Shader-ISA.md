@@ -33,7 +33,10 @@
 |      8 | rC absolute value        |
 |      7 | rC negate                |
 |      6 | rC scale by two          |
-|   0..5 | ???                      |
+|      5 | rC scale by rC           |
+|   3..4 | ???                      |
+|      2 | scale rC by rB or rC     |
+|   0..1 | ???                      |
 
 Condition code:
 
