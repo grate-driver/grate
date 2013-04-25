@@ -5,7 +5,7 @@
 | 57..58 | scale result             |
 |     56 | saturate result          |
 | 54..55 | condition code           |
-|     53 | write contidion register |
+|     53 | write condition register |
 |     52 | ???                      |
 | 46..51 | destination register     |
 |     45 | ???                      |
