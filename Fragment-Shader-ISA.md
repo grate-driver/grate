@@ -4,7 +4,9 @@
 | 59..61 | ???                      |
 | 57..58 | scale result             |
 |     56 | saturate result          |
-| 52..55 | ???                      |
+| 54..55 | condition code           |
+|     53 | write contidion register |
+|     52 | ???                      |
 | 46..51 | destination register     |
 |     45 | ???                      |
 |     44 | enable extended operands |
@@ -32,3 +34,12 @@
 |      7 | rC negate                |
 |      6 | rC scale by two          |
 |   0..5 | ???                      |
+
+Condition code:
+
+| Value | Meaning                  |
+|------:|:-------------------------|
+|     0 | zero                     |
+|     1 | non-zero                 |
+|     2 | zero or less             |
+|     3 | less than zero           |
