@@ -1,7 +1,8 @@
 |   Bits | Meaning                  |
 |-------:|:-------------------------|
 | 62..63 | opcode                   |
-| 59..61 | ???                      |
+|     61 | accumulate result        |
+| 59..60 | ???                      |
 | 57..58 | scale result             |
 |     56 | saturate result          |
 | 54..55 | condition code           |
