@@ -4,7 +4,7 @@ The Tegra vertex shader ISA is a relatively straight-forward implementation of t
 
 Each instruction contains up to two operations; one 4-component vector ALU (arithmetic logic unit) operation, and one 1-component SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
 
-There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the CFU only operates on rC.
+There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations, as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
