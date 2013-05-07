@@ -56,6 +56,15 @@ The different units seems to be synchronized by some sort of separate timing str
 |      2 | scale rC by rB or rC     |
 |   0..1 | ???                      |
 
+Opcodes:
+
+| opcode | Mnemonic | Meaning            | pseudo-code               |
+|-------:|:--------:|:-------------------|:--------------------------|
+|      0 |    MAD   | Multiply-Add       | rD = rA + rB * rC         |
+|      1 |    MIN   | Minimum            | rD = min(rA * rB, rC)     |
+|      2 |    MAX   | Maximum            | rD = max(rA * rB, rC)     |
+|      3 |   CSEL   | Conditional select | ???                       |
+
 Condition code:
 
 | Value | Meaning                  |
