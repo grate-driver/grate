@@ -18,7 +18,8 @@ libgrate_la_SOURCES = \
 libgrate_la_LIBADD = \
 	../libhost1x/libhost1x.la \
 	$(PNG_LIBS) \
-	-lm
+	-lm \
+	-lrt
 
 if ENABLE_CGC
 libgrate_la_SOURCES += \
