@@ -27,7 +27,7 @@ The different units seems to be synchronized by some sort of separate timing str
 |     52 | ???                      |
 | 46..51 | destination register     |
 |     45 | ???                      |
-|     44 | enable extended operands |
+|     44 | rA built-in              |
 |     43 | rA read constant         |
 | 37..42 | rA register              |
 |     36 | ???                      |
@@ -35,7 +35,7 @@ The different units seems to be synchronized by some sort of separate timing str
 |     34 | rA absolute value        |
 |     33 | rA negate                |
 |     32 | rA scale by two          |
-|     31 | ???                      |
+|     31 | rB built-in              |
 |     30 | rB read constant         |
 | 24..29 | rB register              |
 |     23 | ???                      |
@@ -43,7 +43,7 @@ The different units seems to be synchronized by some sort of separate timing str
 |     21 | rB absolute value        |
 |     20 | rB negate                |
 |     19 | rB scale by two          |
-|     18 | ???                      |
+|     18 | rC built-in              |
 |     17 | rC read constant         |
 | 11..16 | rC register              |
 |     10 | ???                      |
