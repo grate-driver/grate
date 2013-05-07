@@ -587,6 +587,16 @@ static void fragment_instruction_disasm(uint32_t *words)
 
 	scale = instruction_extract(inst, 57, 58);
 	sat = instruction_get_bit(inst, 56);
+	if (instruction_get_bit(inst, 53)) {
+		int cond = instruction_extract(inst, 54, 55);
+		const char *cond_str[4] = {
+			"_z",
+			"_nz",
+			"_le",
+			"_lt"
+		};
+		printf("%s", cond_str[cond]);
+	}
 	reg = instruction_extract(inst, 46, 51);
 	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
 
