@@ -27,30 +27,9 @@ The different units seems to be synchronized by some sort of separate timing str
 |     52 | ???                      |
 | 46..51 | destination register     |
 |     45 | ???                      |
-|     44 | rA built-in              |
-|     43 | rA read constant         |
-| 37..42 | rA register              |
-|     36 | ???                      |
-|     35 | rA read fixed10          |
-|     34 | rA absolute value        |
-|     33 | rA negate                |
-|     32 | rA scale by two          |
-|     31 | rB built-in              |
-|     30 | rB read constant         |
-| 24..29 | rB register              |
-|     23 | ???                      |
-|     22 | rB read fixed10          |
-|     21 | rB absolute value        |
-|     20 | rB negate                |
-|     19 | rB scale by two          |
-|     18 | rC built-in              |
-|     17 | rC read constant         |
-| 11..16 | rC register              |
-|     10 | ???                      |
-|      9 | rC read fixed10          |
-|      8 | rC absolute value        |
-|      7 | rC negate                |
-|      6 | rC scale by two          |
+| 32..44 | operand rA               |
+| 19..31 | operand rB               |
+|  6..18 | operand rC               |
 |      5 | rC scale by rC           |
 |   3..4 | ???                      |
 |      2 | scale rC by rB or rC     |
@@ -73,3 +52,16 @@ Condition code:
 |     1 | non-zero                 |
 |     2 | zero or less             |
 |     3 | less than zero           |
+
+Operands:
+
+|  Bits | Meaning        |
+|------:|:---------------|
+|    12 | read built-in  |
+|    11 | read constant  |
+| 5..10 | register index |
+|     4 | ???            |
+|     3 | fixed10        |
+|     2 | absolute value |
+|     1 | negate         |
+|     0 | scale by two   |
