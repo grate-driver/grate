@@ -615,11 +615,11 @@ static void fragment_instruction_disasm(uint32_t *words)
 		printf(", ");
 		printf("%s%s", neg ? "-" : "", abs ? "abs(" : "");
 		if (xreg) {
-			if (xreg && reg == 16 && !x10)
+			if (reg == 16 && !x10)
 				printf("vPos.x");
-			else if (xreg && reg == 18 && !x10)
+			else if (reg == 18 && !x10)
 				printf("vPos.y");
-			else if (xreg && reg == 22 && x10)
+			else if (reg == 22 && x10)
 				printf("vFace");
 			else {
 				assert(x10 || !(reg & 1));
