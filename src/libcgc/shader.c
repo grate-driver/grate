@@ -986,8 +986,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 
 	while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
 		if (header->type == 0x1b5e) {
-			int location = header->type == 0x1b5e ?
-			    ((symbol->location >> 12) & 0xf) : symbol->location;
+			int location = (symbol->location >> 12) & 0xf;
 			int mask = (symbol->location >> 8) & 0xf;
 			fprintf(fp, "    %u: %s.%s%s%s%s @ %d, location: 0x%08x\n", i,
 			    symbol->name,
