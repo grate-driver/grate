@@ -126,4 +126,4 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 |     0 | invalid/unknown    |
 |     1 | temporary          |
 |     2 | attribute          |
-|     3 | varying            |
+|     3 | constant           |
