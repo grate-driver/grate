@@ -985,8 +985,23 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	i = 0;
 
 	while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
-			symbol->location);
+		if (header->type == 0x1b5e) {
+			int location = header->type == 0x1b5e ?
+			    ((symbol->location >> 12) & 0xf) : symbol->location;
+			int mask = (symbol->location >> 8) & 0xf;
+			fprintf(fp, "    %u: %s.%s%s%s%s @ %d, location: 0x%08x\n", i,
+			    symbol->name,
+			    mask & 1 ? "x" : "",
+			    mask & 2 ? "y" : "",
+			    mask & 4 ? "z" : "",
+			    mask & 8 ? "w" : "",
+			    location,
+			    symbol->location);
+		} else {
+			fprintf(fp, "    %u: %s, location: 0x%08x\n", i,
+			    symbol->name,
+			    symbol->location);
+		}
 		i++;
 	}
 
