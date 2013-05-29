@@ -59,7 +59,8 @@ Operands:
 |------:|:---------------|
 |    12 | read built-in  |
 |    11 | read constant  |
-| 5..10 | register index |
+| 8..10 | ???            |
+|  5..7 | constant index |
 |     4 | ???            |
 |     3 | fixed10        |
 |     2 | absolute value |
