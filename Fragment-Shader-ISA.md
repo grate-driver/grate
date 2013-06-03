@@ -66,3 +66,13 @@ Operands:
 |     2 | absolute value |
 |     1 | negate         |
 |     0 | scale by two   |
+
+### VAR/SFU instruction word encoding
+
+|   Bits | Meaning        |
+|-------:|:---------------|
+| 58..63 | ???            |
+| 54..57 | opcode         |
+| 29..53 | ???            |
+| 24..28 | varying read   |
+|  0..23 | ???            |
