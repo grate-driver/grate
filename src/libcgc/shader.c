@@ -543,7 +543,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 static void fragment_instruction_disasm(uint32_t *words)
 {
-	int i, op, reg, subreg, sat, scale;
+	int i, op, reg, subreg, sat, scale, accum;
 	struct instruction *inst;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
@@ -586,6 +586,7 @@ static void fragment_instruction_disasm(uint32_t *words)
 		break;
 	}
 
+	accum = instruction_get_bit(inst, 61);
 	scale = instruction_extract(inst, 57, 58);
 	sat = instruction_get_bit(inst, 56);
 	if (instruction_get_bit(inst, 53)) {
@@ -600,7 +601,7 @@ static void fragment_instruction_disasm(uint32_t *words)
 	}
 
 	reg = instruction_extract(inst, 47, 51);
-	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
+	printf(" r%d%s%s%s", reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
 	subreg = instruction_extract(inst, 45, 46);
 	assert(subreg);
 	if (subreg != 3)
