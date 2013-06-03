@@ -543,7 +543,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 static void fragment_instruction_disasm(uint32_t *words)
 {
-	int i, op, reg, sat, scale;
+	int i, op, reg, subreg, sat, scale;
 	struct instruction *inst;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
@@ -598,23 +598,59 @@ static void fragment_instruction_disasm(uint32_t *words)
 		};
 		printf("%s", cond_str[cond]);
 	}
-	reg = instruction_extract(inst, 46, 51);
-	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
 
+	reg = instruction_extract(inst, 47, 51);
+	printf(" r%d%s%s", reg, dscale_str[scale], sat ? "_sat" : "");
+	subreg = instruction_extract(inst, 45, 46);
+	assert(subreg);
+	if (subreg != 3)
+		printf(".%s", subreg & 1 ? "l" : "h");
 
 	for (i = 0; i < 3; ++i) {
-		int xreg, uni, reg, x10, abs, neg;
+		int type, reg, x10, abs, neg;
 		int offset = 32 - 13 * i;
-		xreg = instruction_get_bit(inst, offset + 12);
-		uni = instruction_get_bit(inst, offset + 11);
-		reg = instruction_extract(inst, offset + 5, offset + 10);
+
+		/* register type */
+		type = instruction_extract(inst, offset + 11, offset + 12);
+
+		/* modifiers */
 		x10 = instruction_get_bit(inst, offset + 3);
 		abs = instruction_get_bit(inst, offset + 2);
 		neg = instruction_get_bit(inst, offset + 1);
 		scale = instruction_get_bit(inst, offset);
 		printf(", ");
+
+		if (instruction_get_bit(inst, offset + 4)) {
+			printf("unk4 ");
+			assert(0);
+		}
+
 		printf("%s%s", neg ? "-" : "", abs ? "abs(" : "");
-		if (xreg) {
+		switch (type) {
+		case 0:
+			/* general-purpose register */
+			reg = instruction_extract(inst, offset + 4, offset + 10);
+			if (reg == 124)
+				printf("#0");
+			else if (reg == 126)
+				printf("#1");
+			else {
+				assert(x10 || !(reg & 1));
+				reg = instruction_extract(inst, offset + 6, offset + 9);
+				printf("r%d%s", reg, x10 ? "_half" : "");
+			}
+			break;
+
+		case 1:
+			/* constant register */
+			reg = instruction_extract(inst, offset + 5, offset + 10);
+			assert(x10 || !(reg & 1));
+			printf("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
+			break;
+
+		case 2:
+			/* system-variable register */
+			reg = instruction_extract(inst, offset + 5, offset + 10);
 			if (reg == 16 && !x10)
 				printf("vPos.x");
 			else if (reg == 18 && !x10)
@@ -625,16 +661,11 @@ static void fragment_instruction_disasm(uint32_t *words)
 				assert(x10 || !(reg & 1));
 				printf("x%d%s", reg, x10 ? "_half" : "");
 			}
-		} else if (!uni) {
-			if (reg >= 62 && x10)
-				printf("#%d", reg - 62);
-			else {
-				assert(x10 || !(reg & 1));
-				printf("r%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
-			}
-		} else {
-			assert(x10 || !(reg & 1));
-			printf("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
+			break;
+
+		default:
+			/* unused encoding (?) */
+			assert(0);
 		}
 		printf("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
