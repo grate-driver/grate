@@ -76,3 +76,19 @@ Operands:
 | 29..53 | ???            |
 | 24..28 | varying read   |
 |  0..23 | ???            |
+
+| opcode | Mnemonic | Meaning                      | pseudo-code         |
+|-------:|:--------:|:-----------------------------|:--------------------|
+|      0 |    NOP   | No operation                 |                     |
+|      1 |    RCP   | Reciprocal                   | rD = 1.0 / rA       | 
+|      2 |    RSQ   | Reciprocal square root       | rD = 1.0 / sqrt(rA) |
+|      3 |    LG2   | Logarithm base 2             | rD = log2(rA)       |
+|      4 |    EX2   | Exponent base 2, second step | rD = pow(2.0, rA)   |
+|      5 |   SQRT   | Square root                  | rD = sqrt(rA)       |
+|      6 |    SIN   | Sine, second step            | rD = sin(rA)        |
+|      7 |    COS   | Cosine, second step          | rD = cos(rA)        |
+|      8 |    FRC   | Fractional value             | rD = rA - floor(rA) |
+|      9 |  PREEX2  | Exponent base 2, first step  | rD = pow(2.0, rA)   |
+|     10 |  PRESIN  | Sine, first step             | rD = sin(rA)        |
+|     11 |  PRECOS  | Cosine, first step           | rD = cos(rA)        |
+
