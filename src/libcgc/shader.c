@@ -541,7 +541,7 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
-static void fragment_instruction_disasm(uint32_t *words)
+static void fragment_alu_disasm(uint32_t *words)
 {
 	int i, op, reg, subreg, sat, scale, accum;
 	struct instruction *inst;
@@ -675,37 +675,146 @@ static void fragment_instruction_disasm(uint32_t *words)
 	instruction_free(inst);
 }
 
+static void fragment_sfu_disasm(uint32_t *words)
+{
+	int i, op, reg, var;
+	struct instruction *inst;
+
+	printf("    ");
+
+	for (i = 0; i < 2; i++)
+		printf("%08x", words[i]);
+
+	printf(" |");
+
+	for (i = 0; i < 2; i++)
+		printf(" %08x", words[i]);
+
+	printf("\n");
+
+	inst = instruction_create_from_words(words, 2);
+
+	printf("      ");
+	op = instruction_extract(inst, 54, 57);
+	switch (op) {
+	case 0x1:
+		printf("rcp");
+		break;
+	case 0x2:
+		printf("rsq");
+		break;
+	case 0x3:
+		printf("log");
+		break;
+	case 0x4:
+		printf("exp");
+		break;
+	case 0x5:
+		printf("sqrt");
+		break;
+	case 0x6:
+		printf("sin");
+		break;
+	case 0x7:
+		printf("cos");
+		break;
+	case 0x8:
+		printf("frc");
+		break;
+	case 0x9:
+		printf("preexp");
+		break;
+	case 0xa:
+		printf("presin");
+		break;
+	case 0xb:
+		printf("precos");
+		break;
+	default:
+		printf("unk%x", op);
+	}
+
+	reg = instruction_extract(inst, 58, 62);
+	printf(" r%d", reg);
+
+	printf("\n");
+
+	var = instruction_extract(inst, 24, 28);
+
+	printf("      ");
+	printf("var v%d", var);
+	printf("\n");
+
+	instruction_free(inst);
+}
+
+
 static void fragment_shader_disassemble(uint32_t *words, size_t length)
 {
 	int i, j;
-	uint32_t *alu = NULL;
-	int alu_length = 0;
+	uint32_t *sfu = NULL, *alu = NULL;
+	int sfu_length = 0, alu_length = 0;
 
 	for (i = 0; i < length; ) {
 		uint32_t word = words[i++];
 		uint32_t opcode = (word >> 28) & 0xf, offset, count;
 
-		if (opcode != 1 && opcode != 2) {
-			fprintf(stderr, "unknown opcode %d\n", opcode);
+		if (opcode != 0 && opcode != 1 && opcode != 2 && opcode != 3) {
+			printf("unknown opcode %d\n", opcode);
 			return;
 		}
 
-		offset = (word >> 16) & 0xfff;
-		count = word & 0xfff;
+		if (opcode == 0) {
+			int i, mask = word & 0x3f;
+			int class_id = (word >> 6) & 0x3ff;
+			offset = (word >> 16) & 0xfff;
 
+			printf("    setclass %d %d, mask: %x\n", class_id, offset, mask);
+			count = 0;
+			for (i = 0; i < 6; ++i)
+				if (mask & (1 << i))
+					++count;
+		} else if (opcode == 3) {
+			int i, mask = word & 0xffff;
+			offset = (word >> 16) & 0xfff;
+			printf("    mask: %x\n", mask);
+			count = 0;
+			for (i = 0; i < 16; ++i)
+				if (mask & (1 << i))
+					++count;
+		} else {
+			offset = (word >> 16) & 0xfff;
+			count = word & 0xffff;
+		}
+
+		printf("    upload, offset 0x%03x, %d words\n", offset, count);
 		switch (offset) {
+		case 0x604:
+			sfu = words + i;
+			sfu_length = count;
+			break;
 		case 0x804:
 			alu = words + i;
 			alu_length = count;
 			break;
+		default:
+			printf("    unknown upload, offset 0x%03x\n", offset);
+			for (j = 0; j < count; ++j)
+				printf("      0x%08x\n", words[i + j]);
 		}
 		i += count;
 	}
 
 	printf("  alu instructions:\n");
-	for (i = 0; i < alu_length; i += 8)
+	for (i = 0; i < alu_length; i += 8) {
 		for (j = 0; j < 4; ++j)
-			fragment_instruction_disasm(alu + i + j * 2);
+			fragment_alu_disasm(alu + i + j * 2);
+		printf("\n");
+	}
+
+	printf("  sfu instructions:\n");
+	for (i = 0; i < sfu_length; i += 2)
+		fragment_sfu_disasm(sfu + i);
 }
 
 static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
