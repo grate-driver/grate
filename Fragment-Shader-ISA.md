@@ -25,8 +25,9 @@ The different units seems to be synchronized by some sort of separate timing str
 | 54..55 | condition code           |
 |     53 | write condition register |
 |     52 | ???                      |
-| 46..51 | destination register     |
-|     45 | ???                      |
+| 47..51 | destination register     |
+|     46 | write high subregister   |
+|     45 | write low subregister    |
 | 32..44 | operand rA               |
 | 19..31 | operand rB               |
 |  6..18 | operand rC               |
