@@ -40,7 +40,7 @@ Opcodes:
 
 | opcode | Mnemonic | Meaning            | pseudo-code               |
 |-------:|:--------:|:-------------------|:--------------------------|
-|      0 |    MAD   | Multiply-Add       | rD = rA + rB * rC         |
+|      0 |    MAD   | Multiply-Add       | rD = rA * rB + rC         |
 |      1 |    MIN   | Minimum            | rD = min(rA * rB, rC)     |
 |      2 |    MAX   | Maximum            | rD = max(rA * rB, rC)     |
 |      3 |   CSEL   | Conditional select | ???                       |
