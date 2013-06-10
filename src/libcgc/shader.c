@@ -629,14 +629,14 @@ static int fragment_alu_disasm(uint32_t *words)
 		switch (type) {
 		case 0:
 			/* general-purpose register */
-			reg = instruction_extract(inst, offset + 5, offset + 9);
-			if (reg >= 24) {
-				if (reg < 30) {
-					printf("ec%d", reg - 24);
+			reg = instruction_extract(inst, offset + 5, offset + 10);
+			if (reg >= 56) {
+				else if (reg < 62) {
+					printf("ec%d", reg - 56);
 					embedded_constant_used = 1;
-				} else if (reg == 30)
+				} else if (reg == 62)
 					printf("#0");
-				else if (reg == 31)
+				else if (reg == 63)
 					printf("#1");
 				else
 					assert(0);
