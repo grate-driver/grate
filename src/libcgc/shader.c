@@ -604,9 +604,7 @@ static int fragment_alu_disasm(uint32_t *words)
 	reg = instruction_extract(inst, 47, 51);
 	printf(" r%d%s%s%s", reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
 	subreg = instruction_extract(inst, 45, 46);
-	assert(subreg);
-	if (subreg != 3)
-		printf(".%s", subreg & 1 ? "l" : "h");
+	printf(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
 
 	for (i = 0; i < 3; ++i) {
 		int type, reg, x10, abs, neg;
