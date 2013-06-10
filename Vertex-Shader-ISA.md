@@ -6,7 +6,7 @@ Each instruction contains up to two operations; one 4-component vector ALU (arit
 
 There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
 
-There's no branching what-so-ever in the instruction set. Instead, predicated operations, as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
+There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
 ### Instruction word encoding
 
