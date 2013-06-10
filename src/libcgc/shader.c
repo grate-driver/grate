@@ -541,9 +541,10 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
-static void fragment_alu_disasm(uint32_t *words)
+static int fragment_alu_disasm(uint32_t *words)
 {
 	int i, op, reg, subreg, sat, scale, accum;
+	int embedded_constant_used = 0;
 	struct instruction *inst;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
@@ -567,7 +568,7 @@ static void fragment_alu_disasm(uint32_t *words)
 	if (words[0] == 0x000fe7e8 && words[1] == 0x3e41f200) {
 		// a NOP is an instruction that writes 0.0 to r63
 		printf("nop\n");
-		return;
+		return 0;
 	}
 
 	op = instruction_extract(inst, 62, 63);
@@ -630,12 +631,18 @@ static void fragment_alu_disasm(uint32_t *words)
 		switch (type) {
 		case 0:
 			/* general-purpose register */
-			reg = instruction_extract(inst, offset + 4, offset + 10);
-			if (reg == 124)
-				printf("#0");
-			else if (reg == 126)
-				printf("#1");
-			else {
+			reg = instruction_extract(inst, offset + 5, offset + 9);
+			if (reg >= 24) {
+				if (reg < 30) {
+					printf("ec%d", reg - 24);
+					embedded_constant_used = 1;
+				} else if (reg == 30)
+					printf("#0");
+				else if (reg == 31)
+					printf("#1");
+				else
+					assert(0);
+			} else {
 				assert(x10 || !(reg & 1));
 				reg = instruction_extract(inst, offset + 6, offset + 9);
 				printf("r%d%s", reg, x10 ? "_half" : "");
@@ -673,6 +680,7 @@ static void fragment_alu_disasm(uint32_t *words)
 
 	printf("\n");
 	instruction_free(inst);
+	return embedded_constant_used;
 }
 
 static void fragment_sfu_disasm(uint32_t *words)
@@ -807,8 +815,9 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 
 	printf("  alu instructions:\n");
 	for (i = 0; i < alu_length; i += 8) {
-		for (j = 0; j < 4; ++j)
-			fragment_alu_disasm(alu + i + j * 2);
+		int embedded_constant_used = 0;
+		for (j = 0; j < (embedded_constant_used ? 3 : 4); ++j)
+			 embedded_constant_used |= fragment_alu_disasm(alu + i + j * 2);
 		printf("\n");
 	}
 
