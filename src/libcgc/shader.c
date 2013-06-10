@@ -630,8 +630,16 @@ static int fragment_alu_disasm(uint32_t *words)
 		case 0:
 			/* general-purpose register */
 			reg = instruction_extract(inst, offset + 5, offset + 10);
-			if (reg >= 56) {
-				else if (reg < 62) {
+			if (reg >= 48) {
+				if (reg == 48)
+					printf("d0");
+				else if (reg == 50)
+					printf("d1");
+				else if (reg == 52)
+					printf("d2");
+				else if (reg == 54)
+					printf("d3");
+				else if (reg >= 56 && reg < 62) {
 					printf("ec%d", reg - 56);
 					embedded_constant_used = 1;
 				} else if (reg == 62)
