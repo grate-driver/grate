@@ -1,6 +1,6 @@
 ### Overview
 
-The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]]. It's kind of like a [VLIW](http://en.wikipedia.org/wiki/Very_long_instruction_word)-machine, except the different instructions aren't actually encoded together.
+The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]]. It's kind of like a (scalar) [VLIW](http://en.wikipedia.org/wiki/Very_long_instruction_word)-machine, except the different instructions aren't actually encoded together.
 
 The fragment shader is separated into three different instruction streams.
 * VAR/SFU - varying interpolate and special function unit
