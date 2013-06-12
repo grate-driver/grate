@@ -565,8 +565,6 @@ static int fragment_alu_disasm(uint32_t *words)
 	for (i = 0; i < 2; i++)
 		printf(" %08x", words[i]);
 
-	printf("\n");
-
 	inst = instruction_create_from_words(words, 2);
 
 	printf("      ");
@@ -713,59 +711,57 @@ static void fragment_sfu_disasm(uint32_t *words)
 	for (i = 0; i < 2; i++)
 		printf(" %08x", words[i]);
 
-	printf("\n");
-
 	inst = instruction_create_from_words(words, 2);
 
 	printf("      ");
-	op = instruction_extract(inst, 54, 57);
-	switch (op) {
-	case 0x1:
-		printf("rcp");
-		break;
-	case 0x2:
-		printf("rsq");
-		break;
-	case 0x3:
-		printf("log");
-		break;
-	case 0x4:
-		printf("exp");
-		break;
-	case 0x5:
-		printf("sqrt");
-		break;
-	case 0x6:
-		printf("sin");
-		break;
-	case 0x7:
-		printf("cos");
-		break;
-	case 0x8:
-		printf("frc");
-		break;
-	case 0x9:
-		printf("preexp");
-		break;
-	case 0xa:
-		printf("presin");
-		break;
-	case 0xb:
-		printf("precos");
-		break;
-	default:
-		printf("unk%x", op);
+
+	if (! words[1]) { /* use heuristic for now until we know .. */
+		op = instruction_extract(inst, 54, 57);
+		switch (op) {
+		case 0x1:
+			printf("rcp");
+			break;
+		case 0x2:
+			printf("rsq");
+			break;
+		case 0x3:
+			printf("log");
+			break;
+		case 0x4:
+			printf("exp");
+			break;
+		case 0x5:
+			printf("sqrt");
+			break;
+		case 0x6:
+			printf("sin");
+			break;
+		case 0x7:
+			printf("cos");
+			break;
+		case 0x8:
+			printf("frc");
+			break;
+		case 0x9:
+			printf("preexp");
+			break;
+		case 0xa:
+			printf("presin");
+			break;
+		case 0xb:
+			printf("precos");
+			break;
+		default:
+			printf("unk%x", op);
+		}
+
+		reg = instruction_extract(inst, 58, 62);
+		printf(" r%d", reg);
+	} else {
+		var = instruction_extract(inst, 24, 28);
+
+		printf("var v%d", var);
 	}
-
-	reg = instruction_extract(inst, 58, 62);
-	printf(" r%d", reg);
-
-	printf("\n");
-
-	var = instruction_extract(inst, 24, 28);
-
-	printf("      ");
-	printf("var v%d", var);
 	printf("\n");
 
 	instruction_free(inst);
