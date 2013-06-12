@@ -30,6 +30,7 @@
 struct instruction {
 	unsigned int length;
 	uint32_t *bits;
+	uint32_t *taken; /* bitmask of bits that are read */
 };
 
 struct instruction *instruction_create_from_words(uint32_t *words,
@@ -46,10 +47,15 @@ struct instruction *instruction_create_from_words(uint32_t *words,
 
 	inst->bits = malloc(sizeof(*words) * count);
 	if (!inst->bits) {
-		free(inst);
+		instruction_free(inst);
 		return NULL;
 	}
 
+	inst->taken = calloc(1, sizeof(*words) * count);
+	if (!inst->taken) {
+		instruction_free(inst);
+		return NULL;
+	}
 	for (i = 0; i < count; i++)
 		inst->bits[i] = words[count - i - 1];
 
@@ -58,23 +64,56 @@ struct instruction *instruction_create_from_words(uint32_t *words,
 
 void instruction_free(struct instruction *inst)
 {
-	if (inst)
+	if (inst) {
 		free(inst->bits);
+		free(inst->taken);
+	}
 
 	free(inst);
 }
 
-unsigned int instruction_get_bit(struct instruction *inst, unsigned int pos)
+void instruction_print_raw(struct instruction *inst)
+{
+	int i;
+
+	for (i = (inst->length / 32) - 1; i >= 0; i--)
+		printf("%08x", inst->bits[i]);
+
+	printf(" |");
+
+	for (i = (inst->length / 32) - 1; i >= 0; i--)
+		printf(" %08x", inst->bits[i]);
+
+	printf(" |");
+}
+
+void instruction_print_unknown(struct instruction *inst)
+{
+	int i;
+
+	for (i = (inst->length / 32) - 1; i >= 0; i--)
+		printf(" %08x", inst->bits[i] & ~(inst->taken[i]));
+
+	printf(" |");
+}
+
+static unsigned int take(struct instruction *inst, unsigned int pos)
 {
 	unsigned int word = pos / 32;
 	unsigned int bit = pos % 32;
 
+	inst->taken[word] |= (1 << bit);
+
+	return (inst->bits[word] & (1 << bit)) != 0;
+}
+
+unsigned int instruction_get_bit(struct instruction *inst, unsigned int pos)
+{
 	if (pos >= inst->length) {
 		fprintf(stderr, "WARNING: bit out of range: %u\n", pos);
 		return 0;
 	}
-
-	return (inst->bits[word] & (1 << bit)) != 0;
+	return take(inst, pos);
 }
 
 uint32_t instruction_extract(struct instruction *inst, unsigned int from,
@@ -89,13 +128,14 @@ uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 		return 0;
 	}
 
-	for (i = from; i <= to; i++) {
-		unsigned int word = i / 32;
-		unsigned int bit = i % 32;
-
-		if (inst->bits[word] & (1 << bit))
-			value |= 1 << (i - from);
+	if (to >= inst->length) {
+		fprintf(stderr, "WARNING: bit out of range: %u\n", to);
+		return 0;
 	}
+
+	for (i = from; i <= to; i++)
+		if (take(inst, i))
+			value |= 1 << (i - from);
 
 	return value;
 }

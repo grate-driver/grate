@@ -61,6 +61,8 @@ struct instruction;
 struct instruction *instruction_create_from_words(uint32_t *words,
 						  unsigned int count);
 void instruction_free(struct instruction *inst);
+void instruction_print_raw(struct instruction *inst);
+void instruction_print_unknown(struct instruction *inst);
 unsigned int instruction_get_bit(struct instruction *inst, unsigned int pos);
 uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 			     unsigned int to);

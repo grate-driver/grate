@@ -546,47 +546,39 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 
 static int gpr_written[256];
 
+#define pr(fmt, ...) do { str += sprintf(str, fmt, ##__VA_ARGS__); } while (0)
+
 static int fragment_alu_disasm(uint32_t *words)
 {
 	int i, op, reg, subreg, sat, scale, accum;
 	int embedded_constant_used = 0;
 	struct instruction *inst;
+	char buf[512], *str = buf;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
 	};
 
-	printf("    ");
-
-	for (i = 0; i < 2; i++)
-		printf("%08x", words[i]);
-
-	printf(" |");
-
-	for (i = 0; i < 2; i++)
-		printf(" %08x", words[i]);
-
 	inst = instruction_create_from_words(words, 2);
 
-	printf("      ");
 	if (words[0] == 0x000fe7e8 && words[1] == 0x3e41f200) {
 		// a NOP is an instruction that writes 0.0 to r63
-		printf("nop\n");
-		return 0;
+		pr("nop");
+		goto out;
 	}
 
 	op = instruction_extract(inst, 62, 63);
 	switch (op) {
 	case 0:
-		printf("mad");
+		pr("mad");
 		break;
 	case 1:
-		printf("min");
+		pr("min");
 		break;
 	case 2:
-		printf("max");
+		pr("max");
 		break;
 	case 3:
-		printf("cnd");
+		pr("cnd");
 		break;
 	}
 
@@ -601,13 +593,13 @@ static int fragment_alu_disasm(uint32_t *words)
 			"_le",
 			"_lt"
 		};
-		printf("%s", cond_str[cond]);
+		pr("%s", cond_str[cond]);
 	}
 
 	reg = instruction_extract(inst, 47, 51);
-	printf(" r%d%s%s%s", reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
+	pr(" r%d%s%s%s", reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
 	subreg = instruction_extract(inst, 45, 46);
-	printf(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
+	pr(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
 
 	gpr_written[reg] = 1;
 
@@ -623,34 +615,29 @@ static int fragment_alu_disasm(uint32_t *words)
 		abs = instruction_get_bit(inst, offset + 2);
 		neg = instruction_get_bit(inst, offset + 1);
 		scale = instruction_get_bit(inst, offset);
-		printf(", ");
+		pr(", ");
 
-		if (instruction_get_bit(inst, offset + 4)) {
-			printf("unk4 ");
-			assert(0);
-		}
-
-		printf("%s%s", neg ? "-" : "", abs ? "abs(" : "");
+		pr("%s%s", neg ? "-" : "", abs ? "abs(" : "");
 		switch (type) {
 		case 0:
 			/* general-purpose register */
 			reg = instruction_extract(inst, offset + 5, offset + 10);
 			if (reg >= 48) {
 				if (reg == 48)
-					printf("d0");
+					pr("d0");
 				else if (reg == 50)
-					printf("d1");
+					pr("d1");
 				else if (reg == 52)
-					printf("d2");
+					pr("d2");
 				else if (reg == 54)
-					printf("d3");
+					pr("d3");
 				else if (reg >= 56 && reg < 62) {
-					printf("ec%d", reg - 56);
+					pr("ec%d", reg - 56);
 					embedded_constant_used = 1;
 				} else if (reg == 62)
-					printf("#0");
+					pr("#0");
 				else if (reg == 63)
-					printf("#1");
+					pr("#1");
 				else
 					assert(0);
 			} else {
@@ -658,7 +645,7 @@ static int fragment_alu_disasm(uint32_t *words)
 				reg = instruction_extract(inst, offset + 6, offset + 10);
 				if (!gpr_written[reg])
 					fprintf(stderr, "\nr%d not written!\n", reg);
-				printf("r%d%s", reg, x10 ? "_half" : "");
+				pr("r%d%s", reg, x10 ? "_half" : "");
 			}
 			break;
 
@@ -666,21 +653,21 @@ static int fragment_alu_disasm(uint32_t *words)
 			/* constant register */
 			reg = instruction_extract(inst, offset + 5, offset + 10);
 			assert(x10 || !(reg & 1));
-			printf("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
+			pr("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
 			break;
 
 		case 2:
 			/* system-variable register */
 			reg = instruction_extract(inst, offset + 5, offset + 10);
 			if (reg == 16 && !x10)
-				printf("vPos.x");
+				pr("vPos.x");
 			else if (reg == 18 && !x10)
-				printf("vPos.y");
+				pr("vPos.y");
 			else if (reg == 22 && x10)
-				printf("vFace");
+				pr("vFace");
 			else {
 				assert(x10 || !(reg & 1));
-				printf("x%d%s", reg, x10 ? "_half" : "");
+				pr("x%d%s", reg, x10 ? "_half" : "");
 			}
 			break;
 
@@ -688,81 +675,85 @@ static int fragment_alu_disasm(uint32_t *words)
 			/* unused encoding (?) */
 			assert(0);
 		}
-		printf("%s%s", abs ? ")" : "", scale ? " * #2" : "");
+		pr("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
 
-	printf("\n");
+out:
+
+	printf("    ");
+
+	instruction_print_raw(inst);
+	instruction_print_unknown(inst);
+
+	printf("    %s\n", buf);
+
 	instruction_free(inst);
+
 	return embedded_constant_used;
 }
 
 static void fragment_sfu_disasm(uint32_t *words)
 {
-	int i, op, reg, var;
+	int op, reg, var;
 	struct instruction *inst;
-
-	printf("    ");
-
-	for (i = 0; i < 2; i++)
-		printf("%08x", words[i]);
-
-	printf(" |");
-
-	for (i = 0; i < 2; i++)
-		printf(" %08x", words[i]);
+	char buf[512], *str = buf;
 
 	inst = instruction_create_from_words(words, 2);
-
-	printf("      ");
 
 	if (! words[1]) { /* use heuristic for now until we know .. */
 		op = instruction_extract(inst, 54, 57);
 		switch (op) {
 		case 0x1:
-			printf("rcp");
+			pr("rcp");
 			break;
 		case 0x2:
-			printf("rsq");
+			pr("rsq");
 			break;
 		case 0x3:
-			printf("log");
+			pr("log");
 			break;
 		case 0x4:
-			printf("exp");
+			pr("exp");
 			break;
 		case 0x5:
-			printf("sqrt");
+			pr("sqrt");
 			break;
 		case 0x6:
-			printf("sin");
+			pr("sin");
 			break;
 		case 0x7:
-			printf("cos");
+			pr("cos");
 			break;
 		case 0x8:
-			printf("frc");
+			pr("frc");
 			break;
 		case 0x9:
-			printf("preexp");
+			pr("preexp");
 			break;
 		case 0xa:
-			printf("presin");
+			pr("presin");
 			break;
 		case 0xb:
-			printf("precos");
+			pr("precos");
 			break;
 		default:
-			printf("unk%x", op);
+			pr("unk%x", op);
 		}
 
 		reg = instruction_extract(inst, 58, 62);
-		printf(" r%d", reg);
+		pr(" r%d", reg);
 	} else {
 		var = instruction_extract(inst, 24, 28);
 
-		printf("var v%d", var);
+		pr("var v%d", var);
 	}
-	printf("\n");
+
+	printf("    ");
+
+	instruction_print_raw(inst);
+	instruction_print_unknown(inst);
+
+	printf("    %s\n", buf);
 
 	instruction_free(inst);
 }
