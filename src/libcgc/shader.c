@@ -544,6 +544,8 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
+static int gpr_written[256];
+
 static int fragment_alu_disasm(uint32_t *words)
 {
 	int i, op, reg, subreg, sat, scale, accum;
@@ -609,6 +611,8 @@ static int fragment_alu_disasm(uint32_t *words)
 	subreg = instruction_extract(inst, 45, 46);
 	printf(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
 
+	gpr_written[reg] = 1;
+
 	for (i = 0; i < 3; ++i) {
 		int type, reg, x10, abs, neg;
 		int offset = 32 - 13 * i;
@@ -653,7 +657,9 @@ static int fragment_alu_disasm(uint32_t *words)
 					assert(0);
 			} else {
 				assert(x10 || !(reg & 1));
-				reg = instruction_extract(inst, offset + 6, offset + 9);
+				reg = instruction_extract(inst, offset + 6, offset + 10);
+				if (!gpr_written[reg])
+					fprintf(stderr, "\nr%d not written!\n", reg);
 				printf("r%d%s", reg, x10 ? "_half" : "");
 			}
 			break;
