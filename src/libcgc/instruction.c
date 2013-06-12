@@ -77,11 +77,6 @@ void instruction_print_raw(struct instruction *inst)
 	int i;
 
 	for (i = (inst->length / 32) - 1; i >= 0; i--)
-		printf("%08x", inst->bits[i]);
-
-	printf(" |");
-
-	for (i = (inst->length / 32) - 1; i >= 0; i--)
 		printf(" %08x", inst->bits[i]);
 
 	printf(" |");
