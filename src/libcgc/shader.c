@@ -642,10 +642,9 @@ static int fragment_alu_disasm(uint32_t *words)
 					assert(0);
 			} else {
 				assert(x10 || !(reg & 1));
-				reg = instruction_extract(inst, offset + 6, offset + 10);
-				if (!gpr_written[reg])
-					fprintf(stderr, "\nr%d not written!\n", reg);
-				pr("r%d%s", reg, x10 ? "_half" : "");
+				if (!gpr_written[reg >> 1])
+					fprintf(stderr, "\nr%d not written!\n", reg >> 1);
+				pr("r%d.%s", reg >> 1, x10 ? (reg & 1 ? "h" : "l") : "hl");
 			}
 			break;
 
