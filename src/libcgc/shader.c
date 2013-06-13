@@ -758,12 +758,40 @@ static void fragment_sfu_disasm(uint32_t *words)
 	instruction_free(inst);
 }
 
+static void fragment_tex_disasm(uint32_t *words)
+{
+	int op;
+	struct instruction *inst;
+	char buf[512] = { 0 }, *str = buf;
+
+	inst = instruction_create_from_words(words, 1);
+
+	op = instruction_get_bit(inst, 10);
+	if (op) {
+		int bias = instruction_get_bit(inst, 12);
+		int samp = instruction_extract(inst, 0, 3);
+		pr(bias ? "txb" : "tex");
+		pr(" s%d", samp);
+	} else
+		pr("nop");
+
+	printf("             ");
+	instruction_print_raw(inst);
+	printf("         ");
+	instruction_print_unknown(inst);
+
+	printf("    %s\n", buf);
+
+	instruction_free(inst);
+}
+
 struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t alu[0x200];
 	uint32_t alu_sched[0x10];
 	uint32_t sfu[0x80];
 	uint32_t sfu_sched[0x10];
+	uint32_t tex[0x40];
 };
 
 static struct gr3d_context *gr3d_context(void *ptr)
@@ -800,6 +828,12 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 			printf("GR3D: SFU[%03x]: %08x\n", gr3d->regs[0x603], value);
 			assert(gr3d->regs[0x603] < ARRAY_SIZE(gr3d->sfu));
 			gr3d->sfu[gr3d->regs[0x603]++] = value;
+			break;
+
+		case 0x701:
+			printf("GR3D: TEX[%03x]: %08x\n", gr3d->regs[0x700], value);
+			assert(gr3d->regs[0x700] < ARRAY_SIZE(gr3d->tex));
+			gr3d->tex[gr3d->regs[0x700]++] = value;
 			break;
 
 		default:
@@ -839,6 +873,9 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 			printf("SFU:%03d", i + 1);
 			fragment_sfu_disasm(gr3d_ctx.sfu + sfu_offset + (j * 2));
 		}
+
+		printf("TEX:%03d", i + 1);
+		fragment_tex_disasm(gr3d_ctx.tex + i);
 
 		for (j = 0; j < alu_count; ++j) {
 			int embedded_constant_used = 0;
