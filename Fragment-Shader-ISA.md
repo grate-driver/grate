@@ -94,3 +94,13 @@ Operands:
 |     10 |  PRESIN  | Sine, first step             | rD = sin(rA)        |
 |     11 |  PRECOS  | Cosine, first step           | rD = cos(rA)        |
 
+### TEX instruction word encoding
+
+|   Bits | Meaning       |
+|-------:|:--------------|
+| 12..31 | ???           |
+|     12 | enable bias   |
+|     11 | ???           |
+|     10 | enable        |
+|   4..9 | ???           |
+|   0..3 | sampler index |
