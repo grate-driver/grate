@@ -71,6 +71,8 @@ Operands:
 
 ### VAR/SFU instruction word encoding
 
+Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
+
 |   Bits | Meaning        |
 |-------:|:---------------|
 | 58..63 | ???            |
