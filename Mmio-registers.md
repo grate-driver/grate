@@ -10,5 +10,5 @@ A very approximate MMIO-register overview:
 | 0x6XX-0x6FF | special functions unit |
 | 0x7XX-0x7FF | texture mapping        |
 | 0x8XX-0x8FF | arithmetic-logic unit  |
-| 0x9XX-0x9FF | depth mask             |
+| 0x9XX-0x9FF | import/export unit     |
 | 0xEXX-0xEFF | framebuffer            |
