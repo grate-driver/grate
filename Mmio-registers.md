@@ -2,7 +2,7 @@ A very approximate MMIO-register overview:
 
 |          Range | Use                    |
 |---------------:|:-----------------------|
-| 0x000 .. 0x014 | synchronization        |
+| 0x000 .. 0x015 | synchronization        |
 | 0x100 .. 0x125 | geometry submission    |
 | 0x200 .. 0x209 | vertex shader          |
 | 0x300 .. 0x364 | primitive processing   |
