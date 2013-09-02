@@ -777,6 +777,34 @@ static void fragment_tex_disasm(uint32_t *words)
 	instruction_free(inst);
 }
 
+static void fragment_exp_disasm(uint32_t *words)
+{
+	int op;
+	struct instruction *inst;
+	char buf[512] = { 0 }, *str = buf;
+
+	inst = instruction_create_from_words(words, 1);
+
+	op = instruction_get_bit(inst, 17);
+	if (op) {
+		pr("export ");
+		if (instruction_get_bit(inst, 4))
+			pr("tex");
+		else
+			pr("alu");
+	} else
+		pr("nop");
+
+	printf("             ");
+	instruction_print_raw(inst);
+	printf("         ");
+	instruction_print_unknown(inst);
+
+	printf("    %s\n", buf);
+
+	instruction_free(inst);
+}
+
 struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t alu[0x200];
@@ -784,6 +812,7 @@ struct gr3d_context {
 	uint32_t sfu[0x80];
 	uint32_t sfu_sched[0x10];
 	uint32_t tex[0x40];
+	uint32_t exp[0x40];
 };
 
 static struct gr3d_context *gr3d_context(void *ptr)
@@ -828,6 +857,12 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 			gr3d->tex[gr3d->regs[0x700]++] = value;
 			break;
 
+		case 0x901:
+			printf("GR3D: EXP[%03x]: %08x\n", gr3d->regs[0x900], value);
+			assert(gr3d->regs[0x900] < ARRAY_SIZE(gr3d->exp));
+			gr3d->exp[gr3d->regs[0x900]++] = value;
+			break;
+
 		default:
 			printf("GR3D: offset %03x => %08x\n", offset, value);
 			assert(0 <= offset && offset < ARRAY_SIZE(gr3d->regs));
@@ -854,6 +889,8 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	host1x_stream_interpret(&stream);
 
 	assert(gr3d_ctx.regs[0x600] == gr3d_ctx.regs[0x800]);
+	assert(gr3d_ctx.regs[0x700] == gr3d_ctx.regs[0x800]);
+	assert(gr3d_ctx.regs[0x900] == gr3d_ctx.regs[0x800]);
 
 	for (i = 0; i < gr3d_ctx.regs[0x800]; i++) {
 		int sfu_sched = gr3d_ctx.sfu_sched[i];
@@ -877,8 +914,11 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 				                                              (alu_offset + j) * 8 +
 				                                              k * 2);
 			}
-			printf("\n");
 		}
+
+		printf("EXP:%03d", i + 1);
+		fragment_exp_disasm(gr3d_ctx.exp + i);
+		printf("\n");
 	}
 }
 
