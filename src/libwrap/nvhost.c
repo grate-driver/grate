@@ -560,9 +560,7 @@ static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
 
 static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, classid;
-	unsigned int i;
-	uint8_t mask;
+	unsigned int offset, classid, mask, i;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	classid = (stream->words[stream->position] >> 6) & 0x3ff;
@@ -583,7 +581,7 @@ static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
 
 static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, count, i;
+	unsigned int offset, count, i;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	count = stream->words[stream->position] & 0xffff;
@@ -598,7 +596,7 @@ static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 
 static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, count, i;
+	unsigned int offset, count, i;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	count = stream->words[stream->position] & 0xffff;
@@ -614,7 +612,7 @@ static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
 
 static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, mask, i;
+	unsigned int offset, mask, i;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	mask = stream->words[stream->position] & 0xffff;
@@ -631,7 +629,7 @@ static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
 
 static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, value;
+	unsigned int offset, value;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	value = stream->words[stream->position] & 0xffff;
@@ -654,7 +652,7 @@ static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
 
 static void nvhost_opcode_gather_dump(struct nvhost_stream *stream)
 {
-	uint16_t offset, count;
+	unsigned int offset, count;
 	const char *insert;
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
