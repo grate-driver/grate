@@ -550,7 +550,7 @@ static int gpr_written[256];
 
 static int fragment_alu_disasm(uint32_t *words)
 {
-	int i, op, reg, subreg, sat, scale, accum;
+	int i, op, dst_reg, subreg, sat, scale, accum;
 	int embedded_constant_used = 0;
 	struct instruction *inst;
 	char buf[512], *str = buf;
@@ -596,12 +596,10 @@ static int fragment_alu_disasm(uint32_t *words)
 		pr("%s", cond_str[cond]);
 	}
 
-	reg = instruction_extract(inst, 47, 51);
-	pr(" r%d%s%s%s", reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
+	dst_reg = instruction_extract(inst, 47, 51);
+	pr(" r%d%s%s%s", dst_reg, dscale_str[scale], sat ? "_sat" : "", accum ? "+" : "");
 	subreg = instruction_extract(inst, 45, 46);
 	pr(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
-
-	gpr_written[reg] = 1;
 
 	for (i = 0; i < 3; ++i) {
 		int type, reg, x10, abs, neg;
@@ -634,10 +632,15 @@ static int fragment_alu_disasm(uint32_t *words)
 				else
 					pr("#1");
 			} else {
+				int subreg = x10 ? reg & 1 : 3;
 				assert(x10 || !(reg & 1));
-				if (!gpr_written[reg >> 1])
+				if ((gpr_written[reg >> 1] & subreg) != subreg) {
 					fprintf(stderr, "\nr%d not written!\n", reg >> 1);
-				pr("r%d.%s", reg >> 1, x10 ? (reg & 1 ? "h" : "l") : "hl");
+					assert(0);
+				}
+				pr("r%d.%s%s", reg >> 1,
+				    subreg >> 1 ? "h" : "",
+				    subreg & 1 ? "l" : "");
 			}
 			break;
 
@@ -669,6 +672,8 @@ static int fragment_alu_disasm(uint32_t *words)
 		}
 		pr("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
+
+	gpr_written[dst_reg] |= subreg;
 
 out:
 
