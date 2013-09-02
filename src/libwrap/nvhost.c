@@ -585,13 +585,12 @@ static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	count = stream->words[stream->position] & 0xffff;
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_INCR: offset:%x count:%x\n", offset, count);
 
 	for (i = 0; i < count; i++)
-		printf("        %08x\n", stream->words[++stream->position]);
-
-	stream->position++;
+		printf("        %08x\n", stream->words[stream->position++]);
 }
 
 static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
@@ -600,14 +599,13 @@ static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	count = stream->words[stream->position] & 0xffff;
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_NONINCR: offset:%x count:%x\n", offset,
 	       count);
 
 	for (i = 0; i < count; i++)
-		printf("        %08x\n", stream->words[++stream->position]);
-
-	stream->position++;
+		printf("        %08x\n", stream->words[stream->position++]);
 }
 
 static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
@@ -616,15 +614,14 @@ static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	mask = stream->words[stream->position] & 0xffff;
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_MASK: offset:%x mask:%x\n", offset, mask);
 
 	for (i = 0; i < 16; i++)
 		if (mask & BIT(i))
 			printf("        %08x: %08x\n", offset + i,
-			       stream->words[++stream->position]);
-
-	stream->position++;
+			       stream->words[stream->position++]);
 }
 
 static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
@@ -633,10 +630,9 @@ static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
 
 	offset = (stream->words[stream->position] >> 16) & 0xfff;
 	value = stream->words[stream->position] & 0xffff;
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_IMM: offset:%x value:%x\n", offset, value);
-
-	stream->position++;
 }
 
 static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
@@ -644,10 +640,9 @@ static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
 	uint32_t offset;
 
 	offset = (stream->words[stream->position] & 0x0fffffff) << 4;
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_RESTART: offset:%x\n", offset);
-
-	stream->position++;
 }
 
 static void nvhost_opcode_gather_dump(struct nvhost_stream *stream)
@@ -666,10 +661,10 @@ static void nvhost_opcode_gather_dump(struct nvhost_stream *stream)
 	} else {
 		insert = "";
 	}
+	stream->position++;
 
 	printf("      NVHOST_OPCODE_GATHER: offset:%x %scount:%x base:%x\n",
 	       offset, insert, count, stream->words[++stream->position]);
-	stream->position++;
 }
 
 static void nvhost_opcode_extend_dump(struct nvhost_stream *stream)
