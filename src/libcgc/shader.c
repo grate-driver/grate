@@ -632,7 +632,7 @@ static int fragment_alu_disasm(uint32_t *words)
 				else
 					pr("#1");
 			} else {
-				int subreg = x10 ? reg & 1 : 3;
+				int subreg = x10 ? (reg & 1 ? 2 : 1) : 3;
 				assert(x10 || !(reg & 1));
 				if ((gpr_written[reg >> 1] & subreg) != subreg) {
 					fprintf(stderr, "\nr%d not written!\n", reg >> 1);
