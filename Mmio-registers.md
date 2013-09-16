@@ -11,6 +11,6 @@ A very approximate MMIO-register overview:
 | 0x600 .. 0x60E | special functions unit |
 | 0x700 .. 0x741 | texture mapping        |
 | 0x800 .. 0x83F | arithmetic-logic unit  |
-| 0x900 .. 0x903 | import/export unit     |
+| 0x900 .. 0x903 | shader export unit     |
 | 0xA02 .. 0xA0B | ???                    |
 | 0xE00 .. 0xE2A | framebuffer            |
