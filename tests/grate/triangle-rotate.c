@@ -29,7 +29,7 @@
 #include "grate.h"
 #include "matrix.h"
 
-static const GLchar *vertex_shader[] = {
+static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
 	"uniform mat4 modelview;\n",
 	"attribute vec4 color;\n",
@@ -42,7 +42,7 @@ static const GLchar *vertex_shader[] = {
 	"}"
 };
 
-static const GLchar *fragment_shader[] = {
+static const char *fragment_shader[] = {
 	"precision mediump float;\n",
 	"varying vec4 vcolor;\n",
 	"\n",
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	struct grate_shader *vs, *fs;
 	struct grate_options options;
 	unsigned long offset = 0;
-	GLfloat angle = 0.0f;
+	float angle = 0.0f;
 	struct grate *grate;
 	struct grate_bo *bo;
 	struct mat4 matrix;

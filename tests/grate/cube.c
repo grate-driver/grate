@@ -29,7 +29,7 @@
 #include "grate.h"
 #include "matrix.h"
 
-static const GLchar *vertex_shader[] = {
+static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
 	"attribute vec4 color;\n",
 	"varying vec4 vcolor;\n",
@@ -42,7 +42,7 @@ static const GLchar *vertex_shader[] = {
 	"}"
 };
 
-static const GLchar *fragment_shader[] = {
+static const char *fragment_shader[] = {
 	"precision mediump float;\n",
 	"varying vec4 vcolor;\n",
 	"\n",
@@ -141,7 +141,7 @@ static const unsigned short indices[] = {
 
 int main(int argc, char *argv[])
 {
-	GLfloat x = 0.0f, y = 0.0f, z = 0.0f;
+	float x = 0.0f, y = 0.0f, z = 0.0f;
 	struct grate_program *program;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	unsigned long offset = 0;
 	struct grate *grate;
 	struct grate_bo *bo;
-	GLfloat aspect;
+	float aspect;
 	void *buffer;
 	int location;
 
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	aspect = options.width / (GLfloat)options.height;
+	aspect = options.width / (float)options.height;
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
