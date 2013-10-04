@@ -65,7 +65,7 @@ void mat4_identity(struct mat4 *m)
 	m->xx = m->yy = m->zz = m->ww = 1.0f;
 }
 
-void mat4_translate(struct mat4 *m, GLfloat x, GLfloat y, GLfloat z)
+void mat4_translate(struct mat4 *m, float x, float y, float z)
 {
 	mat4_identity(m);
 
@@ -74,10 +74,10 @@ void mat4_translate(struct mat4 *m, GLfloat x, GLfloat y, GLfloat z)
 	m->zw = z;
 }
 
-void mat4_rotate_x(struct mat4 *m, GLfloat angle)
+void mat4_rotate_x(struct mat4 *m, float angle)
 {
-	GLfloat c = cos(angle * M_PI / 180.0);
-	GLfloat s = sin(angle * M_PI / 180.0);
+	float c = cos(angle * M_PI / 180.0);
+	float s = sin(angle * M_PI / 180.0);
 
 	mat4_identity(m);
 
@@ -87,10 +87,10 @@ void mat4_rotate_x(struct mat4 *m, GLfloat angle)
 	m->zz =  c;
 }
 
-void mat4_rotate_y(struct mat4 *m, GLfloat angle)
+void mat4_rotate_y(struct mat4 *m, float angle)
 {
-	GLfloat c = cos(angle * M_PI / 180.0);
-	GLfloat s = sin(angle * M_PI / 180.0);
+	float c = cos(angle * M_PI / 180.0);
+	float s = sin(angle * M_PI / 180.0);
 
 	mat4_identity(m);
 
@@ -100,10 +100,10 @@ void mat4_rotate_y(struct mat4 *m, GLfloat angle)
 	m->zz =  c;
 }
 
-void mat4_rotate_z(struct mat4 *m, GLfloat angle)
+void mat4_rotate_z(struct mat4 *m, float angle)
 {
-	GLfloat c = cos(angle * M_PI / 180.0);
-	GLfloat s = sin(angle * M_PI / 180.0);
+	float c = cos(angle * M_PI / 180.0);
+	float s = sin(angle * M_PI / 180.0);
 
 	mat4_identity(m);
 
@@ -113,10 +113,10 @@ void mat4_rotate_z(struct mat4 *m, GLfloat angle)
 	m->yy =  c;
 }
 
-void mat4_perspective(struct mat4 *m, GLfloat fov, GLfloat aspect,
-		      GLfloat near, GLfloat far)
+void mat4_perspective(struct mat4 *m, float fov, float aspect,
+		      float near, float far)
 {
-	GLfloat radians = fov / 2 * M_PI / 180;
+	float radians = fov / 2 * M_PI / 180;
 	double sine, cosine, cotangent;
 	double depth = far - near;
 
