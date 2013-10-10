@@ -505,11 +505,12 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			}
 
-			reg = instruction_extract(inst, 7, 12);
+			reg = instruction_extract(inst, 7, 11);
+			write_varying = instruction_get_bit(inst, 12);
 
-			if (write_varying && reg == 0x3f)
+			if (write_varying && reg == 0x1f)
 				printf(" o%d", varying);
-			else if (write_pred && reg == 0x3f)
+			else if (write_pred && reg == 0x1f)
 				printf(" p0");
 			else
 				printf(" r%d", reg);
