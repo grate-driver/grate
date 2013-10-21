@@ -690,7 +690,7 @@ out:
 	return embedded_constant_used;
 }
 
-static void fragment_sfu_disasm(uint32_t *words)
+static void fragment_mfu_disasm(uint32_t *words)
 {
 	int op, reg, var;
 	struct instruction *inst;
@@ -815,8 +815,8 @@ struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t alu[0x200];
 	uint32_t alu_sched[0x10];
-	uint32_t sfu[0x80];
-	uint32_t sfu_sched[0x10];
+	uint32_t mfu[0x80];
+	uint32_t mfu_sched[0x10];
 	uint32_t tex[0x40];
 	uint32_t exp[0x40];
 };
@@ -846,15 +846,15 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 			break;
 
 		case 0x601:
-			printf("GR3D: SFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
-			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->sfu_sched));
-			gr3d->sfu_sched[gr3d->regs[0x600]++] = value;
+			printf("GR3D: MFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
+			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->mfu_sched));
+			gr3d->mfu_sched[gr3d->regs[0x600]++] = value;
 			break;
 
 		case 0x604:
-			printf("GR3D: SFU[%03x]: %08x\n", gr3d->regs[0x603], value);
-			assert(gr3d->regs[0x603] < ARRAY_SIZE(gr3d->sfu));
-			gr3d->sfu[gr3d->regs[0x603]++] = value;
+			printf("GR3D: MFU[%03x]: %08x\n", gr3d->regs[0x603], value);
+			assert(gr3d->regs[0x603] < ARRAY_SIZE(gr3d->mfu));
+			gr3d->mfu[gr3d->regs[0x603]++] = value;
 			break;
 
 		case 0x701:
@@ -899,14 +899,14 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	assert(gr3d_ctx.regs[0x900] == gr3d_ctx.regs[0x800]);
 
 	for (i = 0; i < gr3d_ctx.regs[0x800]; i++) {
-		int sfu_sched = gr3d_ctx.sfu_sched[i];
+		int mfu_sched = gr3d_ctx.mfu_sched[i];
 		int alu_sched = gr3d_ctx.alu_sched[i];
-		int sfu_offset = sfu_sched >> 2, sfu_count = sfu_sched & 3;
+		int mfu_offset = mfu_sched >> 2, mfu_count = mfu_sched & 3;
 		int alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
 
-		for (j = 0; j < sfu_count; ++j) {
-			printf("SFU:%03d", i + 1);
-			fragment_sfu_disasm(gr3d_ctx.sfu + sfu_offset + (j * 2));
+		for (j = 0; j < mfu_count; ++j) {
+			printf("MFU:%03d", i + 1);
+			fragment_mfu_disasm(gr3d_ctx.mfu + mfu_offset + (j * 2));
 		}
 
 		printf("TEX:%03d", i + 1);
