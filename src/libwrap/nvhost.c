@@ -558,6 +558,11 @@ static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
 	return (stream->words[stream->position] >> 28) & 0xf;
 }
 
+static void nvhost_dump_register_write(int offset, int value)
+{
+	printf("        %03x <= %08x\n", offset, value);
+}
+
 static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
 {
 	unsigned int offset, classid, mask, i;
@@ -572,7 +577,7 @@ static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
 	for (i = 0; i < 6; i++) {
 		if (mask & BIT(i)) {
 			uint32_t value = stream->words[++stream->position];
-			printf("        %08x: %08x\n", offset + i, value);
+			nvhost_dump_register_write(offset + i, value);
 		}
 	}
 
@@ -591,6 +596,7 @@ static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 
 	for (i = 0; i < count; i++)
 		printf("        %08x\n", stream->words[stream->position++]);
+		nvhost_dump_register_write(offset + i, stream->words[stream->position++]);
 }
 
 static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
@@ -605,7 +611,7 @@ static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
 	       count);
 
 	for (i = 0; i < count; i++)
-		printf("        %08x\n", stream->words[stream->position++]);
+		nvhost_dump_register_write(offset, stream->words[stream->position++]);
 }
 
 static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
@@ -620,7 +626,7 @@ static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
 
 	for (i = 0; i < 16; i++)
 		if (mask & BIT(i))
-			printf("        %08x: %08x\n", offset + i,
+			nvhost_dump_register_write(offset + i,
 			       stream->words[stream->position++]);
 }
 
@@ -633,6 +639,7 @@ static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
 	stream->position++;
 
 	printf("      NVHOST_OPCODE_IMM: offset:%x value:%x\n", offset, value);
+	nvhost_dump_register_write(offset, value);
 }
 
 static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
