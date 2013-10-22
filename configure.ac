@@ -33,6 +33,10 @@ fi
 AC_CHECK_LIB([cgdrv], [CgDrv_Create], [enable_cgc=yes], [enable_cgc=no])
 AM_CONDITIONAL([ENABLE_CGC], [test "x$enable_cgc" = "xyes"])
 
+AC_CHECK_HEADER([envytools/rnn.h],
+	[AC_CHECK_LIB([rnn], [rnn_init], [enable_rnn=yes], [enable_rnn=no], [-lenvyutil -lxml2])])
+AM_CONDITIONAL([ENABLE_RNN], [test "x$enable_rnn" = "xyes"])
+
 AC_OUTPUT([
 	Makefile
 	include/Makefile

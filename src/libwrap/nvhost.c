@@ -25,6 +25,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef ENABLE_RNN
+#include <envytools/rnn.h>
+#include <envytools/rnndec.h>
+#endif
+
 #include "nvhost.h"
 
 struct nvmap_file {
@@ -558,10 +563,52 @@ static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
 	return (stream->words[stream->position] >> 28) & 0xf;
 }
 
+#ifdef ENABLE_RNN
+
+static void nvhost_dump_register_write(int offset, int value)
+{
+	struct rnndecaddrinfo *info;
+	static struct rnndeccontext *vc;
+	static struct rnndb *db;
+	static struct rnndomain *tgr3d_dom;
+	static int rnn_inited;
+	if (!rnn_inited) {
+		rnn_init();
+
+		db = rnn_newdb();
+		rnn_parsefile(db, "tgr_3d.xml");
+		rnn_prepdb(db);
+		vc = rnndec_newcontext(db);
+		vc->colors = &envy_def_colors;
+
+		tgr3d_dom = rnn_finddomain(db, "TGR3D");
+		if (!tgr3d_dom)
+			fprintf(stderr, "Could not find domain\n");
+
+		rnn_inited = 1;
+	}
+
+	if (tgr3d_dom) {
+		info = rnndec_decodeaddr(vc, tgr3d_dom, offset, 0);
+		if (info && info->typeinfo)
+			printf("        %s <= %s\n", info->name,
+			    rnndec_decodeval(vc, info->typeinfo, value, info->width));
+		else if (info)
+			printf("        %s <= 0x%x\n", info->name, value);
+		else
+			printf("        %03x <= %08x\n", offset, value);
+	} else
+		printf("        %03x <= %08x\n", offset, value);
+}
+
+#else
+
 static void nvhost_dump_register_write(int offset, int value)
 {
 	printf("        %03x <= %08x\n", offset, value);
 }
+
+#endif
 
 static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
 {
