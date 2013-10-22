@@ -13,6 +13,7 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AC_PROG_INSTALL
 
+PKG_CHECK_MODULES(GLES1, [egl glesv1_cm])
 PKG_CHECK_MODULES(GLES2, [egl glesv2])
 PKG_CHECK_MODULES(X11, x11)
 PKG_CHECK_MODULES(PNG, libpng)
@@ -42,6 +43,7 @@ AC_OUTPUT([
 	src/libwrap/Makefile
 	tests/Makefile
 	tests/drm/Makefile
+	tests/gles1/Makefile
 	tests/gles2/Makefile
 	tests/grate/Makefile
 	tests/host1x/Makefile
