@@ -6,7 +6,7 @@ libcommon_la_SOURCES = \
 
 libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate
+AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate $(GLES2_CFLAGS)
 AM_CFLAGS = $(GLES2_CFLAGS)
 LDADD = libcommon.la
 
