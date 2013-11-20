@@ -35,7 +35,7 @@ enum cgc_shader_type {
 };
 
 struct cgc_header_symbol {
-	uint32_t unknown00;
+	uint32_t datatype;
 	uint32_t unknown01;
 	/*
 	 * type? seen:

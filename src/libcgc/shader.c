@@ -168,7 +168,7 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 			name = shader->binary + sym->name_offset;
 
 		for (j = 0; j < ARRAY_SIZE(data_types); j++) {
-			uint8_t type = sym->unknown00 & 0xff;
+			uint8_t type = sym->datatype & 0xff;
 
 			if (type == data_types[i].type) {
 				glsl = data_types[i].glsl;
@@ -1099,11 +1099,12 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 		struct cgc_header_symbol *symbol = &header->symbols[i];
 		const char *name, *data_type;
 
-		data_type = data_type_name(symbol->unknown00 & 0xff);
+		data_type = data_type_name(symbol->datatype & 0xff);
 		name = shader->binary + symbol->name_offset;
 
 		fprintf(fp, "    %u: %s %s\n", i, data_type, name);
-		fprintf(fp, "      unknown00: 0x%08x\n", symbol->unknown00);
+		fprintf(fp, "      datatype: 0x%08x (%s)\n", symbol->datatype,
+		        data_type);
 		fprintf(fp, "      unknown01: 0x%08x\n", symbol->unknown01);
 		fprintf(fp, "      type: 0x%08x (%s)\n", symbol->type,
 			variable_type_name(symbol->type));
