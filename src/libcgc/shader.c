@@ -176,7 +176,7 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 			}
 		}
 
-		switch (sym->unknown02) {
+		switch (sym->type) {
 		case 0x1005:
 			/*
 			 * unknown01:
@@ -187,11 +187,11 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 
 			if (sym->unknown01 & (1 << 10)) {
 				/* varying */
-				symbol->location = sym->unknown03;
+				symbol->location = sym->location;
 				symbol->input = false;
 			} else if (sym->unknown01 & (1 << 7)) {
 				/* builtin output */
-				symbol->location = sym->unknown03;
+				symbol->location = sym->location;
 				symbol->input = false;
 			} else {
 				/* vertex attribute */
@@ -203,7 +203,7 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 			break;
 
 		case 0x1006:
-			symbol->location = sym->unknown03;
+			symbol->location = sym->location;
 			symbol->kind = GLSL_KIND_UNIFORM;
 			break;
 
@@ -218,7 +218,7 @@ static int shader_parse_symbols(struct cgc_shader *shader)
 					name);
 			}
 
-			symbol->location = sym->unknown03;
+			symbol->location = sym->location;
 			symbol->kind = GLSL_KIND_CONSTANT;
 			break;
 
@@ -1105,9 +1105,9 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 		fprintf(fp, "    %u: %s %s\n", i, data_type, name);
 		fprintf(fp, "      unknown00: 0x%08x\n", symbol->unknown00);
 		fprintf(fp, "      unknown01: 0x%08x\n", symbol->unknown01);
-		fprintf(fp, "      unknown02: 0x%08x (%s)\n", symbol->unknown02,
-			variable_type_name(symbol->unknown02));
-		fprintf(fp, "      unknown03: 0x%08x\n", symbol->unknown03);
+		fprintf(fp, "      type: 0x%08x (%s)\n", symbol->type,
+			variable_type_name(symbol->type));
+		fprintf(fp, "      location: 0x%08x\n", symbol->location);
 		fprintf(fp, "      name_offset: 0x%08x\n", symbol->name_offset);
 		fprintf(fp, "      values_offset: 0x%08x\n", symbol->values_offset);
 

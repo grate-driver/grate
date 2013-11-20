@@ -43,8 +43,8 @@ struct cgc_header_symbol {
 	 * - 0x1006 for uniforms
 	 * - 0x1007 for constants
 	 */
-	uint32_t unknown02;
-	uint32_t unknown03;
+	uint32_t type;
+	uint32_t location;
 	uint32_t name_offset;
 	uint32_t values_offset;
 	uint32_t unknown06;
