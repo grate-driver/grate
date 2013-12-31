@@ -26,7 +26,7 @@ The different units seems to be synchronized by some sort of separate timing str
 |     56 | saturate result          |
 | 54..55 | condition code           |
 |     53 | write condition register |
-|     52 | ???                      |
+|     52 | write uniform (?)        |
 | 47..51 | destination register     |
 |     46 | write high subregister   |
 |     45 | write low subregister    |
