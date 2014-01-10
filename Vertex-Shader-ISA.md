@@ -1,6 +1,7 @@
 ### Overview
 
-The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set (minus the flow control bits).
+The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set (minus the flow control bits). The instruction set seems to be a strict subset of
+the NV30 vertex-shader, with control flow related features stripped.
 
 Each instruction contains up to two operations; one 4-component vector ALU (arithmetic logic unit) operation, and one 1-component SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
 
