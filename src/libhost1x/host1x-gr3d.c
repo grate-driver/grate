@@ -121,18 +121,16 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* reset attribute pointers and modes */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x0020));
-
+	/* reset attribute modes */
 	for (i = 0; i < num_attributes; i++) {
-		host1x_pushbuf_push(pb, 0x00000000);
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x101 + i * 2, 0x001));
 		host1x_pushbuf_push(pb, 0x00000000);
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x0003));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x120, 0x0005));
 	host1x_pushbuf_push(pb, 0x00000001);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x124, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000007);
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -283,12 +281,6 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x702, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* reset texture pointers */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x710, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
 	/* reset texture parameters */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x720, 0x0020));
 
@@ -357,10 +349,10 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	for (i = 0; i < 64; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0003));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x907, 0x0003));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -405,12 +397,6 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb14, 0x0001));
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* XXX render target pointers? */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe00, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
 	/* XXX render target parameters? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x0010));
 
@@ -421,20 +407,14 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe25, 0x0007));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe25, 5));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe2c, 1));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe30, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe40, 0x0002));
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -830,6 +810,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 		return -ENOMEM;
 	}
 
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x404, 2));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x000fffff);
@@ -1053,8 +1034,6 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	/* relocate color render target */
 	host1x_pushbuf_relocate(pb, fb->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe31, 0x01));
-	host1x_pushbuf_push(pb, 0x00000000);
 	/* vertex position attribute */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x01));
 	host1x_pushbuf_relocate(pb, gr3d->attributes, 0x30, 0);
