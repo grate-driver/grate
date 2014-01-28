@@ -355,7 +355,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	 * build command stream
 	 */
 
-	job = host1x_job_create(syncpt->id, 9);
+	job = host1x_job_create(syncpt->id, 1);
 	if (!job)
 		return;
 
@@ -380,11 +380,6 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 0x2));
 	host1x_pushbuf_push(pb, 0x00000002);
 	host1x_pushbuf_push(pb, 0x3f000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x1));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x1));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-
 	host1x_gr3d_viewport(pb, vp->x, vp->y, vp->width, vp->height);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
@@ -443,11 +438,6 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
 	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-
 	grate_shader_emit(pb, grate->program->vs);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
@@ -500,11 +490,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x02));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 
 	/* relocate color render target */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
@@ -541,10 +527,6 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, (count - 1) << 20);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x02));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x01));
-	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
