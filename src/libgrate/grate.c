@@ -81,21 +81,16 @@ void grate_bo_unmap(struct grate_bo *bo, void *ptr)
 {
 }
 
-static void grate_parse_geometry(struct grate_options *options,
-				 const char *geometry)
-{
-	printf("TODO: parse geometry: %s\n", geometry);
-}
-
 bool grate_parse_command_line(struct grate_options *options, int argc,
 			      char *argv[])
 {
 	static const struct option long_opts[] = {
 		{ "fullscreen", 0, NULL, 'f' },
-		{ "geometry", 1, NULL, 'g' },
+		{ "width", 1, NULL, 'w' },
+		{ "height", 1, NULL, 'h' },
 		{ "vsync", 0, NULL, 'v' },
 	};
-	static const char opts[] = "fg:v";
+	static const char opts[] = "fw:h:v";
 	int opt;
 
 	options->fullscreen = false;
@@ -111,8 +106,12 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->fullscreen = true;
 			break;
 
-		case 'g':
-			grate_parse_geometry(options, optarg);
+		case 'w':
+			options->width = atoi(optarg);
+			break;
+
+		case 'h':
+			options->height = atoi(optarg);
 			break;
 
 		case 'v':
