@@ -322,6 +322,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	unsigned int depth = 32, i;
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
+	int tiled = 1;
 	int err;
 
 	switch (type) {
@@ -401,7 +402,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		pitch = fb->width * 4;
 	}
 
-	host1x_pushbuf_push(pb, 0x04000000 | (pitch << 8) | format << 2 | 0x1);
+	host1x_pushbuf_push(pb, (tiled << 26) | (pitch << 8) | format << 2 | 0x1);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
 	host1x_pushbuf_push(pb, 0x00000002);
