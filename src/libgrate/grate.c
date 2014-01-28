@@ -366,6 +366,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		return;
 	}
 
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x404, 2));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x000fffff);
@@ -510,8 +511,6 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
 	host1x_pushbuf_relocate(pb, fb->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe31, 0x01));
-	host1x_pushbuf_push(pb, 0x00000000);
 
 	for (i = 0; i < GRATE_MAX_ATTRIBUTES; i++) {
 		unsigned int reg = 0x100 + (i << 1);
