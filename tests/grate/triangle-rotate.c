@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 	float angle = 0.0f;
 	struct grate *grate;
 	struct grate_bo *bo;
-	struct mat4 matrix;
 	void *buffer;
 	int location;
 
@@ -150,13 +149,16 @@ int main(int argc, char *argv[])
 	profile = grate_profile_start(grate);
 
 	while (true) {
+		struct mat4 rotation, scale, modelview;
 		grate_clear(grate);
 
-		mat4_rotate_z(&matrix, angle);
+		mat4_rotate_z(&rotation, angle);
+		mat4_scale(&scale, (float)options.height / options.width, 1, 1);
+		mat4_multiply(&modelview, &scale, &rotation);
 
 		location = grate_get_uniform_location(grate, "modelview");
 
-		grate_uniform(grate, location, 16, (float *)&matrix);
+		grate_uniform(grate, location, 16, (float *)&modelview);
 
 		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
 		grate_flush(grate);

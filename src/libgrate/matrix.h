@@ -37,6 +37,7 @@ void mat4_multiply(struct mat4 *result, const struct mat4 *a,
 void mat4_zero(struct mat4 *m);
 void mat4_identity(struct mat4 *m);
 void mat4_translate(struct mat4 *m, float x, float y, float z);
+void mat4_scale(struct mat4 *m, float x, float y, float z);
 void mat4_rotate_x(struct mat4 *m, float angle);
 void mat4_rotate_y(struct mat4 *m, float angle);
 void mat4_rotate_z(struct mat4 *m, float angle);

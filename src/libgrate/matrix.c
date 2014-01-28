@@ -74,6 +74,16 @@ void mat4_translate(struct mat4 *m, float x, float y, float z)
 	m->zw = z;
 }
 
+void mat4_scale(struct mat4 *m, float x, float y, float z)
+{
+	mat4_zero(m);
+
+	m->xx = x;
+	m->yy = y;
+	m->zz = z;
+	m->ww = 1.0f;
+}
+
 void mat4_rotate_x(struct mat4 *m, float angle)
 {
 	float c = cos(angle * M_PI / 180.0);
