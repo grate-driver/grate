@@ -642,7 +642,6 @@ static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 	printf("      NVHOST_OPCODE_INCR: offset:%x count:%x\n", offset, count);
 
 	for (i = 0; i < count; i++)
-		printf("        %08x\n", stream->words[stream->position++]);
 		nvhost_dump_register_write(offset + i, stream->words[stream->position++]);
 }
 
