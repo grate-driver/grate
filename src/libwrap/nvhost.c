@@ -565,7 +565,7 @@ static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
 
 #ifdef ENABLE_RNN
 
-static void nvhost_dump_register_write(int offset, int value)
+static void nvhost_dump_register_write(int offset, uint32_t value)
 {
 	struct rnndecaddrinfo *info;
 	static struct rnndeccontext *vc;
@@ -594,7 +594,7 @@ static void nvhost_dump_register_write(int offset, int value)
 			printf("        %s <= %s\n", info->name,
 			    rnndec_decodeval(vc, info->typeinfo, value, info->width));
 		else if (info)
-			printf("        %s <= 0x%x\n", info->name, value);
+			printf("        %s <= %08x\n", info->name, value);
 		else
 			printf("        %03x <= %08x\n", offset, value);
 	} else
@@ -642,7 +642,6 @@ static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
 	printf("      NVHOST_OPCODE_INCR: offset:%x count:%x\n", offset, count);
 
 	for (i = 0; i < count; i++)
-		printf("        %08x\n", stream->words[stream->position++]);
 		nvhost_dump_register_write(offset + i, stream->words[stream->position++]);
 }
 
