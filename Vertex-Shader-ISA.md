@@ -30,8 +30,7 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 |      106 | ??? (predicate-related?)    |
 |  98..105 | predicate swizzle           |
 |   96..97 | address register select     |
-|       95 | ???                         |
-|   91..94 | scalar opcode               |
+|   91..95 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
 |   76..83 | constant register fetch     |
@@ -91,13 +90,14 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 
 |  Value | Mnemonic | Meaning             |
 |-------:|:---------|:--------------------|
-|      0 | COS      | rD = cos(rC)        |
+|      0 | NOP      |                     |
 |      1 | MOV      | rD = rC             |
 |      2 | RCP      | rD = 1.0 / rC       |
 |      4 | RSQ      | rD = 1.0 / sqrt(rC) |
 |     13 | LG2      | rD = log2(rC)       |
 |     14 | EX2      | rD = exp2(rC)       |
 |     15 | SIN      | rD = sin(rC)        |
+|     16 | COS      | rD = cos(rC)        |
 
 ### swizzle
 
