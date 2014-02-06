@@ -58,30 +58,34 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 
 ### vector opcodes
 
-|  Value | Mnemonic | Meaning                       |
-|-------:|:---------|:------------------------------|
-|      0 | ???      | ???                           |
-|      1 | MOV      | rD = rA                       |
-|      2 | MUL      | rD = rA * rB                  |
-|      3 | ADD      | rD = rA + rC                  |
-|      4 | MAD      | rD = rA * rB + rC             |
-|      5 | DP3      | rD = dot(rA.xyz, rB.xyz)      |
-|      6 | ???      | ???                           |
-|      7 | DP4      | rD = dot(rA, rB)              |
-|      8 | ???      | ???                           |
-|      9 | MIN      | rD = min(rA, rB)              |
-|     10 | MAX      | rD = max(rA, rB)              |
-|     11 | SLT      | rD = lessThan(rA, rB)         |
-|     12 | SGE      | rD = greaterThanEqual(rA, rB) |
-|     13 | ARL      | rD = floor(rA)                |
-|     14 | FRC      | rD = fract(rA)                |
-|     15 | FLR      | rD = floor(rA)                |
-|     16 | SEQ      | rD = equal(rA, rB)            |
-|     17 | ???      | ???                           |
-|     18 | SGT      | rD = greaterThan(rA, rB)      |
-|     19 | SLE      | rD = lessThanEqual(rA, rB)    |
-|     20 | SNE      | rD = notEqual(rA, rB)         |
-| 21..31 | ???      | ???                           |
+|  Value | Mnemonic | Meaning                                 |
+|-------:|:---------|:----------------------------------------|
+|      0 | NOP ?    |                                         |
+|      1 | MOV      | rD = rA                                 |
+|      2 | MUL      | rD = rA * rB                            |
+|      3 | ADD      | rD = rA + rC                            |
+|      4 | MAD      | rD = rA * rB + rC                       |
+|      5 | DP3      | rD = dot(rA.xyz, rB.xyz)                |
+|      6 | DPH ?    | rD = dot(vec4(rA.xyz, 1.0), rB)         |
+|      7 | DP4      | rD = dot(rA, rB)                        |
+|      8 | DST ?    | rD = vec4(1.0, rA.y * rB.y, rA.z, rB.w) |
+|      9 | MIN      | rD = min(rA, rB)                        |
+|     10 | MAX      | rD = max(rA, rB)                        |
+|     11 | SLT      | rD = lessThan(rA, rB)                   |
+|     12 | SGE      | rD = greaterThanEqual(rA, rB)           |
+|     13 | ARL      | rD = floor(rA)                          |
+|     14 | FRC      | rD = fract(rA)                          |
+|     15 | FLR      | rD = floor(rA)                          |
+|     16 | SEQ      | rD = equal(rA, rB)                      |
+|     17 | SFL ?    | ???                                     |
+|     18 | SGT      | rD = greaterThan(rA, rB)                |
+|     19 | SLE      | rD = lessThanEqual(rA, rB)              |
+|     20 | SNE      | rD = notEqual(rA, rB)                   |
+|     21 | STR ?    | ???                                     |
+|     22 | SSG ?    | ???                                     |
+|     23 | ARR ?    | ???                                     |
+|     24 | ARA ?    | ???                                     |
+| 25..31 | ???      | ???                                     |
 
 ### scalar opcodes
 
