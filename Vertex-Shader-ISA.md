@@ -65,7 +65,7 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 |      2 | MUL      | rD = rA * rB                  |
 |      3 | ADD      | rD = rA + rC                  |
 |      4 | MAD      | rD = rA * rB + rC             |
-|      5 | DP3      | rD = dot((rA).xyz, (rB).xyz)  |
+|      5 | DP3      | rD = dot(rA.xyz, rB.xyz)      |
 |      6 | ???      | ???                           |
 |      7 | DP4      | rD = dot(rA, rB)              |
 |      8 | ???      | ???                           |
