@@ -88,16 +88,23 @@ There's no branching what-so-ever in the instruction set. Instead, predicated op
 
 ### scalar opcodes
 
-|  Value | Mnemonic | Meaning             |
-|-------:|:---------|:--------------------|
-|      0 | NOP      |                     |
-|      1 | MOV      | rD = rC             |
-|      2 | RCP      | rD = 1.0 / rC       |
-|      4 | RSQ      | rD = 1.0 / sqrt(rC) |
-|     13 | LG2      | rD = log2(rC)       |
-|     14 | EX2      | rD = exp2(rC)       |
-|     15 | SIN      | rD = sin(rC)        |
-|     16 | COS      | rD = cos(rC)        |
+|  Value | Mnemonic | Meaning                                                               |
+|-------:|:---------|:----------------------------------------------------------------------|
+|      0 | NOP      |                                                                       |
+|      1 | MOV      | rD = rC                                                               |
+|      2 | RCP      | rD = 1.0 / rC                                                         |
+|      3 | RCC ?    | rD = clamp(1.0 / abs(rC), pow(2.0, -64.0), pow(2.0, 64.0)) * sign(rC) |
+|      4 | RSQ      | rD = 1.0 / sqrt(rC)                                                   |
+|      5 | EXP ?    |                                                                       |
+|      6 | LOG ?    |                                                                       |
+|      7 | LIT ?    |                                                                       |
+|      9 | BRA ?    |                                                                       |
+|     11 | CAL ?    |                                                                       |
+|     12 | RET ?    |                                                                       |
+|     13 | LG2      | rD = log2(rC)                                                         |
+|     14 | EX2      | rD = exp2(rC)                                                         |
+|     15 | SIN      | rD = sin(rC)                                                          |
+|     16 | COS      | rD = cos(rC)                                                          |
 
 ### swizzle
 
