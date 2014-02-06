@@ -3,17 +3,17 @@
 The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]]. It's kind of like a [VLIW](http://en.wikipedia.org/wiki/Very_long_instruction_word)-machine, except the different instructions aren't actually encoded together.
 
 The fragment shader is separated into three different instruction streams.
-* VAR/SFU - varying interpolate and special function unit
+* MFU - multi-function unit, varying interpolate and special functions
 * TEX - texture lookups
 * ALU - arithmetic logic unit
 
 The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth instruction can be traded for embedded constants). Each ALU instruction package seems to run pipelined, and each instruction in a package can use partial results from the previous instruction.
 
-The SFU instructions are scalar, while VAR instructions appears to be 4 component vector.
+The MFU unit can interpolate 4 component vectors per instruction and/or evaluate scalar special functions
 
 The TEX instructions take the texture coordinate from the VAR unit in the same cycles.
 
-The different units seems to be synchronized by some sort of separate timing streams.
+The different units seems to be synchronized by separate timing streams.
 
 ### ALU instruction word encoding
 
@@ -69,7 +69,7 @@ Operands:
 |     1 | negate         |
 |     0 | scale by two   |
 
-### VAR/SFU instruction word encoding
+### MFU instruction word encoding
 
 Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 
