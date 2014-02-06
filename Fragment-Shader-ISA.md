@@ -98,11 +98,12 @@ Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 
 ### TEX instruction word encoding
 
-|   Bits | Meaning       |
-|-------:|:--------------|
-| 12..31 | ???           |
-|     12 | enable bias   |
-|     11 | ???           |
-|     10 | enable        |
-|   4..9 | ???           |
-|   0..3 | sampler index |
+|   Bits | Meaning           |
+|-------:|:------------------|
+| 12..31 | ???               |
+|     12 | enable bias       |
+|     11 | ???               |
+|     10 | enable            |
+|   6..9 | ???               |
+|   4..5 | texcoord from var |
+|   0..3 | sampler index     |
