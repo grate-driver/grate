@@ -474,10 +474,10 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				       swizzle[psx], swizzle[psy], swizzle[psz], swizzle[psw]);
 			}
 
-			op = instruction_extract(inst, 91, 94);
+			op = instruction_extract(inst, 91, 95);
 			switch (op) {
 			case 0x0:
-				printf("cos");
+				printf("nop");
 				break;
 			case 0x1:
 				printf("mov");
@@ -496,6 +496,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 				break;
 			case 0xf:
 				printf("sin");
+				break;
+			case 0x10:
+				printf("cos");
 				break;
 			default:
 				printf("unknown(%x)", op);
