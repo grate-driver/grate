@@ -631,10 +631,8 @@ static int fragment_alu_disasm(uint32_t *words)
 					embedded_constant_used = 1;
 				} else if (reg == 62)
 					pr("#0");
-				else if (reg == 63)
-					pr("#1");
 				else
-					assert(0);
+					pr("#1");
 			} else {
 				assert(x10 || !(reg & 1));
 				if (!gpr_written[reg >> 1])
