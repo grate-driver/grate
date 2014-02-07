@@ -45,7 +45,7 @@ Opcodes:
 |      0 |    MAD   | Multiply-Add       | rD = rA * rB + rC         |
 |      1 |    MIN   | Minimum            | rD = min(rA * rB, rC)     |
 |      2 |    MAX   | Maximum            | rD = max(rA * rB, rC)     |
-|      3 |   CSEL   | Conditional select | ???                       |
+|      3 |   CSEL   | Conditional select | rD = (rA < 0) ? rB : rC ??? |
 
 Condition code:
 
@@ -60,9 +60,8 @@ Operands:
 
 |  Bits | Meaning        |
 |------:|:---------------|
-|    12 | read built-in  |
-|    11 | read constant  |
-| 5..10 | constant index |
+| 12..6 | ???            |
+|     5 | ???            |
 |     4 | ???            |
 |     3 | fixed10        |
 |     2 | absolute value |
