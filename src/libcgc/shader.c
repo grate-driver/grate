@@ -623,15 +623,10 @@ static int fragment_alu_disasm(uint32_t *words)
 			/* general-purpose register */
 			reg = instruction_extract(inst, offset + 5, offset + 10);
 			if (reg >= 48) {
-				if (reg == 48)
-					pr("d0");
-				else if (reg == 50)
-					pr("d1");
-				else if (reg == 52)
-					pr("d2");
-				else if (reg == 54)
-					pr("d3");
-				else if (reg >= 56 && reg < 62) {
+				if (reg < 56) {
+					assert(x10 || !(reg & 1));
+					pr("d%d.%s", (reg - 48) >> 1, x10 ? (reg & 1 ? "h" : "l") : "hl");
+				} else if (reg < 62) {
 					pr("ec%d", reg - 56);
 					embedded_constant_used = 1;
 				} else if (reg == 62)
