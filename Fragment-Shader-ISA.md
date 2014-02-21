@@ -58,15 +58,15 @@ Condition code:
 
 Operands:
 
-|  Bits | Meaning        |
-|------:|:---------------|
-| 12..6 | ???            |
-|     5 | ???            |
-|     4 | ???            |
-|     3 | fixed10        |
-|     2 | absolute value |
-|     1 | negate         |
-|     0 | scale by two   |
+|  Bits | Meaning               |
+|------:|:----------------------|
+| 12..6 | register selector     |
+|     5 | sub-register selector |
+|     4 | ???                   |
+|     3 | fixed10               |
+|     2 | absolute value        |
+|     1 | negate                |
+|     0 | scale by two          |
 
 ### MFU instruction word encoding
 
