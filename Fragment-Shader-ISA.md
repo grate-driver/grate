@@ -72,13 +72,21 @@ Operands:
 
 Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 
-|   Bits | Meaning        |
-|-------:|:---------------|
-| 58..63 | ???            |
-| 54..57 | opcode         |
-| 29..53 | ???            |
-| 24..28 | varying read   |
-|  0..23 | ???            |
+|   Bits | Meaning  |
+|-------:|:---------|
+| 58..63 | register |
+| 54..57 | opcode   |
+| 28..53 | ???      |
+| 21..27 | var3     |
+| 14..20 | var2     |
+|  7..13 | var1     |
+|   0..6 | var0     |
+
+| Bits | Meaning              |
+|-----:|:---------------------|
+| 5..6 | ???                  |
+| 3..4 | destination register |
+| 0..2 | ???                  |
 
 | opcode | Mnemonic | Meaning                      | pseudo-code         |
 |-------:|:--------:|:-----------------------------|:--------------------|
