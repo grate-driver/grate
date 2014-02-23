@@ -86,7 +86,8 @@ Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 |-----:|:---------------------|
 | 5..6 | ???                  |
 | 3..4 | destination register |
-| 0..2 | ???                  |
+|    2 | fixed10              |
+| 0..1 | ???                  |
 
 | opcode | Mnemonic | Meaning                      | pseudo-code         |
 |-------:|:--------:|:-----------------------------|:--------------------|
