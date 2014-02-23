@@ -690,6 +690,18 @@ out:
 	return embedded_constant_used;
 }
 
+static const char *get_mfu_opcode_str(int op)
+{
+	const char *op_str[16] = {
+		"nop", "rcp", "rsq", "log",
+		"exp", "sqrt", "sin", "cos",
+		"frc", "preexp", "presin", "precos",
+		"???", "???", "???", "???"
+	};
+	assert(op >= 0 && op < 16);
+	return op_str[op];
+}
+
 static void fragment_mfu_disasm(uint32_t *words)
 {
 	int op, reg, var;
@@ -700,46 +712,8 @@ static void fragment_mfu_disasm(uint32_t *words)
 
 	if (! words[1]) { /* use heuristic for now until we know .. */
 		op = instruction_extract(inst, 54, 57);
-		switch (op) {
-		case 0x1:
-			pr("rcp");
-			break;
-		case 0x2:
-			pr("rsq");
-			break;
-		case 0x3:
-			pr("log");
-			break;
-		case 0x4:
-			pr("exp");
-			break;
-		case 0x5:
-			pr("sqrt");
-			break;
-		case 0x6:
-			pr("sin");
-			break;
-		case 0x7:
-			pr("cos");
-			break;
-		case 0x8:
-			pr("frc");
-			break;
-		case 0x9:
-			pr("preexp");
-			break;
-		case 0xa:
-			pr("presin");
-			break;
-		case 0xb:
-			pr("precos");
-			break;
-		default:
-			pr("unk%x", op);
-		}
-
 		reg = instruction_extract(inst, 58, 62);
-		pr(" r%d", reg);
+		pr("%s r%d", get_mfu_opcode_str(op), reg);
 	} else {
 		var = instruction_extract(inst, 24, 28);
 
