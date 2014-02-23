@@ -562,7 +562,7 @@ static int fragment_alu_disasm(uint32_t *words)
 	inst = instruction_create_from_words(words, 2);
 
 	if (words[0] == 0x000fe7e8 && words[1] == 0x3e41f200) {
-		// a NOP is an instruction that writes 0.0 to r63
+		// a NOP is an instruction that writes 0.0 to r31
 		pr("nop");
 		instruction_extract(inst, 0, 31);
 		instruction_extract(inst, 32, 63);
@@ -605,11 +605,8 @@ static int fragment_alu_disasm(uint32_t *words)
 	pr(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
 
 	for (i = 0; i < 3; ++i) {
-		int type, reg, x10, abs, neg;
+		int reg, subreg, x10, abs, neg;
 		int offset = 32 - 13 * i;
-
-		/* register type */
-		type = instruction_extract(inst, offset + 11, offset + 12);
 
 		/* modifiers */
 		x10 = instruction_get_bit(inst, offset + 3);
@@ -619,59 +616,42 @@ static int fragment_alu_disasm(uint32_t *words)
 		pr(", ");
 
 		pr("%s%s", neg ? "-" : "", abs ? "abs(" : "");
-		switch (type) {
-		case 0:
-			/* general-purpose register */
-			reg = instruction_extract(inst, offset + 5, offset + 10);
-			if (reg >= 48) {
-				if (reg < 56) {
-					assert(x10 || !(reg & 1));
-					pr("d%d.%s", (reg - 48) >> 1, x10 ? (reg & 1 ? "h" : "l") : "hl");
-				} else if (reg < 62) {
-					pr("ec%d", reg - 56);
-					embedded_constant_used = 1;
-				} else if (reg == 62)
-					pr("#0");
-				else
-					pr("#1");
-			} else {
-				int subreg = x10 ? (reg & 1 ? 2 : 1) : 3;
-				assert(x10 || !(reg & 1));
-				if ((gpr_written[reg >> 1] & subreg) != subreg) {
-					fprintf(stderr, "\nr%d not written!\n", reg >> 1);
-					assert(0);
-				}
-				pr("r%d.%s%s", reg >> 1,
-				    subreg >> 1 ? "h" : "",
-				    subreg & 1 ? "l" : "");
-			}
-			break;
 
-		case 1:
-			/* constant register */
-			reg = instruction_extract(inst, offset + 5, offset + 10);
-			assert(x10 || !(reg & 1));
-			pr("c%d%s", x10 ? reg : reg >> 1, x10 ? "_half" : "");
-			break;
+		reg = instruction_extract(inst, offset + 6, offset + 12);
+		subreg = instruction_get_bit(inst, offset + 5);
 
-		case 2:
-			/* system-variable register */
-			reg = instruction_extract(inst, offset + 5, offset + 10);
-			if (reg == 16 && !x10)
-				pr("vPos.x");
-			else if (reg == 18 && !x10)
-				pr("vPos.y");
-			else if (reg == 22 && x10)
-				pr("vFace");
-			else {
-				assert(x10 || !(reg & 1));
-				pr("x%d%s", reg, x10 ? "_half" : "");
-			}
-			break;
+		if (reg == 31)
+			pr("#%d", subreg); /* hard-wired lowp vec2(0, 1) */
+		else if (reg == 72)
+			pr("vPos.x");
+		else if (reg == 73)
+			pr("vPos.y");
+		else if (reg == 75)
+			pr("vFace");
+		else if (reg >= 24 && reg <= 27) {
+			if (x10)
+				pr("d%d.%c", reg - 24, "lh"[subreg]);
+			else
+				pr("d%d", reg - 24);
+		} else if (reg >= 28 && reg <= 30) {
+			if (x10)
+				pr("ec%d.%c", reg - 28, "lh"[subreg]);
+			else
+				pr("ec%d", reg - 28);
+			embedded_constant_used = 1;
+		} else if (reg >= 32 && reg <= 63) {
+			if (x10)
+				pr("c%d.%c", reg - 32, "lh"[subreg]);
+			else
+				pr("c%d", reg - 32);
+		} else {
+			if (x10)
+				pr("r%d.%c", reg, "lh"[subreg]);
+			else
+				pr("r%d", reg);
 
-		default:
-			/* unused encoding (?) */
-			assert(0);
+			if ((gpr_written[reg] & subreg) != subreg)
+				fprintf(stderr, "r%d read before written!\n", reg);
 		}
 		pr("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
