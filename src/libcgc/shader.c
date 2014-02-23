@@ -564,6 +564,8 @@ static int fragment_alu_disasm(uint32_t *words)
 	if (words[0] == 0x000fe7e8 && words[1] == 0x3e41f200) {
 		// a NOP is an instruction that writes 0.0 to r63
 		pr("nop");
+		instruction_extract(inst, 0, 31);
+		instruction_extract(inst, 32, 63);
 		goto out;
 	}
 
