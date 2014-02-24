@@ -82,13 +82,6 @@ Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 |  7..13 | var1     |
 |   0..6 | var0     |
 
-| Bits | Meaning              |
-|-----:|:---------------------|
-| 5..6 | ???                  |
-| 3..4 | destination register |
-|    2 | fixed10              |
-| 0..1 | ???                  |
-
 | opcode | Mnemonic | Meaning                      | pseudo-code         |
 |-------:|:--------:|:-----------------------------|:--------------------|
 |      0 |    NOP   | No operation                 |                     |
@@ -103,6 +96,21 @@ Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
 |      9 |  PREEX2  | Exponent base 2, first step  | rD = pow(2.0, rA)   |
 |     10 |  PRESIN  | Sine, first step             | rD = sin(rA)        |
 |     11 |  PRECOS  | Cosine, first step           | rD = cos(rA)        |
+
+var0..3:
+
+| Bits | Meaning              |
+|-----:|:---------------------|
+| 5..6 | varying source       |
+| 3..4 | destination register |
+| 1..2 | opcode               |
+|    0 | saturate             |
+
+| opcode | Mnemonic | Meaning                        |
+|-------:|:--------:|:-------------------------------|
+|      0 |   NOP    | No operation                   |
+|      1 |   VAR2   | Interpolate two fixed10 values |
+|      2 |   VAR1   | Interpolate one float20 value  |
 
 ### TEX instruction word encoding
 
