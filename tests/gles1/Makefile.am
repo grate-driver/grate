@@ -10,6 +10,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate $(GLES1_CFLAGS)
 LDADD = libcommon.la
 
 noinst_PROGRAMS = \
+	gles-flatshading \
 	gles-logicop
 
 gles_logicop_LDADD = \
