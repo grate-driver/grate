@@ -109,8 +109,8 @@ var0..3:
 | opcode | Mnemonic | Meaning                        |
 |-------:|:--------:|:-------------------------------|
 |      0 |   NOP    | No operation                   |
-|      1 |   VAR2   | Interpolate two fixed10 values |
-|      2 |   VAR1   | Interpolate one float20 value  |
+|      1 |   VAR1   | Interpolate one float20 value  |
+|      2 |   VAR2   | Interpolate two fixed10 values |
 
 ### TEX instruction word encoding
 
