@@ -101,7 +101,7 @@ var0..3:
 
 | Bits | Meaning              |
 |-----:|:---------------------|
-| 5..6 | varying source       |
+| 5..6 | ???                  |
 | 3..4 | destination register |
 | 1..2 | opcode               |
 |    0 | saturate             |
