@@ -4,7 +4,7 @@ A very approximate MMIO-register overview:
 |---------------:|:--------:|:-----------------------|
 | 0x000 .. 0x015 | HOST1X   | synchronization        |
 | 0x100 .. 0x125 | IDX      | geometry submission    |
-| 0x200 .. 0x209 | ???      | vertex shader          |
+| 0x200 .. 0x209 | VPE (?)  | vertex shader          |
 | 0x300 .. 0x364 | ???      | primitive processing   |
 | 0x400 .. 0x411 | QR       | depth/stencil          |
 | 0x500 .. 0x540 | PSEQ     | ???                    |
