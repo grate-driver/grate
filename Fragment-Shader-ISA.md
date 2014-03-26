@@ -2,7 +2,7 @@
 
 The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]].
 
-The fragment shader is separated into three different instruction streams.
+The fragment shader is separated into (at least) three different instruction streams:
 * MFU - multi-function unit, varying interpolate and special functions
 * TEX - texture lookups
 * ALU - arithmetic logic unit
