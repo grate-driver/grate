@@ -33,19 +33,20 @@ The different units seems to be synchronized by separate timing streams.
 | 32..44 | operand rA               |
 | 19..31 | operand rB               |
 |  6..18 | operand rC               |
-|      5 | rC scale by rC           |
+|   4..5 | rD selector (rA, rB, rC) |
 |   3..4 | ???                      |
-|      2 | scale rC by rB or rC     |
-|   0..1 | ???                      |
+|      2 | scale rC by rD           |
+|      1 | rD absolute value        |
+|      0 | ???                      |
 
 Opcodes:
 
-| opcode | Mnemonic | Meaning            | pseudo-code               |
-|-------:|:--------:|:-------------------|:--------------------------|
-|      0 |    MAD   | Multiply-Add       | rD = rA * rB + rC         |
-|      1 |    MIN   | Minimum            | rD = min(rA * rB, rC)     |
-|      2 |    MAX   | Maximum            | rD = max(rA * rB, rC)     |
-|      3 |   CSEL   | Conditional select | rD = (rA < 0) ? rB : rC ??? |
+| opcode | Mnemonic | Meaning            | pseudo-code                |
+|-------:|:--------:|:-------------------|:---------------------------|
+|      0 |    MAD   | Multiply-Add       | rA * rB + rC * rD          |
+|      1 |    MIN   | Minimum            | min(rA * rB, rC * rD)      |
+|      2 |    MAX   | Maximum            | max(rA * rB, rC * rD)      |
+|      3 |   CSEL   | Conditional select | (rA < 0) ? rB : rC ???     |
 
 Condition code:
 
