@@ -68,6 +68,22 @@ Operands:
 |     1 | negate                |
 |     0 | scale by two          |
 
+Registers:
+
+|  Value | Meaning                   |
+|-------:|:--------------------------|
+|  0..23 | general purpose registers |
+| 24..27 | ALU result registers      |
+| 28..30 | embedded constants        |
+|     31 | lowp vec2(0, 1)           |
+| 32..63 | uniform registers         |
+|     64 | accumulation?             |
+|     72 | fragment x-position       |
+|     73 | fragment x-position       |
+|     75 | polygon face              |
+
+
+
 ### MFU instruction word encoding
 
 Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
