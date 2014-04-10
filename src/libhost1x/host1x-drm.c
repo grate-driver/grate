@@ -37,11 +37,6 @@
 #include "host1x-private.h"
 #include "tegra_drm.h"
 
-enum host1x_class {
-	HOST1X_CLASS_GR2D = 0x51,
-	HOST1X_CLASS_GR3D = 0x60,
-};
-
 struct drm;
 
 struct drm_bo {

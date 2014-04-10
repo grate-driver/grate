@@ -34,6 +34,11 @@
 #define BIT(x) (1 << (x))
 #endif
 
+enum host1x_class {
+	HOST1X_CLASS_GR2D = 0x51,
+	HOST1X_CLASS_GR3D = 0x60,
+};
+
 /* gr3d pixel formats */
 #define HOST1X_GR3D_FORMAT_RGB565	0x6
 #define HOST1X_GR3D_FORMAT_RGBA8888	0xd
