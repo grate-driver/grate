@@ -765,74 +765,72 @@ static void fragment_sfu_disasm(uint32_t *words)
 	instruction_free(inst);
 }
 
+struct gr3d_context {
+	uint32_t regs[0x1000];
+	uint32_t alu[0x200];
+	uint32_t sfu[0x80];
+};
+
+static struct gr3d_context *gr3d_context(void *ptr)
+{
+	return (struct gr3d_context *)ptr;
+}
+
+static void write_word(void *user, int classid, int offset, uint32_t value)
+{
+	struct gr3d_context *gr3d;
+	switch (classid) {
+	case HOST1X_CLASS_GR3D:
+		gr3d = gr3d_context(user);
+		switch (offset) {
+		case 0x804:
+			printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
+			assert(gr3d->regs[0x803] < ARRAY_SIZE(gr3d->alu));
+			gr3d->alu[gr3d->regs[0x803]++] = value;
+			break;
+
+		case 0x604:
+			printf("GR3D: SFU[%03x]: %08x\n", gr3d->regs[0x603], value);
+			assert(gr3d->regs[0x603] < ARRAY_SIZE(gr3d->sfu));
+			gr3d->sfu[gr3d->regs[0x603]++] = value;
+			break;
+
+		default:
+			printf("GR3D: offset %03x => %08x\n", offset, value);
+			assert(0 <= offset && offset < ARRAY_SIZE(gr3d->regs));
+			gr3d->regs[offset] = value;
+		}
+		break;
+
+	default:
+		printf("unknown class 0x%x: offset %03x => %08x\n", classid, offset, value);
+	}
+}
 
 static void fragment_shader_disassemble(uint32_t *words, size_t length)
 {
 	int i, j;
-	uint32_t *sfu = NULL, *alu = NULL;
-	int sfu_length = 0, alu_length = 0;
+	struct host1x_stream stream;
+	struct gr3d_context gr3d_ctx;
 
-	for (i = 0; i < length; ) {
-		uint32_t word = words[i++];
-		uint32_t opcode = (word >> 28) & 0xf, offset, count;
+	host1x_stream_init(&stream, words, length);
+	stream.write_word = write_word;
+	stream.classid = HOST1X_CLASS_GR3D;
+	memset(&gr3d_ctx, 0, sizeof(gr3d_ctx));
+	stream.user = &gr3d_ctx;
+	host1x_stream_interpret(&stream);
 
-		if (opcode != 0 && opcode != 1 && opcode != 2 && opcode != 3) {
-			printf("unknown opcode %d\n", opcode);
-			return;
-		}
-
-		if (opcode == 0) {
-			int i, mask = word & 0x3f;
-			int class_id = (word >> 6) & 0x3ff;
-			offset = (word >> 16) & 0xfff;
-
-			printf("    setclass %d %d, mask: %x\n", class_id, offset, mask);
-			count = 0;
-			for (i = 0; i < 6; ++i)
-				if (mask & (1 << i))
-					++count;
-		} else if (opcode == 3) {
-			int i, mask = word & 0xffff;
-			offset = (word >> 16) & 0xfff;
-			printf("    mask: %x\n", mask);
-			count = 0;
-			for (i = 0; i < 16; ++i)
-				if (mask & (1 << i))
-					++count;
-		} else {
-			offset = (word >> 16) & 0xfff;
-			count = word & 0xffff;
-		}
-
-		printf("    upload, offset 0x%03x, %d words\n", offset, count);
-		switch (offset) {
-		case 0x604:
-			sfu = words + i;
-			sfu_length = count;
-			break;
-		case 0x804:
-			alu = words + i;
-			alu_length = count;
-			break;
-		default:
-			printf("    unknown upload, offset 0x%03x\n", offset);
-			for (j = 0; j < count; ++j)
-				printf("      0x%08x\n", words[i + j]);
-		}
-		i += count;
-	}
-
-	printf("  alu instructions:\n");
-	for (i = 0; i < alu_length; i += 8) {
+	printf("  alu instructions (%d):\n", gr3d_ctx.regs[0x803]);
+	for (i = 0; i < gr3d_ctx.regs[0x803]; i += 8) {
 		int embedded_constant_used = 0;
 		for (j = 0; j < (embedded_constant_used ? 3 : 4); ++j)
-			 embedded_constant_used |= fragment_alu_disasm(alu + i + j * 2);
+			 embedded_constant_used |= fragment_alu_disasm(gr3d_ctx.alu + i + j * 2);
 		printf("\n");
 	}
 
-	printf("  sfu instructions:\n");
-	for (i = 0; i < sfu_length; i += 2)
-		fragment_sfu_disasm(sfu + i);
+	printf("  sfu instructions (%d):\n", gr3d_ctx.regs[0x603]);
+	for (i = 0; i < gr3d_ctx.regs[0x603]; i += 2)
+		fragment_sfu_disasm(gr3d_ctx.sfu + i);
 }
 
 static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
@@ -840,6 +838,7 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 	struct cgc_fragment_shader *fs;
 	struct cgc_vertex_shader *vs;
 	struct host1x_stream stream;
+	struct gr3d_context gr3d_ctx;
 	struct cgc_header *header;
 	size_t length;
 	void *words;
@@ -857,7 +856,7 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 		length = header->binary_size - sizeof(*fs);
 		words = fs->words;
 
-		fragment_shader_disassemble(words, length / 4);
+		fragment_shader_disassemble(words, length);
 
 		fprintf(fp, "signature: %.*s\n", 8, fs->signature);
 		fprintf(fp, "unknown0: 0x%08x\n", fs->unknown0);
@@ -871,7 +870,11 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 
 	fprintf(fp, "stream @%p, %zu bytes\n", words, length);
 	host1x_stream_init(&stream, words, length);
-	host1x_stream_dump(&stream, fp);
+	stream.write_word = write_word;
+	stream.classid = HOST1X_CLASS_GR3D;
+	memset(&gr3d_ctx, 0, sizeof(gr3d_ctx));
+	stream.user = &gr3d_ctx;
+	host1x_stream_interpret(&stream);
 }
 
 static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp)

@@ -47,11 +47,15 @@ struct host1x_stream {
 	const uint32_t *words;
 	const uint32_t *ptr;
 	const uint32_t *end;
+
+	void (*write_word)(void *user, int classid, int offset, uint32_t value);
+	int classid;
+	void *user;
 };
 
 void host1x_stream_init(struct host1x_stream *stream, const void *buffer,
 			size_t size);
-void host1x_stream_dump(struct host1x_stream *stream, FILE *fp);
+void host1x_stream_interpret(struct host1x_stream *stream);
 
 struct host1x_framebuffer;
 struct host1x_display;
