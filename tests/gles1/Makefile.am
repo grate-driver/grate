@@ -12,7 +12,3 @@ LDADD = libcommon.la
 noinst_PROGRAMS = \
 	gles-flatshading \
 	gles-logicop
-
-gles_logicop_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
