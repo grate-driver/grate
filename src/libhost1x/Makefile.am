@@ -23,7 +23,6 @@ libhost1x_la_SOURCES = \
 	nvhost-gr3d.h \
 	nvhost.h \
 	nvhost-nvmap.c \
-	nvhost-nvmap.h \
-	stream.c
+	nvhost-nvmap.h
 
 libhost1x_la_LIBADD = $(DRM_LIBS) $(PNG_LIBS)
