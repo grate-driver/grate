@@ -761,7 +761,9 @@ static void fragment_sfu_disasm(uint32_t *words)
 struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t alu[0x200];
+	uint32_t alu_sched[0x10];
 	uint32_t sfu[0x80];
+	uint32_t sfu_sched[0x10];
 };
 
 static struct gr3d_context *gr3d_context(void *ptr)
@@ -776,10 +778,22 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 	case HOST1X_CLASS_GR3D:
 		gr3d = gr3d_context(user);
 		switch (offset) {
+		case 0x801:
+			printf("GR3D: ALU-SCHED[%03x]: %08x\n", gr3d->regs[0x800], value);
+			assert(gr3d->regs[0x800] < ARRAY_SIZE(gr3d->alu_sched));
+			gr3d->alu_sched[gr3d->regs[0x800]++] = value;
+			break;
+
 		case 0x804:
 			printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
 			assert(gr3d->regs[0x803] < ARRAY_SIZE(gr3d->alu));
 			gr3d->alu[gr3d->regs[0x803]++] = value;
+			break;
+
+		case 0x601:
+			printf("GR3D: SFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
+			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->sfu_sched));
+			gr3d->sfu_sched[gr3d->regs[0x600]++] = value;
 			break;
 
 		case 0x604:
@@ -802,7 +816,7 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 
 static void fragment_shader_disassemble(uint32_t *words, size_t length)
 {
-	int i, j;
+	int i, j, k;
 	struct host1x_stream stream;
 	struct gr3d_context gr3d_ctx;
 
@@ -813,17 +827,30 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	stream.user = &gr3d_ctx;
 	host1x_stream_interpret(&stream);
 
-	printf("  alu instructions (%d):\n", gr3d_ctx.regs[0x803]);
-	for (i = 0; i < gr3d_ctx.regs[0x803]; i += 8) {
-		int embedded_constant_used = 0;
-		for (j = 0; j < (embedded_constant_used ? 3 : 4); ++j)
-			 embedded_constant_used |= fragment_alu_disasm(gr3d_ctx.alu + i + j * 2);
-		printf("\n");
-	}
+	assert(gr3d_ctx.regs[0x600] == gr3d_ctx.regs[0x800]);
 
-	printf("  sfu instructions (%d):\n", gr3d_ctx.regs[0x603]);
-	for (i = 0; i < gr3d_ctx.regs[0x603]; i += 2)
-		fragment_sfu_disasm(gr3d_ctx.sfu + i);
+	for (i = 0; i < gr3d_ctx.regs[0x800]; i++) {
+		int sfu_sched = gr3d_ctx.sfu_sched[i];
+		int alu_sched = gr3d_ctx.alu_sched[i];
+		int sfu_offset = sfu_sched >> 2, sfu_count = sfu_sched & 3;
+		int alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
+
+		for (j = 0; j < sfu_count; ++j) {
+			printf("SFU:%03d", i + 1);
+			fragment_sfu_disasm(gr3d_ctx.sfu + sfu_offset + (j * 2));
+		}
+
+		for (j = 0; j < alu_count; ++j) {
+			int embedded_constant_used = 0;
+			for (k = 0; k < (embedded_constant_used ? 3 : 4); ++k) {
+				printf("ALU:%03d", i + 1);
+				embedded_constant_used |= fragment_alu_disasm(gr3d_ctx.alu +
+				                                              (alu_offset + j) * 8 +
+				                                              k * 2);
+			}
+			printf("\n");
+		}
+	}
 }
 
 static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
