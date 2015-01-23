@@ -68,6 +68,12 @@ struct drm_tegra_get_syncpt {
 	__u32 id;
 };
 
+struct drm_tegra_get_syncpt_base {
+	__u64 context;
+	__u32 syncpt;
+	__u32 id;
+};
+
 struct drm_tegra_syncpt {
 	__u32 id;
 	__u32 incrs;
@@ -105,12 +111,9 @@ struct drm_tegra_submit {
 	__u32 num_syncpts;
 	__u32 num_cmdbufs;
 	__u32 num_relocs;
-	/* XXX: is this really required? */
-	__u32 submit_version;
 	__u32 num_waitchks;
 	__u32 waitchk_mask;
 	__u32 timeout;
-	__u32 pad;
 	__u64 syncpts;
 	__u64 cmdbufs;
 	__u64 relocs;
@@ -129,6 +132,7 @@ struct drm_tegra_submit {
 #define DRM_TEGRA_CLOSE_CHANNEL		0x06
 #define DRM_TEGRA_GET_SYNCPT		0x07
 #define DRM_TEGRA_SUBMIT		0x08
+#define DRM_TEGRA_GET_SYNCPT_BASE	0x09
 
 #define DRM_IOCTL_TEGRA_GEM_CREATE DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_CREATE, struct drm_tegra_gem_create)
 #define DRM_IOCTL_TEGRA_GEM_MMAP DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GEM_MMAP, struct drm_tegra_gem_mmap)
@@ -139,5 +143,6 @@ struct drm_tegra_submit {
 #define DRM_IOCTL_TEGRA_CLOSE_CHANNEL DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_CLOSE_CHANNEL, struct drm_tegra_open_channel)
 #define DRM_IOCTL_TEGRA_GET_SYNCPT DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GET_SYNCPT, struct drm_tegra_get_syncpt)
 #define DRM_IOCTL_TEGRA_SUBMIT DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_SUBMIT, struct drm_tegra_submit)
+#define DRM_IOCTL_TEGRA_GET_SYNCPT_BASE DRM_IOWR(DRM_COMMAND_BASE + DRM_TEGRA_GET_SYNCPT_BASE, struct drm_tegra_get_syncpt_base)
 
 #endif
