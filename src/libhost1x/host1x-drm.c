@@ -581,7 +581,6 @@ static int drm_channel_submit(struct host1x_client *client,
 	args.num_syncpts = 1;
 	args.num_cmdbufs = job->num_pushbufs;
 	args.num_relocs = num_relocs;
-	args.submit_version = 0;
 	args.num_waitchks = 0;
 	args.waitchk_mask = 0;
 	args.timeout = 1000;
