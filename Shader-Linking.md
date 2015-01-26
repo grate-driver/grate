@@ -12,16 +12,16 @@ the latter word contains the location in the fragment shader.
 
 The latter word contains the following for single varyings (for a simple dot product-shader):
 
-| datatype      | value  |
-|--------------:|:-------|
-|    lowp float | 0x00b7 |
-| mediump float | 0x000f |
-|     lowp vec2 | 0x00b7 |
-|  mediump vec2 | 0x00fe |
-|     lowp vec3 | 0xb7a6 |
-|  mediump vec3 | 0x0dfe |
-|     lowp vec4 | 0xa6b7 |
-|  mediump vec4 | 0xcdfe |
+| datatype      | value  | var instruction |
+|--------------:|:-------|:----------------|
+|    lowp float | 00b7   | 00400000        |
+| mediump float | 000f   | 00800000        |
+|     lowp vec2 | 00b7   | 00800000        |
+|  mediump vec2 | 00fe   | 00408000        |
+|     lowp vec3 | b7a6   | 00810000        |
+|  mediump vec3 | 0dfe   | 00408100        |
+|     lowp vec4 | a6b7   | 00810000        |
+|  mediump vec4 | cdfe   | 00408102        |
 
 In addition to this, something is going on at offset 0xe20 and upwards:
 
