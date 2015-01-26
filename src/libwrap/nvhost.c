@@ -573,13 +573,14 @@ static void nvhost_dump_register_write(int offset, uint32_t value)
 	static struct rnndomain *tgr3d_dom;
 	static int rnn_inited;
 	if (!rnn_inited) {
+		int use_colors = getenv("LIBWRAP_NO_COLORS") == NULL;
 		rnn_init();
 
 		db = rnn_newdb();
 		rnn_parsefile(db, "tgr_3d.xml");
 		rnn_prepdb(db);
 		vc = rnndec_newcontext(db);
-		vc->colors = &envy_def_colors;
+		vc->colors = use_colors ? &envy_def_colors : &envy_null_colors;
 
 		tgr3d_dom = rnn_finddomain(db, "TGR3D");
 		if (!tgr3d_dom)
