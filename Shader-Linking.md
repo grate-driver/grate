@@ -15,7 +15,7 @@ The latter word contains the following for single varyings (for a simple dot pro
 | datatype      | value  | VAR instruction | 0 | 1 | 2 | 3 |
 |--------------:|:-------|:----------------|---|---|---|---|
 |    lowp float | 00b7   | 00800000        | 0 | 0 | 0 | 4 |
-| mediump float | 00b7   | 00400000        | 0 | 0 | 0 | 2 |
+| mediump float | 000f   | 00400000        | 0 | 0 | 0 | 2 |
 |     lowp vec2 | 00b7   | 00800000        | 0 | 0 | 0 | 4 |
 |  mediump vec2 | 00fe   | 00408000        | 0 | 0 | 2 | 2 |
 |     lowp vec3 | b7a6   | 00810000        | 0 | 0 | 4 | 4 |
