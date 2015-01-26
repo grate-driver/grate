@@ -5,3 +5,4 @@ Welcome to the grate wiki!
 * [[MMIO Registers]]
 * [[Vertex Shader ISA]]
 * [[Fragment Shader ISA]]
+* [[Shader Linking]]
