@@ -12,7 +12,7 @@ the latter word contains the location in the fragment shader.
 
 The latter word contains the following for single varyings (for a simple dot product-shader):
 
-| datatype      | value  | var instruction | 0 | 1 | 2 | 3 |
+| datatype      | value  | VAR instruction | 0 | 1 | 2 | 3 |
 |--------------:|:-------|:----------------|---|---|---|---|
 |    lowp float | 00b7   | 00800000        | 0 | 0 | 0 | 4 |
 | mediump float | 00b7   | 00400000        | 0 | 0 | 0 | 2 |
@@ -23,7 +23,7 @@ The latter word contains the following for single varyings (for a simple dot pro
 |     lowp vec4 | a6b7   | 00810000        | 0 | 0 | 4 | 4 |
 |  mediump vec4 | cdfe   | 00408102        | 2 | 2 | 2 | 2 |
 
-Those 0, 1, 2, 3-values are the bits from n * 7 to n * 7 + 2 in the var instruction.
+Those 0, 1, 2, 3-values are the bits from n * 7 to n * 7 + 2 in the VAR instruction.
 
 In addition to this, something is going on at offset 0xe20 and upwards:
 
