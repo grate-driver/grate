@@ -25,6 +25,13 @@ The latter word contains the following for single varyings (for a simple dot pro
 
 Those 0, 1, 2, 3-values are the bits from n * 7 to n * 7 + 2 in the VAR instruction.
 
+splitting 0xa6b7 into 4 fields of 4-bit each:
+
+    1010
+    0110
+    1011
+    0111
+
 In addition to this, something is going on at offset 0xe20 and upwards:
 
     0x58000000
