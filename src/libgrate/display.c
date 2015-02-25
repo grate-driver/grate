@@ -43,6 +43,11 @@ struct grate_display *grate_display_open(struct grate *grate)
 
 	display->base = host1x_get_display(grate->host1x);
 
+	if (!display->base) {
+		free(display);
+		return NULL;
+	}
+
 	return display;
 }
 
