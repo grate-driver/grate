@@ -12,5 +12,6 @@ LDADD = libcommon.la
 noinst_PROGRAMS = \
 	gles-clip \
 	gles-flatshading \
+	gles-info \
 	gles-logicop \
 	gles-tex-combiners
