@@ -673,6 +673,18 @@ void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
 	host1x_pushbuf_push(pb, value.u);
 }
 
+void host1x_gr3d_line_width(struct host1x_pushbuf *pb, float width)
+{
+	union {
+		uint32_t u;
+		float f;
+	} value;
+
+	value.f = width * 0.5f;
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34d, 1));
+	host1x_pushbuf_push(pb, value.u);
+}
+
 int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 {
 	int err;

@@ -382,9 +382,13 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 0x2));
 	host1x_pushbuf_push(pb, 0x00001401);
 	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 0x2));
+
+	/* line params */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 1));
 	host1x_pushbuf_push(pb, 0x00000002);
-	host1x_pushbuf_push(pb, 0x3f000000);
+
+	host1x_gr3d_line_width(pb, 1.0f);
+
 	host1x_gr3d_viewport(pb, vp->x, vp->y, vp->width, vp->height);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
