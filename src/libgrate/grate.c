@@ -303,7 +303,7 @@ enum host1x_gr3d_primitive {
 	HOST1X_GR3D_LINE_STRIP,
 	HOST1X_GR3D_TRIANGLES,
 	HOST1X_GR3D_TRIANGLE_STRIP,
-	HOST1X_GR3D_TRIANGLE_LOOP,
+	HOST1X_GR3D_TRIANGLE_FAN,
 };
 
 void grate_draw_elements(struct grate *grate, enum grate_primitive type,
