@@ -109,7 +109,13 @@ void grate_uniform(struct grate *grate, unsigned int location,
 		   unsigned int count, float *values);
 
 enum grate_primitive {
+	GRATE_POINTS,
+	GRATE_LINES,
+	GRATE_LINE_LOOP,
+	GRATE_LINE_STRIP,
 	GRATE_TRIANGLES,
+	GRATE_TRIANGLE_STRIP,
+	GRATE_TRIANGLE_FAN
 };
 
 void grate_draw_elements(struct grate *grate, enum grate_primitive type,

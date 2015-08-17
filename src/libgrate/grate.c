@@ -326,9 +326,13 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	int err;
 
 	switch (type) {
-	case GRATE_TRIANGLES:
-		mode = HOST1X_GR3D_TRIANGLES;
-		break;
+	case GRATE_POINTS:         mode = HOST1X_GR3D_POINTS;         break;
+	case GRATE_LINES:          mode = HOST1X_GR3D_LINES;          break;
+	case GRATE_LINE_STRIP:     mode = HOST1X_GR3D_LINE_STRIP;     break;
+	case GRATE_LINE_LOOP:      mode = HOST1X_GR3D_LINE_LOOP;      break;
+	case GRATE_TRIANGLES:      mode = HOST1X_GR3D_TRIANGLES;      break;
+	case GRATE_TRIANGLE_STRIP: mode = HOST1X_GR3D_TRIANGLE_STRIP; break;
+	case GRATE_TRIANGLE_FAN:   mode = HOST1X_GR3D_TRIANGLE_FAN;   break;
 
 	default:
 		fprintf(stderr, "ERROR: unsupported type: %d\n", type);
