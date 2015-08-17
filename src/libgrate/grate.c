@@ -515,8 +515,6 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		if (!attr->bo)
 			continue;
 
-		//fprintf(stdout, "DEBUG: attribute #%02u: %p@%lx\n", i,
-		//	attr->bo, attr->offset);
 		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(reg, 0x02));
 		host1x_pushbuf_relocate(pb, attr->bo->bo, attr->offset, 0);
 		host1x_pushbuf_push(pb, 0xdeadbeef);
