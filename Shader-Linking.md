@@ -8,7 +8,7 @@ This program is located at offset 0x300 and upwards, and seems to have 64-bit wo
 This copies four floats from each vertex.
 
 The first word seems to contain the location to copy from in the vertex shader,
-the latter word contains the location in the fragment shader.
+the latter word contains the location in TRAM.
 
 The latter word contains the following for single varyings (for a simple dot product-shader):
 
