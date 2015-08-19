@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "../libhost1x/host1x-private.h"
 #include "libgrate-private.h"
@@ -379,8 +380,9 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	/* viewport z bias and scale */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x354, 9));
-	host1x_pushbuf_push(pb, 0x3efffff0);
-	host1x_pushbuf_push(pb, 0x3efffff0);
+	/* 2^-21 = half an ULP in the z-buffer */
+	host1x_pushbuf_push(pb, 0.5f - powf(2.0f, -21));
+	host1x_pushbuf_push(pb, 0.5f - powf(2.0f, -21));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x740, 0x035));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe26, 0x779));
@@ -388,7 +390,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	/* point params and size */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 2));
 	host1x_pushbuf_push(pb, 0x00001401);
-	host1x_pushbuf_push(pb, 0x3f800000);
+	host1x_pushbuf_push_float(pb, 1.0f);
 
 	/* line params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 1));
@@ -454,10 +456,10 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	/* point coord range */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x348, 0x04));
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x3f800000);
+	host1x_pushbuf_push_float(pb, 1.0f);
+	host1x_pushbuf_push_float(pb, 0.0f);
+	host1x_pushbuf_push_float(pb, 0.0f);
+	host1x_pushbuf_push_float(pb, 1.0f);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x01));
 
@@ -537,8 +539,8 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	/* polygon offset */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x02));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push_float(pb, 0.0f);
+	host1x_pushbuf_push_float(pb, 0.0f);
 
 	/* needed for lines, it seems! */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
