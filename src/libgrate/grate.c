@@ -371,15 +371,22 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	}
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
+
+	/* depth range */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x404, 2));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x000fffff);
+
+	/* viewport z bias and scale */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x354, 9));
 	host1x_pushbuf_push(pb, 0x3efffff0);
 	host1x_pushbuf_push(pb, 0x3efffff0);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x740, 0x035));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe26, 0x779));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 0x2));
+
+	/* point params and size */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 2));
 	host1x_pushbuf_push(pb, 0x00001401);
 	host1x_pushbuf_push(pb, 0x3f800000);
 
@@ -391,15 +398,22 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	host1x_gr3d_viewport(pb, vp->x, vp->y, vp->width, vp->height);
 
+	/* guardband ? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
 	host1x_pushbuf_push(pb, 0x4376f000);
 	host1x_pushbuf_push(pb, 0x4376f000);
 	host1x_pushbuf_push(pb, 0x40dfae14);
+
+	/* cull face */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
 	host1x_pushbuf_push(pb, 0xb8e00000);
+
+	/* scissor */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x350, 0x02));
 	host1x_pushbuf_push(pb, fb->width  & 0xffff);
 	host1x_pushbuf_push(pb, fb->height & 0xffff);
+
+	/* rt 1 color params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe11, 0x01));
 
 	if (depth == 16) {
@@ -412,8 +426,11 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	host1x_pushbuf_push(pb, (tiled << 26) | (pitch << 8) | format << 2 | 0x1);
 
+	/* write masks */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
 	host1x_pushbuf_push(pb, 0x00000002);
+
+	/* rt 4..10  color params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe15, 0x07));
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, 0x08000001);
@@ -422,18 +439,28 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, 0x08000001);
 	host1x_pushbuf_push(pb, 0x08000001);
+
+	/* rt 0 color params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x01));
 	host1x_pushbuf_push(pb, 0x0c000000);
+
+	/* rt 3 color params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe13, 0x01));
 	host1x_pushbuf_push(pb, 0x0c000000);
+
+	/* rt 2 color params */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe12, 0x01));
 	host1x_pushbuf_push(pb, 0x0c000000);
+
+	/* point coord range */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x348, 0x04));
 	host1x_pushbuf_push(pb, 0x3f800000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x3f800000);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x01));
+
 
 	for (i = 0; i < 4; i++) {
 		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
@@ -449,20 +476,30 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	grate_shader_emit(pb, grate->program->vs);
 
+	/* cull face */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
 	host1x_pushbuf_push(pb, 0xb8e00000);
+
+	/* link "program" */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x300, 0x02));
 	host1x_pushbuf_push(pb, 0x00000008);
 	host1x_pushbuf_push(pb, 0x0000fecd);
+
+	/* unknown */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x01));
 	host1x_pushbuf_push(pb, 0x58000000);
+
+	/* reset upload counters ? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x545, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe22, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x603, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x803, 0x00));
+
+	/* unknown */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x520, 0x01));
 	host1x_pushbuf_push(pb, 0x20006001);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x546, 0x01));
 	host1x_pushbuf_push(pb, 0x00000040);
 
@@ -494,11 +531,16 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		host1x_pushbuf_push(pb, ptr[3]);
 	}
 
+	/* varying flags */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x01));
 	host1x_pushbuf_push(pb, 0x00030081);
+
+	/* polygon offset */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x02));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
+
+	/* needed for lines, it seems! */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
 
 	/* relocate color render target */
@@ -530,10 +572,13 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x121, 0x03));
 	host1x_pushbuf_relocate(pb, bo->bo, offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
+
+	/* do the actual draw */
 	host1x_pushbuf_push(pb, 0xc8000000 | (index << 28) | (mode << 24));
 	host1x_pushbuf_push(pb, (count - 1) << 20);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x02));
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
