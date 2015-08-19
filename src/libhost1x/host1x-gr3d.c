@@ -649,40 +649,25 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
 			  float width, float height)
 {
-	union {
-		uint32_t u;
-		float f;
-	} value;
-
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
 
 	/* X bias */
-	value.f = x * 16.0f + width * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, x * 16.0f + width * 8.0f);
 
 	/* Y bias */
-	value.f = y * 16.0f + height * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, y * 16.0f + height * 8.0f);
 
 	/* X scale */
-	value.f = width * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, width * 8.0f);
 
 	/* Y scale */
-	value.f = height * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, height * 8.0f);
 }
 
 void host1x_gr3d_line_width(struct host1x_pushbuf *pb, float width)
 {
-	union {
-		uint32_t u;
-		float f;
-	} value;
-
-	value.f = width * 0.5f;
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34d, 1));
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, width * 0.5f);
 }
 
 int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
@@ -742,10 +727,6 @@ void host1x_gr3d_exit(struct host1x_gr3d *gr3d)
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 			 struct host1x_framebuffer *fb)
 {
-	union {
-		uint32_t u;
-		float f;
-	} value;
 	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
 	float *attr = gr3d->attributes->ptr;
 	struct host1x_pushbuf *pb;
@@ -843,15 +824,10 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
 
-	value.f = fb->width * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
-	value.f = fb->height * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
-
-	value.f = fb->width * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
-	value.f = fb->height * 8.0f;
-	host1x_pushbuf_push(pb, value.u);
+	host1x_pushbuf_push_float(pb, fb->width * 8.0f);
+	host1x_pushbuf_push_float(pb, fb->height * 8.0f);
+	host1x_pushbuf_push_float(pb, fb->width * 8.0f);
+	host1x_pushbuf_push_float(pb, fb->height * 8.0f);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
 	host1x_pushbuf_push(pb, 0x4376f000);

@@ -141,6 +141,15 @@ struct host1x_pushbuf *host1x_job_append(struct host1x_job *job,
 					 struct host1x_bo *bo,
 					 unsigned long offset);
 int host1x_pushbuf_push(struct host1x_pushbuf *pb, uint32_t word);
+static inline int host1x_pushbuf_push_float(struct host1x_pushbuf *pb, float f)
+{
+	union {
+		uint32_t u;
+		float f;
+	} value;
+	value.f = f;
+	return host1x_pushbuf_push(pb, value.u);
+}
 int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
 			    unsigned long offset, unsigned long shift);
 
