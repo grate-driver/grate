@@ -8,7 +8,7 @@ A very approximate MMIO-register overview:
 | 0x300 .. 0x364 | SU        | program vertex to fragment shader linker engine<br>(VPE clip output to ATRAST) |
 | 0x400 .. 0x411 | QRast     | (Quad Rasterizer) depth/stencil/VCAA             |
 | 0x500 .. 0x546 | PSEQ      | (Program Sequencer) control pixel pipeline flow  |
-| 0x600 .. 0x60E | ATRAST    | (Attribute Rasterizer) attribute interpolate     |
+| 0x600 .. 0x60E | ATRAST    | (Attribute Rasterizer) attribute interpolate<br>and special functions unit |
 | 0x700 .. 0x741 | TEX       | texture mapping                                  |
 | 0x800 .. 0x83F | ALU       | fragment shader arithmetic-logic unit            |
 | 0x900 .. 0x903 | DW        | (Data Write) shader export unit, drive PSEQ<br>output to FDC using specified pixel color format<br>or back to PSEQ |
