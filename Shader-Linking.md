@@ -58,8 +58,6 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 
 **Latter word**
 
-**Latter word**
-
 | Bits                    | Description                               |
 |-------------------------|-------------------------------------------|
 | x_tram_col:2            |                                           |
