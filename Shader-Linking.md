@@ -32,6 +32,48 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
     1011
     0111
 
+
+**First word**
+
+| Bits                     | Description           |
+|--------------------------|-----------------------|
+| src:2                    | source select (0=VPE) |
+| undefined_bit_2:1        |                       |
+| vc_row:4                 | VPE row               |
+| undefined_bits_7_8:2     |                       |
+| tram_row:6               | TRAM row              |
+| undefined_bit_15:1       |                       |
+| x_const_accross_width:1  |                       |
+| x_const_accross_length:1 |                       |
+| x_point:2                |                       |
+| y_const_accross_width:1  |                       |
+| y_const_accross_length:1 |                       |
+| y_point:2                |                       |
+| z_const_accross_width:1  |                       |
+| z_const_accross_length:1 |                       |
+| z_point:2                |                       |
+| w_const_accross_width:1  |                       |
+| w_const_accross_length:1 |                       |
+| w_point:2                |                       |
+
+**Latter word**
+
+| Bits                    | Description |
+|-------------------------|-------------|
+| x_tram_col:2            |             |
+| x_tram_fmt:2            |             |
+| y_tram_col:2            |             |
+| y_tram_fmt:2            |             |
+| z_tram_col:2            |             |
+| z_tram_fmt:2            |             |
+| w_tram_col:2            |             |
+| w_tram_fmt:2            |             |
+| x_tri_shade_mode:1      |             |
+| y_tri_shade_mode:1      |             |
+| z_tri_shade_mode:1      |             |
+| w_tri_shade_mode:1      |             |
+| undefined_bits_20_31:12 |             |
+
 In addition to this, something is going on at offset 0xe20 and upwards:
 
     0x58000000
