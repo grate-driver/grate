@@ -58,21 +58,23 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 
 **Latter word**
 
-| Bits                    | Description |
-|-------------------------|-------------|
-| x_tram_col:2            |             |
-| x_tram_fmt:2            |             |
-| y_tram_col:2            |             |
-| y_tram_fmt:2            |             |
-| z_tram_col:2            |             |
-| z_tram_fmt:2            |             |
-| w_tram_col:2            |             |
-| w_tram_fmt:2            |             |
-| x_tri_shade_mode:1      |             |
-| y_tri_shade_mode:1      |             |
-| z_tri_shade_mode:1      |             |
-| w_tri_shade_mode:1      |             |
-| undefined_bits_20_31:12 |             |
+**Latter word**
+
+| Bits                    | Description                               |
+|-------------------------|-------------------------------------------|
+| x_tram_col:2            |                                           |
+| x_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+| y_tram_col:2            |                                           |
+| y_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+| z_tram_col:2            |                                           |
+| z_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+| w_tram_col:2            |                                           |
+| w_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+| x_tri_shade_mode:1      |                                           |
+| y_tri_shade_mode:1      |                                           |
+| z_tri_shade_mode:1      |                                           |
+| w_tri_shade_mode:1      |                                           |
+| undefined_bits_20_31:12 |                                           |
 
 In addition to this, something is going on at offset 0xe20 and upwards:
 
