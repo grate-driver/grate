@@ -36,7 +36,7 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 **First word**
 
 | Bits   | ?                        | Description           |
-|--------|--------------------------|-----------------------|
+|-------:|:-------------------------|-----------------------|
 |   0..1 | src:2                    | source select (0=VPE) |
 |      2 | undefined_bit_2:1        |                       |
 |   3..6 | vc_row:4                 | VPE row               |
@@ -59,7 +59,7 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 **Latter word**
 
 | Bits   | ?                       | Description                               |
-|--------|-------------------------|-------------------------------------------|
+|-------:|:------------------------|-------------------------------------------|
 |   0..1 | x_tram_col:2            |                                           |
 |   2..3 | x_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
 |   4..5 | y_tram_col:2            |                                           |
