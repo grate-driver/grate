@@ -35,44 +35,44 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 
 **First word**
 
-| Bits                     | Description           |
-|--------------------------|-----------------------|
-| src:2                    | source select (0=VPE) |
-| undefined_bit_2:1        |                       |
-| vc_row:4                 | VPE row               |
-| undefined_bits_7_8:2     |                       |
-| tram_row:6               | TRAM row              |
-| undefined_bit_15:1       |                       |
-| x_const_accross_width:1  |                       |
-| x_const_accross_length:1 |                       |
-| x_point:2                |                       |
-| y_const_accross_width:1  |                       |
-| y_const_accross_length:1 |                       |
-| y_point:2                |                       |
-| z_const_accross_width:1  |                       |
-| z_const_accross_length:1 |                       |
-| z_point:2                |                       |
-| w_const_accross_width:1  |                       |
-| w_const_accross_length:1 |                       |
-| w_point:2                |                       |
+| Bits   | ?                        | Description           |
+|--------|--------------------------|-----------------------|
+|   0..1 | src:2                    | source select (0=VPE) |
+|      2 | undefined_bit_2:1        |                       |
+|   3..6 | vc_row:4                 | VPE row               |
+|   7..8 | undefined_bits_7_8:2     |                       |
+|  9..14 | tram_row:6               | TRAM row              |
+|     15 | undefined_bit_15:1       |                       |
+|     16 | x_const_accross_width:1  |                       |
+|     17 | x_const_accross_length:1 |                       |
+| 18..19 | x_point:2                |                       |
+|     20 | y_const_accross_width:1  |                       |
+|     21 | y_const_accross_length:1 |                       |
+| 22..23 | y_point:2                |                       |
+|     24 | z_const_accross_width:1  |                       |
+|     25 | z_const_accross_length:1 |                       |
+| 26..27 | z_point:2                |                       |
+|     28 | w_const_accross_width:1  |                       |
+|     29 | w_const_accross_length:1 |                       |
+| 30..31 | w_point:2                |                       |
 
 **Latter word**
 
-| Bits                    | Description                               |
-|-------------------------|-------------------------------------------|
-| x_tram_col:2            |                                           |
-| x_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
-| y_tram_col:2            |                                           |
-| y_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
-| z_tram_col:2            |                                           |
-| z_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
-| w_tram_col:2            |                                           |
-| w_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
-| x_tri_shade_mode:1      |                                           |
-| y_tri_shade_mode:1      |                                           |
-| z_tri_shade_mode:1      |                                           |
-| w_tri_shade_mode:1      |                                           |
-| undefined_bits_20_31:12 |                                           |
+| Bits   | ?                       | Description                               |
+|--------|-------------------------|-------------------------------------------|
+|   0..1 | x_tram_col:2            |                                           |
+|   2..3 | x_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+|   4..5 | y_tram_col:2            |                                           |
+|   6..7 | y_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+|   8..9 | z_tram_col:2            |                                           |
+| 10..11 | z_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+| 12..13 | w_tram_col:2            |                                           |
+| 14..15 | w_tram_fmt:2            | 0=NOP; 1=Lower half; 2=Upper half; 3=Both |
+|     16 | x_tri_shade_mode:1      |                                           |
+|     17 | y_tri_shade_mode:1      |                                           |
+|     18 | z_tri_shade_mode:1      |                                           |
+|     19 | w_tri_shade_mode:1      |                                           |
+| 20..31 | undefined_bits_20_31:12 |                                           |
 
 In addition to this, something is going on at offset 0xe20 and upwards:
 
