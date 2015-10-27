@@ -70,6 +70,8 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 |     18 | VEC4.z triangle interpolation disable |
 |     19 | VEC4.w triangle interpolation disable |
 
+Disabling triangle interpolation picks the value from the third vertex in if drawing triangles.
+
 In addition to this, something is going on at offset 0xe20 and upwards:
 
     0x58000000
