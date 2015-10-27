@@ -65,10 +65,10 @@ splitting 0xa6b7 into 4 fields of 4-bit each:
 | 10..11 | VEC4.z TRAM write mask (column halve) |
 | 12..13 | VEC4.w TRAM column number             |
 | 14..15 | VEC4.w TRAM write mask (column halve) |
-|     16 | VEC4.x triangle interpolation enable  |
-|     17 | VEC4.y triangle interpolation enable  |
-|     18 | VEC4.z triangle interpolation enable  |
-|     19 | VEC4.w triangle interpolation enable  |
+|     16 | VEC4.x triangle interpolation disable |
+|     17 | VEC4.y triangle interpolation disable |
+|     18 | VEC4.z triangle interpolation disable |
+|     19 | VEC4.w triangle interpolation disable |
 
 In addition to this, something is going on at offset 0xe20 and upwards:
 
