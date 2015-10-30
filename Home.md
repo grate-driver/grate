@@ -6,3 +6,4 @@ Welcome to the grate wiki!
 * [[Vertex Shader ISA]]
 * [[Fragment Shader ISA]]
 * [[Shader Linking]]
+* [[Geometry Submission (IDX)]]
