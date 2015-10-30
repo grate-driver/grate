@@ -533,9 +533,9 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		host1x_pushbuf_push(pb, ptr[3]);
 	}
 
-	/* varying flags */
+	/* select VPE in/out buffers */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x01));
-	host1x_pushbuf_push(pb, 0x00030081);
+	host1x_pushbuf_push(pb, program->attributes_mask);
 
 	/* polygon offset */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x02));
