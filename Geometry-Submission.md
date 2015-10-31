@@ -10,11 +10,11 @@
 
 #### Offset range 0x100 .. 0x1FF:
 
-Two consecutive words are used to describe the input vertex buffer: first is memory address and latter is buffer format description. AR20 has total 16 input vertex buffers. 
+Two consecutive words are used to describe the input attribute buffer: first is memory address and latter is buffer format description. AR20 has total 16 input attribute buffers. 
 
 **First word**
 
-Vertex buffer memory base address.
+Attribute buffer memory base address.
 
 |    Bits | Meaning             |
 |--------:|:--------------------|
@@ -22,11 +22,11 @@ Vertex buffer memory base address.
 
 **Latter word**
 
-Vertex buffer format description.
+Attribute buffer format description.
 
 |    Bits | Meaning          |
 |--------:|:-----------------|
-| 0 .. 3  | Vertex format    |
+| 0 .. 3  | Attribute format |
 | 4 .. 6  | Attribute size   |
 | 8 .. 19 | Attribute stride |
 
