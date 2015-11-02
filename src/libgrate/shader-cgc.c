@@ -224,14 +224,22 @@ void grate_program_link(struct grate_program *program)
 
 	for (i = 0; i < shader->num_symbols; i++) {
 		struct cgc_symbol *symbol = &shader->symbols[i];
+		uint32_t attr_mask = (1 << symbol->location);
+
+		if (symbol->location == -1)
+			continue;
 
 		switch (symbol->kind) {
 		case GLSL_KIND_ATTRIBUTE:
 			printf("attribute %s @%u", symbol->name,
 			       symbol->location);
 
-			if (symbol->input)
+			if (symbol->input) {
 				grate_program_add_attribute(program, symbol);
+				program->attributes_mask |= attr_mask << 16;
+			} else {
+				program->attributes_mask |= attr_mask;
+			}
 
 			break;
 
@@ -266,6 +274,9 @@ void grate_program_link(struct grate_program *program)
 
 	for (i = 0; i < shader->num_symbols; i++) {
 		struct cgc_symbol *symbol = &shader->symbols[i];
+
+		if (symbol->location == -1)
+			continue;
 
 		switch (symbol->kind) {
 		case GLSL_KIND_ATTRIBUTE:

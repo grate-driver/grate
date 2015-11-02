@@ -47,6 +47,7 @@ struct grate_program {
 
 	struct grate_attribute *attributes;
 	unsigned int num_attributes;
+	uint32_t attributes_mask;
 
 	struct grate_uniform *uniforms;
 	unsigned int num_uniforms;
