@@ -899,6 +899,14 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 		vs = shader->stream;
 		words = shader->stream + vs->unknowne8 * 4;
 		length = vs->unknownec;
+
+		fprintf(fp, "stream @%p, %zu bytes\n", words, length);
+		host1x_stream_init(&stream, words, length);
+		stream.write_word = write_word;
+		stream.classid = HOST1X_CLASS_GR3D;
+		memset(&gr3d_ctx, 0, sizeof(gr3d_ctx));
+		stream.user = &gr3d_ctx;
+		host1x_stream_interpret(&stream);
 		break;
 
 	case CGC_SHADER_FRAGMENT:
@@ -918,14 +926,6 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 		fprintf(fp, "unknown type: %d\n", shader->type);
 		return;
 	}
-
-	fprintf(fp, "stream @%p, %zu bytes\n", words, length);
-	host1x_stream_init(&stream, words, length);
-	stream.write_word = write_word;
-	stream.classid = HOST1X_CLASS_GR3D;
-	memset(&gr3d_ctx, 0, sizeof(gr3d_ctx));
-	stream.user = &gr3d_ctx;
-	host1x_stream_interpret(&stream);
 }
 
 static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp)
