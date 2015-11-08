@@ -789,18 +789,6 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 	case HOST1X_CLASS_GR3D:
 		gr3d = gr3d_context(user);
 		switch (offset) {
-		case 0x801:
-			printf("GR3D: ALU-SCHED[%03x]: %08x\n", gr3d->regs[0x800], value);
-			assert(gr3d->regs[0x800] < ARRAY_SIZE(gr3d->alu_sched));
-			gr3d->alu_sched[gr3d->regs[0x800]++] = value;
-			break;
-
-		case 0x804:
-			printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
-			assert(gr3d->regs[0x803] < ARRAY_SIZE(gr3d->alu));
-			gr3d->alu[gr3d->regs[0x803]++] = value;
-			break;
-
 		case 0x601:
 			printf("GR3D: MFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
 			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->mfu_sched));
@@ -817,6 +805,18 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 			printf("GR3D: TEX[%03x]: %08x\n", gr3d->regs[0x700], value);
 			assert(gr3d->regs[0x700] < ARRAY_SIZE(gr3d->tex));
 			gr3d->tex[gr3d->regs[0x700]++] = value;
+			break;
+
+		case 0x801:
+			printf("GR3D: ALU-SCHED[%03x]: %08x\n", gr3d->regs[0x800], value);
+			assert(gr3d->regs[0x800] < ARRAY_SIZE(gr3d->alu_sched));
+			gr3d->alu_sched[gr3d->regs[0x800]++] = value;
+			break;
+
+		case 0x804:
+			printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
+			assert(gr3d->regs[0x803] < ARRAY_SIZE(gr3d->alu));
+			gr3d->alu[gr3d->regs[0x803]++] = value;
 			break;
 
 		case 0x901:
