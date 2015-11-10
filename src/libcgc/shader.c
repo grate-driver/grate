@@ -765,6 +765,7 @@ static void fragment_dw_disasm(uint32_t *words)
 
 struct gr3d_context {
 	uint32_t regs[0x1000];
+	uint32_t pseq[0x40];
 	uint32_t alu[0x200];
 	uint32_t alu_sched[0x10];
 	uint32_t mfu[0x80];
@@ -785,6 +786,12 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 	case HOST1X_CLASS_GR3D:
 		gr3d = gr3d_context(user);
 		switch (offset) {
+		case 0x541:
+			printf("GR3D: PSEQ[%03x]: %08x\n", gr3d->regs[0x540], value);
+			assert(gr3d->regs[0x540] < ARRAY_SIZE(gr3d->pseq));
+			gr3d->pseq[gr3d->regs[0x540]++] = value;
+			break;
+
 		case 0x601:
 			printf("GR3D: MFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
 			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->mfu_sched));
@@ -846,6 +853,7 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	stream.user = &gr3d_ctx;
 	host1x_stream_interpret(&stream);
 
+	assert(gr3d_ctx.regs[0x540] == gr3d_ctx.regs[0x800]);
 	assert(gr3d_ctx.regs[0x600] == gr3d_ctx.regs[0x800]);
 	assert(gr3d_ctx.regs[0x700] == gr3d_ctx.regs[0x800]);
 	assert(gr3d_ctx.regs[0x900] == gr3d_ctx.regs[0x800]);
