@@ -739,7 +739,7 @@ static void fragment_tex_disasm(uint32_t *words)
 	instruction_free(inst);
 }
 
-static void fragment_exp_disasm(uint32_t *words)
+static void fragment_dw_disasm(uint32_t *words)
 {
 	int op;
 	struct instruction *inst;
@@ -749,11 +749,7 @@ static void fragment_exp_disasm(uint32_t *words)
 
 	op = instruction_get_bit(inst, 17);
 	if (op) {
-		pr("export ");
-		if (instruction_get_bit(inst, 4))
-			pr("tex");
-		else
-			pr("alu");
+		pr("dw ");
 	} else
 		pr("nop");
 
@@ -774,7 +770,7 @@ struct gr3d_context {
 	uint32_t mfu[0x80];
 	uint32_t mfu_sched[0x10];
 	uint32_t tex[0x40];
-	uint32_t exp[0x40];
+	uint32_t dw[0x40];
 };
 
 static struct gr3d_context *gr3d_context(void *ptr)
@@ -820,9 +816,9 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 			break;
 
 		case 0x901:
-			printf("GR3D: EXP[%03x]: %08x\n", gr3d->regs[0x900], value);
-			assert(gr3d->regs[0x900] < ARRAY_SIZE(gr3d->exp));
-			gr3d->exp[gr3d->regs[0x900]++] = value;
+			printf("GR3D: DW[%03x]: %08x\n", gr3d->regs[0x900], value);
+			assert(gr3d->regs[0x900] < ARRAY_SIZE(gr3d->dw));
+			gr3d->dw[gr3d->regs[0x900]++] = value;
 			break;
 
 		default:
@@ -878,8 +874,8 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 			}
 		}
 
-		printf("EXP:%03d", i + 1);
-		fragment_exp_disasm(gr3d_ctx.exp + i);
+		printf("DW :%03d", i + 1);
+		fragment_dw_disasm(gr3d_ctx.dw + i);
 		printf("\n");
 	}
 }
