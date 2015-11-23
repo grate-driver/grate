@@ -1,8 +1,24 @@
+## CDMA instructions
+
 |  Bits  | Meaning          |
 |-------:|:-----------------|
 |     31 | 0                |
 | 28..30 | opcode           |
 |  0..27 | opcode dependent |
+
+## Opcodes
+
+|  Value | Mnemonic |
+|-------:|:---------|
+|      0 | setclass |
+|      1 | incr     |
+|      2 | nonincr  |
+|      3 | mask     |
+|      4 | imm      |
+|      5 | restart  |
+|      6 | gather   |
+
+## Opcode encodings
 
 ### setclass
 
