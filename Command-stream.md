@@ -1,3 +1,5 @@
+See [NVIDIA's Host1x documentation](http://http.download.nvidia.com/tegra-public-appnotes/host1x.html)
+
 ## CDMA instructions
 
 |  Bits  | Meaning          |
