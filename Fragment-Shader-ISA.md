@@ -118,7 +118,7 @@ var0..3:
 
 | Bits | Meaning              |
 |-----:|:---------------------|
-| 5..6 | ???                  |
+| 5..6 | ??? (starts lighting up when passing output to SFU?)                 |
 | 3..4 | destination register |
 | 1..2 | opcode               |
 |    0 | saturate             |
