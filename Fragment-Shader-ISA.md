@@ -80,7 +80,7 @@ Registers:
 | 32..63 | uniform registers         |
 |     64 | accumulation?             |
 |     72 | fragment x-position       |
-|     73 | fragment x-position       |
+|     73 | fragment y-position       |
 |     75 | polygon face              |
 
 
