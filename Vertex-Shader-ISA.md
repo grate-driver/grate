@@ -1,4 +1,4 @@
-### Overview
+## Overview
 
 The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set (minus the flow control bits). The instruction set seems to be a strict subset of
 the NV30 vertex-shader, with control flow related features stripped.
@@ -9,6 +9,8 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
+Vertex processor has 31 local vec4 registers, 31 input vec4 attribute registers, 256 input vec4 uniform registers, 31 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
+
 ### See also
 
 Nouveau:
@@ -18,24 +20,29 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.c
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx_vertprog.c
 
+Instruction set specification:
+
+http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
+
 ### Instruction word encoding
 
 |     Bits | Meaning                     |
 |---------:|:----------------------------|
 |      127 | ???                         |
-|      126 | varying write enable        |
-|      125 | write condition flags (?)   |
+|      126 | vector write enable         |
+|      125 | condition flags write enable|
 | 123..124 | ???                         |
 |      122 | saturate result             |
-| 120..121 | ???                         |
+|      121 | condition register index    |
+|      120 | ???                         |
 |      119 | rC absolute value           |
 |      118 | rB absolute value           |
 |      117 | rA absolute value           |
 | 111..116 | vector destination register |
-|      110 | ???                         |
-|      109 | predicate enable            |
-|      108 | ??? (predicate-related?)    |
-|      107 | predicate negate            |
+|      110 | condition set               |
+|      109 | condition check             |
+|      108 | predicate was true          |
+|      107 | predicate was false         |
 |      106 | ??? (predicate-related?)    |
 |  98..105 | predicate swizzle           |
 |   96..97 | address register select     |
@@ -59,8 +66,7 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|        6 | ??? (related to ARL)        |
-|     2..5 | varying write               |
+|     2..6 | output write index          |
 |        1 | constant fetch offset       |
 |        0 | end of program              |
 
@@ -68,7 +74,7 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx
 
 |  Value | Mnemonic | Meaning                                 |
 |-------:|:---------|:----------------------------------------|
-|      0 | NOP ?    |                                         |
+|      0 | NOP      |                                         |
 |      1 | MOV      | rD = rA                                 |
 |      2 | MUL      | rD = rA * rB                            |
 |      3 | ADD      | rD = rA + rC                            |
@@ -85,11 +91,11 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx
 |     14 | FRC      | rD = fract(rA)                          |
 |     15 | FLR      | rD = floor(rA)                          |
 |     16 | SEQ      | rD = equal(rA, rB)                      |
-|     17 | SFL ?    | ???                                     |
+|     17 | SFL      | rD = bvec4(false, false, false, false)  |
 |     18 | SGT      | rD = greaterThan(rA, rB)                |
 |     19 | SLE      | rD = lessThanEqual(rA, rB)              |
 |     20 | SNE      | rD = notEqual(rA, rB)                   |
-|     21 | STR ?    | ???                                     |
+|     21 | STR      | rD = bvec4(true, true, true, true)      |
 |     22 | SSG ?    | ???                                     |
 |     23 | ARR ?    | ???                                     |
 |     24 | ARA ?    | ???                                     |
@@ -144,7 +150,42 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx
 
 | Value | Meaning            |
 |------:|:-------------------|
-|     0 | invalid/unknown    |
+|     0 | invalid/attribute  |
 |     1 | temporary          |
 |     2 | attribute          |
 |     3 | constant           |
+
+## Predicates
+
+There are 2 condition registers, bit "condition register index" selects register to use. Condition is set to false on start of vertex program execution, it is altered accordingly to the result of the executed instruction. Only the .x component of the comparison result affects condition register state.
+
+To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and .x component must be enabled in the op write-mask. If both vector and scalar masks enables .x, vector takes precedence.
+
+To execute instruction conditionally, "condition check" bit needs to be enabled combined with the "predicate was true/false" bit.
+
+As the result of a predicate vector instruction, corresponding components of the destination register are set to 1.0f (true) or 0.0f (false).
+
+SFL instruction sets condition state to false, STR to true.
+
+Non-predicative instructions, both scalar and vector, are changing condition state to true if rD.x != 0, otherwise to false.
+
+## Scalar instructions
+If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence. In order to write result of the scalar instruction, the destination register must be set to 63 and .
+
+### MOV instruction
+Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw components.
+
+## Execution abortion
+Program execution aborts if rD, rA, rB or rC is set to an invalid value, even if it's not used by a particular instruction. For rA, rB and rC the invalid range is 32-63, for rD it is 32-62.
+
+## Writing to output register
+
+In order to use result of scalar or vector operation further in shader pipeline, it needs to be stored in the output register.
+
+To write to the output:
+
+1. "output write index" needs to be selected to the valid output register number (0-31).
+2. to write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
+3. to write the result of the scalar instruction, bit "vector write enable" needs be unset and rD = 63.
+
+The respective components of the resultant vector of the executed instruction, selected by the vector/scalar write-mask, will be written to the corresponding output register, so consecutively executed instructions may alter only required output register components.
