@@ -170,7 +170,7 @@ SFL instruction sets condition state to false, STR to true.
 Non-predicative instructions, both scalar and vector, are changing condition state to true if rD.x != 0, otherwise to false.
 
 ## Scalar instructions
-If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence. In order to write result of the scalar instruction, the destination register must be set to 63 and .
+If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence.
 
 ### MOV instruction
 Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw components.
