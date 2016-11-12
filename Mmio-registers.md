@@ -1,7 +1,7 @@
 A very approximate MMIO-register overview:
 
 |          Range | Codename  | Use                    |
-|---------------:|:---------:|:-----------------------|
+|:---------------|:---------:|:-----------------------|
 | 0x000 .. 0x015 | HOST1X    | synchronization        |
 | 0x100 .. 0x126 | IDX       | geometry submission    |
 | 0x200 .. 0x20b | VPE       | vertex shader          |
