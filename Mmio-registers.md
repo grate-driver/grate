@@ -12,7 +12,7 @@ A very approximate MMIO-register overview:
 | 0x700 .. 0x741 | TEX       | texture mapping                                  |
 | 0x800 .. 0x83F | ALU       | fragment shader arithmetic-logic unit            |
 | 0x900 .. 0x903 | DW        | (Data Write) shader export unit, drive PSEQ<br>output to FDC using specified pixel color format<br>or back to PSEQ |
-| 0xA00 .. 0xA0C | FDC       | configure and control (flush to DRAM)<br>unified memory cache used by QRast, PSEQ, DW |
+| 0xA00 .. 0xA0C | FDC       | (Fragment Data Cache) configure and control (flush to DRAM)<br>unified memory cache used by QRast, PSEQ, DW |
 | 0xB00 .. 0xB01 | GSHIM     | ???                    |
 | 0xC00 .. 0xC01 | PIPEALIAS | ???                    |
 | 0xE00 .. 0xE6F | GLOBAL    | store framebuffer base addresses used for<br>intermediate (depth buffer, stencil...) and final<br>render results, various engines configs used to<br>orchestrate their coordination and miscellaneous<br>stuff |
