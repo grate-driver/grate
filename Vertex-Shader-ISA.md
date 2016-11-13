@@ -185,7 +185,7 @@ In order to use result of scalar or vector operation further in shader pipeline,
 To write to the output:
 
 1. "output write index" needs to be selected to the valid output register number (0-31).
-2. to write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
-3. to write the result of the scalar instruction, bit "vector write enable" needs be unset and rD = 63.
+2. To write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
+3. To write the result of the scalar instruction, bit "vector write enable" needs be unset. To avoid writing, "output write index" needs to be set to invalid value (32-63).
 
 The respective components of the resultant vector of the executed instruction, selected by the vector/scalar write-mask, will be written to the corresponding output register, so consecutively executed instructions may alter only required output register components.
