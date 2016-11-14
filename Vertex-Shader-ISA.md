@@ -9,7 +9,7 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
-Vertex processor has 31 local vec4 registers, 31 input vec4 attribute registers, 256 input vec4 uniform registers, 31 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
+Vertex processor has 31 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 uniform registers, 31 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
 
@@ -161,7 +161,7 @@ There are 2 condition registers, bit "condition register index" selects register
 
 To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and .x component must be enabled in the op write-mask. If both vector and scalar masks enables .x, vector takes precedence.
 
-To execute instruction conditionally, "condition check" bit needs to be enabled combined with the "predicate was true/false" bit.
+To execute instruction conditionally, "condition check" bit needs to be enabled combined with the "predicate was true/false" bit. If both "predicate was true/false" bits are disabled, instruction won't be executed.
 
 As the result of a predicate vector instruction, corresponding components of the destination register are set to 1.0f (true) or 0.0f (false).
 
@@ -186,6 +186,6 @@ To write to the output:
 
 1. "output write index" needs to be selected to the valid output register number (0-31).
 2. To write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
-3. To write the result of the scalar instruction, bit "vector write enable" needs be unset. To avoid writing, "output write index" needs to be set to invalid value (32-63).
+3. To write the result of the scalar instruction, bit "vector write enable" needs be unset. To avoid writing, "vector write enable" needs be set and vector write-mask all unset.
 
-The respective components of the resultant vector of the executed instruction, selected by the vector/scalar write-mask, will be written to the corresponding output register, so consecutively executed instructions may alter only required output register components.
+The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
