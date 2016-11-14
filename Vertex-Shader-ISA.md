@@ -9,7 +9,7 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
-Vertex processor has 31 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 uniform registers, 31 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
+Vertex processor has 32 local vec4 registers, 32 vec4 attribute registers, 256 input vec4 uniform registers, 32 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
 
