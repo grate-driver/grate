@@ -163,7 +163,7 @@ There are 2 condition registers, bit "condition register index" selects register
 2. equal to 0.0
 3. greater than 0.0
 
-To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and resultant register component must be enabled in the op write-mask. If both vector and scalar masks enables .x, vector takes precedence.
+To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and resultant register component must be enabled in the op write-mask. Result of a vector operation takes precedence.
 
 To execute instruction conditionally: "condition check" bit needs to be enabled combined with the "predicate - *" bits. The resultant register component will be updated if corresponding condition register component state, selected by predicate swizzle, satisfies the tested predicate.
 
