@@ -20,9 +20,10 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.c
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx_vertprog.c
 
-Instruction set specification:
+Instruction set specifications:
 
 http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
+http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 
 ### Instruction word encoding
 
