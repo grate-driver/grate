@@ -96,7 +96,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
 |     19 | SLE      | rD = lessThanEqual(rA, rB)              |
 |     20 | SNE      | rD = notEqual(rA, rB)                   |
 |     21 | STR      | rD = bvec4(true, true, true, true)      |
-|     22 | SSG ?    | ???                                     |
+|     22 | SSG      | rD = setSign(rA)                        |
 |     23 | ARR ?    | ???                                     |
 |     24 | ARA ?    | ???                                     |
 | 25..31 | ???      | ???                                     |
