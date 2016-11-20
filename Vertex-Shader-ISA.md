@@ -157,19 +157,17 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
 
 ## Predicates
 
-There are 2 condition registers, bit "condition register index" selects register to use. Condition register state is stored per .xyzw component, it is set to "equal to 0" on start of vertex program execution, it is altered accordingly to the result of the executed instruction (per-component) to one of the following states:
+There are 2 condition registers, bit "condition register index" selects register to use. Condition register state is stored per .xyzw component, it is set to "equal to 0" on start of vertex program execution, it is altered accordingly to the rD.xyzw of the executed instruction (per-component) to one of the following states:
 
-1. less than 0.0
-2. equal to 0.0
-3. greater than 0.0
+1. rD.c less than 0.0
+2. rD.c equal to 0.0
+3. rD.c greater than 0.0
 
 To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and resultant register component must be enabled in the op write-mask. Result of a vector operation takes precedence.
 
 To execute instruction conditionally: "condition check" bit needs to be enabled combined with the "predicate - *" bits. The resultant register component will be updated if corresponding condition register component state, selected by predicate swizzle, satisfies the tested predicate.
 
 As the result of a predicate vector instruction, corresponding components of the destination register are set to 1.0f (true) or 0.0f (false).
-
-SFL instruction sets condition state to false, STR to true.
 
 ## Scalar instructions
 If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence.
