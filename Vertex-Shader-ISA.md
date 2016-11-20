@@ -98,8 +98,8 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |     20 | SNE      | rD = notEqual(rA, rB)                   |
 |     21 | STR      | rD = bvec4(true, true, true, true)      |
 |     22 | SSG      | rD = sign(rA)                           |
-|     23 | ARR ?    | ???                                     |
-|     24 | ARA ?    | ???                                     |
+|     23 | ARR ?    | rD = round(rA)                          |
+|     24 | ARA ?    | rD = rA + rB                            |
 | 25..31 | ???      | ???                                     |
 
 ### scalar opcodes
