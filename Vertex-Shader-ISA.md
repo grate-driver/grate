@@ -41,9 +41,9 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
 | 111..116 | vector destination register |
 |      110 | condition set               |
 |      109 | condition check             |
-|      108 | predicate was true          |
-|      107 | predicate was false         |
-|      106 | ??? (predicate-related?)    |
+|      108 | predicate - greater than 0  |
+|      107 | predicate - equal to 0      |
+|      106 | predicate - less than 0     |
 |  98..105 | predicate swizzle           |
 |   96..97 | address register select     |
 |   91..95 | scalar opcode               |
@@ -157,17 +157,19 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
 
 ## Predicates
 
-There are 2 condition registers, bit "condition register index" selects register to use. Condition is set to false on start of vertex program execution, it is altered accordingly to the result of the executed instruction. Only the .x component of the comparison result affects condition register state.
+There are 2 condition registers, bit "condition register index" selects register to use. Condition register state is stored per .xyzw component, it is set to "equal to 0" on start of vertex program execution, it is altered accordingly to the result of the executed instruction (per-component) to one of the following states:
 
-To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and .x component must be enabled in the op write-mask. If both vector and scalar masks enables .x, vector takes precedence.
+1. less than 0.0
+2. equal to 0.0
+3. greater than 0.0
 
-To execute instruction conditionally, "condition check" bit needs to be enabled combined with the "predicate was true/false" bit. If both "predicate was true/false" bits are disabled, instruction won't be executed.
+To update the content of the condition register, bits "condition set" and "condition flags write enable" must be set and resultant register component must be enabled in the op write-mask. If both vector and scalar masks enables .x, vector takes precedence.
+
+To execute instruction conditionally: "condition check" bit needs to be enabled combined with the "predicate - *" bits. The resultant register component will be updated if corresponding condition register component state, selected by predicate swizzle, satisfies the tested predicate.
 
 As the result of a predicate vector instruction, corresponding components of the destination register are set to 1.0f (true) or 0.0f (false).
 
 SFL instruction sets condition state to false, STR to true.
-
-Non-predicative instructions, both scalar and vector, are changing condition state to true if rD.x != 0, otherwise to false.
 
 ## Scalar instructions
 If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence.
