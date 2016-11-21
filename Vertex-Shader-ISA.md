@@ -9,7 +9,7 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
-Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 uniform registers, 32 output vec4 registers, 2 condition registers. Maximum size of vertex program is 256 VLIW instructions.
+Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 uniform registers, 32 output vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
 
@@ -68,7 +68,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
 |     2..6 | output write index          |
-|        1 | constant fetch offset       |
+|        1 | constant relative addressing enable |
 |        0 | end of program              |
 
 ### vector opcodes
@@ -88,7 +88,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |     10 | MAX      | rD = max(rA, rB)                        |
 |     11 | SLT      | rD = lessThan(rA, rB)                   |
 |     12 | SGE      | rD = greaterThanEqual(rA, rB)           |
-|     13 | ARL      | rD = floor(rA)                          |
+|     13 | ARL      | A0 = floor(rA)                          |
 |     14 | FRC      | rD = fract(rA)                          |
 |     15 | FLR      | rD = floor(rA)                          |
 |     16 | SEQ      | rD = equal(rA, rB)                      |
@@ -190,3 +190,11 @@ To write to the output:
 3. To write the result of the scalar instruction, bit "vector write enable" needs be unset. To avoid writing, "vector write enable" needs be set and vector write-mask all unset.
 
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
+
+## Relative addressing
+There are 4 relative base address registers (A0.xyzw). The ARL (address register load) vector operation alters content of the address registers, so that each component of rA.xyzw represents the corresponding address register. Destination vector register write mask is used to enable writes to the required address register, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
+
+### Uniforms
+To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index.
+
+    fetched uniform index = A0.c + uniform fetch index
