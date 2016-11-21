@@ -98,7 +98,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |     20 | SNE      | rD = notEqual(rA, rB)                   |
 |     21 | STR      | rD = bvec4(true, true, true, true)      |
 |     22 | SSG      | rD = sign(rA)                           |
-|     23 | ARR ?    | rD = round(rA)                          |
+|     23 | ARR      | A0 = round(rA)                          |
 |     24 | ARA ?    | rD = rA + rB                            |
 | 25..31 | ???      | ???                                     |
 
@@ -192,7 +192,7 @@ To write to the output:
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
 
 ## Relative addressing
-There are 4 relative base address registers (A0.xyzw). The ARL (address register load) vector operation alters content of the address registers, so that each component of rA.xyzw represents the corresponding address register. Destination vector register write mask is used to enable writes to the required address register, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
+There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations alters content of the address registers, so that each component of rA.xyzw represents the corresponding address register. Destination vector register write mask is used to enable writes to the required address register, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
 
 ### Uniforms
 To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index, address_register_select = 0 is for A0.x and etc.
