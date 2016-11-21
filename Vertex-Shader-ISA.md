@@ -195,6 +195,6 @@ The respective components of the resultant vector of the executed instruction, e
 There are 4 relative base address registers (A0.xyzw). The ARL (address register load) vector operation alters content of the address registers, so that each component of rA.xyzw represents the corresponding address register. Destination vector register write mask is used to enable writes to the required address register, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
 
 ### Uniforms
-To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index.
+To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index, address_register_select = 0 is for A0.x and etc.
 
     fetched uniform index = A0.c + uniform fetch index
