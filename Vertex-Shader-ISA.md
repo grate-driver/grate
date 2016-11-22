@@ -50,7 +50,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |   91..95 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   84..85 | ???                         |
-|   76..83 | constant register fetch     |
+|   76..83 | constant fetch index        |
 |   72..75 | attribute fetch             |
 |       71 | rA negate                   |
 |   63..70 | rA swizzle                  |
@@ -197,4 +197,4 @@ There are 4 relative base address registers (A0.xyzw). The ARL (address register
 ### Uniforms
 To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index, address_register_select = 0 is for A0.x and etc.
 
-    fetched uniform index = A0.c + uniform fetch index
+    fetched constant index = A0.c + constant fetch index
