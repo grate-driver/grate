@@ -555,8 +555,10 @@ static int drm_channel_submit(struct host1x_client *client,
 	}
 
 	relocs = calloc(num_relocs, sizeof(*relocs));
-	if (!relocs)
+	if (!relocs) {
+		free(cmdbufs);
 		return -ENOMEM;
+	}
 
 	reloc = relocs;
 
@@ -594,13 +596,16 @@ static int drm_channel_submit(struct host1x_client *client,
 	if (err < 0) {
 		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_SUBMIT) failed: %d\n",
 			errno);
-		return -errno;
+		err = -errno;
+	} else {
+		channel->fence = args.fence;
+		err = 0;
 	}
 
-	channel->fence = args.fence;
+	free(relocs);
+	free(cmdbufs);
 
-	return 0;
-	return 0;
+	return err;
 }
 
 static int drm_channel_flush(struct host1x_client *client, uint32_t *fence)

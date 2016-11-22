@@ -210,7 +210,7 @@ int grate_get_attribute_location(struct grate *grate, const char *name)
 	struct grate_program *program = grate->program;
 	unsigned int i;
 
-	for (i = 0; i < GRATE_MAX_ATTRIBUTES; i++) {
+	for (i = 0; i < program->num_attributes; i++) {
 		struct grate_attribute *attribute = &program->attributes[i];
 
 		if (strcmp(name, attribute->name) == 0)
