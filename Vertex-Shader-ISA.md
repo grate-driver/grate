@@ -187,7 +187,7 @@ To write to the output:
 
 1. "output write index" needs to be selected to the valid output register number (0-31).
 2. To write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
-3. To write the result of the scalar instruction, bit "vector write enable" needs be unset. To avoid writing, "vector write enable" needs be set and vector write-mask all unset.
+3. To write the result of the scalar instruction, bit "vector write enable" needs be unset.
 
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
 
