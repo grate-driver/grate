@@ -253,6 +253,10 @@ void grate_program_link(struct grate_program *program)
 		case GLSL_KIND_CONSTANT:
 			printf("constant %s @%u", symbol->name,
 			       symbol->location);
+
+			memcpy(&program->uniform[symbol->location * 4],
+			       symbol->vector, 16);
+
 			break;
 
 		default:
