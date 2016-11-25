@@ -203,7 +203,7 @@ Note on ARR/ARL/ARA instructions: the rD should be even value, otherwise address
 ## Constants
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
 
-To use relative addressing, bit "constant relative addressing enable" needs to be set and bitfield "address register select" selected to the required address register index. If constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f).
+To use relative addressing, bit "constant relative addressing enable" needs to be set and bitfield "address register select" selected to the required address register index. When constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f) if fetched constant index > 1023 and to constant[1] if fetched constant index < -1023.
 
     fetched constant index = A0.c + constant fetch index
 
