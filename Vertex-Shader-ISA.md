@@ -198,7 +198,7 @@ There are 4 relative base address registers (A0.xyzw). The ARL (address register
 
 Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative. Since range of the "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
 
-Note on ARR/ARL/ARA instructions: the rD should be even value, otherwise address register isn't updated.
+Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be even value, otherwise address register isn't updated.
 
 ## Constants
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
