@@ -83,7 +83,7 @@ https://www.google.com/patents/US7755634
 |      3 | ADD      | rD = rA + rC                            |
 |      4 | MAD      | rD = rA * rB + rC                       |
 |      5 | DP3      | rD = dot(rA.xyz, rB.xyz)                |
-|      6 | DPH ?    | rD = dot(vec4(rA.xyz, 1.0), rB)         |
+|      6 | DPH      | rD = dot(rA, vec4(rB.xyz, 1.0))         |
 |      7 | DP4      | rD = dot(rA, rB)                        |
 |      8 | DST ?    | rD = vec4(1.0, rA.y * rB.y, rA.z, rB.w) |
 |      9 | MIN      | rD = min(rA, rB)                        |
