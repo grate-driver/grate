@@ -15,15 +15,18 @@ Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers,
 
 Nouveau:
 
-
-http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.h
-http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.c
-http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx_vertprog.c
+http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.h  
+http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.c  
+http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx_vertprog.c  
 
 Instruction set specifications:
 
-http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt
-http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
+http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt  
+http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt  
+
+Patents:
+
+https://www.google.com/patents/US7755634  
 
 ### Instruction word encoding
 
@@ -49,8 +52,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |   96..97 | address register select     |
 |   91..95 | scalar opcode               |
 |   86..90 | vector opcode               |
-|   84..85 | ???                         |
-|   76..83 | constant fetch index        |
+|   76..85 | constant fetch index        |
 |   72..75 | attribute fetch             |
 |       71 | rA negate                   |
 |   63..70 | rA swizzle                  |
@@ -99,7 +101,7 @@ http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt
 |     21 | STR      | rD = bvec4(true, true, true, true)      |
 |     22 | SSG      | rD = sign(rA)                           |
 |     23 | ARR      | A0 = round(rA)                          |
-|     24 | ARA ?    | rD = rA + rB                            |
+|     24 | ARA      | A0.x = A0.z = A0.x + A0.z<br>A0.y = A0.w = A0.y + A0.w |
 | 25..31 | ???      | ???                                     |
 
 ### scalar opcodes
@@ -191,12 +193,23 @@ To write to the output:
 
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
 
-## Relative addressing
-There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations alters content of the address registers, so that each component of rA.xyzw represents the corresponding address register. Destination vector register write mask is used to enable writes to the required address register, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
+## Address registers
+There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations alters content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
 
-Note for ARR/ARL instructions: the rD should be even value, otherwise address register isn't loaded.
+Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative. Since range of the "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
 
-### Uniforms
-To use relative addressing, bit "constant relative addressing enable" needs to be set and bits "address register select" set to the required address register index, address_register_select = 0 is for A0.x and etc.
+Note on ARR/ARL/ARA instructions: the rD should be even value, otherwise address register isn't updated.
+
+## Constants
+To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
+
+To use relative addressing, bit "constant relative addressing enable" needs to be set and bitfield "address register select" selected to the required address register index. If constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f).
 
     fetched constant index = A0.c + constant fetch index
+
+| Address register select | Component |
+|:-----------------------:|:---------:|
+|                       0 | A0.x      |
+|                       1 | A0.y      |
+|                       2 | A0.z      |
+|                       3 | A0.w      |
