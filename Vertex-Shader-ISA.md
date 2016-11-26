@@ -38,7 +38,7 @@ https://www.google.com/patents/US7755634
 | 123..124 | ???                         |
 |      122 | saturate result             |
 |      121 | condition register index    |
-|      120 | ???                         |
+|      120 | address register read enable|
 |      119 | rC absolute value           |
 |      118 | rB absolute value           |
 |      117 | rA absolute value           |
@@ -199,6 +199,13 @@ There are 4 relative base address registers (A0.xyzw). The ARL (address register
 Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative. Since range of the "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
 
 Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be even value, otherwise address register isn't updated.
+
+To read address register:
+  1. Bit "address register read enable" needs to be set.
+  2. Bit "constant relative addressing enable" needs to be set.
+  3. Source register type set to "uniform".
+
+The source "uniform" operand will be multiplexed to the address register.
 
 ## Constants
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
