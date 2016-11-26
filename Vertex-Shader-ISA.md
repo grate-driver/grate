@@ -35,7 +35,8 @@ https://www.google.com/patents/US7755634
 |      127 | ???                         |
 |      126 | vector write enable         |
 |      125 | condition flags write enable|
-| 123..124 | ???                         |
+|      124 | ???                         |
+|      123 | attribute relative addressing enable |
 |      122 | saturate result             |
 |      121 | condition register index    |
 |      120 | address register read enable|
@@ -53,7 +54,7 @@ https://www.google.com/patents/US7755634
 |   91..95 | scalar opcode               |
 |   86..90 | vector opcode               |
 |   76..85 | constant fetch index        |
-|   72..75 | attribute fetch             |
+|   72..75 | attribute fetch index       |
 |       71 | rA negate                   |
 |   63..70 | rA swizzle                  |
 |   57..62 | rA register                 |
@@ -196,7 +197,7 @@ The respective components of the resultant vector of the executed instruction, e
 ## Address registers
 There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations are altering content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
 
-Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative. Since range of the "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
+Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative.
 
 Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be even value, otherwise address register isn't updated.
 
@@ -205,18 +206,7 @@ To read address register:
   2. Bit "constant relative addressing enable" needs to be set.
   3. Source register type set to "constant".
 
-The source "constant" operand will be multiplexed to the address register A0.xyzw.
-
-## Constants
-To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
-
-To use relative addressing:
-  1. Bit "constant relative addressing enable" needs to be set.
-  2. Bitfield "address register select" selected to the required address register index.
-
-When constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f) if fetched constant index > 1023 and to constant[1] if fetched constant index < 0.
-
-    fetched constant index = A0.c + constant fetch index
+The source operand with a "constant" type will be multiplexed to the address register A0.xyzw.
 
 | Address register select | Component |
 |:-----------------------:|:---------:|
@@ -224,3 +214,27 @@ When constant index is out of range, the fetched constant value is assigned to v
 |                       1 | A0.y      |
 |                       2 | A0.z      |
 |                       3 | A0.w      |
+
+## Constant registers
+To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
+
+To use relative addressing:
+  1. Bit "constant relative addressing enable" needs to be set.
+  2. Bitfield "address register select" selected to the required address register.
+
+Since the range of "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
+
+When constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f) if fetched constant index > 1023 and to constant[1] if fetched constant index < 0.
+
+    fetched constant index = A0.c + constant fetch index
+
+## Attribute registers
+To multiplex source register rA/rB/rC to attribute, its type needs to be set to "attribute" and bitfield "attribute fetch index" pointed to the required vertex attribute.
+
+To use relative addressing:
+  1. Bit "attribute relative addressing enable" needs to be set.
+  2. Bitfield "address register select" selected to the required address register.
+
+<!-- Out-of-bounds indexes not checked -->
+
+    fetched attribute index = A0.c + attribute fetch index
