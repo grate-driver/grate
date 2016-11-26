@@ -194,7 +194,7 @@ To write to the output:
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
 
 ## Address registers
-There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations alters content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
+There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations are altering content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
 
 Destination vector register write mask enables write to the address register component, the actual destination vector register isn't getting affected (like nv30). The address register value can be negative. Since range of the "constant fetch index" is 0..1023, the valid address register range is -1023..1023.
 
