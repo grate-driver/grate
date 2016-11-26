@@ -205,7 +205,7 @@ To read address register:
   2. Bit "constant relative addressing enable" needs to be set.
   3. Source register type set to "uniform".
 
-The source "uniform" operand will be multiplexed to the address register.
+The source "uniform" operand will be multiplexed to the address register A0.xyzw.
 
 ## Constants
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
