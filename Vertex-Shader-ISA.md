@@ -35,7 +35,7 @@ https://www.google.com/patents/US7755634
 |      127 | ???                         |
 |      126 | vector write enable         |
 |      125 | condition flags write enable|
-|      124 | ???                         |
+|      124 | export relative addressing enable |
 |      123 | attribute relative addressing enable |
 |      122 | saturate result             |
 |      121 | condition register index    |
@@ -193,6 +193,15 @@ To write to the export:
 3. To write the result of the scalar instruction, bit "vector write enable" needs be unset.
 
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the export register, so consecutively executed instructions may alter only required export register components.
+
+To use relative addressing:
+
+  1. Bit "export relative addressing enable" needs to be set.
+  2. Bitfield "address register select" selected to the required address register.
+
+<!-- Out-of-bounds export not checked -->
+
+    export write index = A0.c + export write index
 
 ## Address registers
 There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations are altering content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
