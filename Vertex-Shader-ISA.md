@@ -9,7 +9,7 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
-Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 uniform registers, 32 output vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
+Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 constant registers, 32 output vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
 
@@ -203,12 +203,12 @@ Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be
 To read address register:
   1. Bit "address register read enable" needs to be set.
   2. Bit "constant relative addressing enable" needs to be set.
-  3. Source register type set to "uniform".
+  3. Source register type set to "constant".
 
-The source "uniform" operand will be multiplexed to the address register A0.xyzw.
+The source "constant" operand will be multiplexed to the address register A0.xyzw.
 
 ## Constants
-To multiplex source register rA/rB/rC to constant, its type needs to be set to "uniform" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
+To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
 
 To use relative addressing, bit "constant relative addressing enable" needs to be set and bitfield "address register select" selected to the required address register index. When constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f) if fetched constant index > 1023 and to constant[1] if fetched constant index < 0.
 
