@@ -9,7 +9,7 @@ There's five operands, one destination register per unit (referred to as rD), an
 
 There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
 
-Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 constant registers, 32 output vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
+Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 constant registers, 32(16?) export vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
 
@@ -70,7 +70,7 @@ https://www.google.com/patents/US7755634
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|     2..6 | output write index          |
+|     2..6 | export write index          |
 |        1 | constant relative addressing enable |
 |        0 | end of program              |
 
@@ -182,17 +182,17 @@ Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw componen
 ## Execution abortion
 Program execution aborts if rD, rA, rB or rC is set to an invalid value, even if it's not used by a particular instruction. For rA, rB and rC the invalid range is 32-63, for rD it is 32-62.
 
-## Writing to output register
+## Export
 
-In order to use result of scalar or vector operation further in shader pipeline, it needs to be stored in the output register.
+In order to use result of scalar or vector operation further in shader pipeline, it needs to be stored in the export register.
 
-To write to the output:
+To write to the export:
 
-1. "output write index" needs to be selected to the valid output register number (0-31).
+1. "export write index" needs to be selected to the valid export register number (0-31).
 2. To write the result of the vector instruction, bit "vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
 3. To write the result of the scalar instruction, bit "vector write enable" needs be unset.
 
-The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the output register, so consecutively executed instructions may alter only required output register components.
+The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the export register, so consecutively executed instructions may alter only required export register components.
 
 ## Address registers
 There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations are altering content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
