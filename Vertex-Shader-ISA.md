@@ -230,6 +230,8 @@ When constant index is out of range, the fetched constant value is assigned to v
 
     fetched constant index = A0.c + constant fetch index
 
+Note on a bit 120: when bit 120 is set the relative addressing isn't working, it acts like a usual non-relative constant fetch.
+
 ## Attribute registers
 To multiplex source register rA/rB/rC to attribute, its type needs to be set to "attribute" and bitfield "attribute fetch index" pointed to the required vertex attribute.
 
