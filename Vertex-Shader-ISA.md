@@ -210,7 +210,7 @@ Destination vector register write mask enables write to the address register com
 
 Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be even value, otherwise address register isn't updated.
 
-Note on a bit 120: when it is set, the fetched address register is overridden as A0.xzyw = (0.0f, 0.0f, 0.0f, 0.0f).
+Note on a bit 120: when it is set, the fetched address register is overridden as A0.xyzw = (0.0f, 0.0f, 0.0f, 0.0f).
 
 | Address register select | Component |
 |:-----------------------:|:---------:|
