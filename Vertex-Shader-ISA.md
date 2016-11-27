@@ -210,6 +210,8 @@ Destination vector register write mask enables write to the address register com
 
 Note on ARR/ARL/ARA instructions: the destination vector register (rD) should be even value, otherwise address register isn't updated.
 
+Note on a bit 120: when it is set, the fetched address register is overridden as A0.xzyw = (0.0f, 0.0f, 0.0f, 0.0f).
+
 | Address register select | Component |
 |:-----------------------:|:---------:|
 |                       0 | A0.x      |
@@ -229,8 +231,6 @@ Since the range of "constant fetch index" is 0..1023, the valid address register
 When constant index is out of range, the fetched constant value is assigned to vec4(0.0f, 0.0f, 0.0f, 0.0f) if fetched constant index > 1023 and to constant[1] if fetched constant index < 0.
 
     fetched constant index = A0.c + constant fetch index
-
-Note on a bit 120: when bit 120 is set the relative addressing isn't working, it acts like a usual non-relative constant fetch.
 
 ## Attribute registers
 To multiplex source register rA/rB/rC to attribute, its type needs to be set to "attribute" and bitfield "attribute fetch index" pointed to the required vertex attribute.
