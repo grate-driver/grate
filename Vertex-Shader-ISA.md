@@ -228,7 +228,7 @@ Note on a bit 120: when it is set, the fetched address register is overridden as
 |                       2 | A0.z      |
 |                       3 | A0.w      |
 
-Address register A0.xyzw can be pushed/popped to the stack with a PUSHA/POPA scalar and vector operations. Simultaneous and identical scalar-vector push/pop operation within one instruction results into only one push/pop actually being performed, while simultaneous and non-identical to the no-op. Maximum depth of the stack is 8.
+Address register A0.xyzw can be pushed/popped to the stack with a PUSHA/POPA scalar and vector operations. Simultaneous and identical scalar-vector push/pop operation within one instruction results into only one push/pop actually being performed, while simultaneous and non-identical into the no-op. Maximum depth of the stack is 8.
 
 ## Constant registers
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
