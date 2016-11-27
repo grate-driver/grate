@@ -189,6 +189,8 @@ Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw componen
 ## Execution abortion
 Program execution aborts if rD, rA, rB or rC is set to an invalid value, even if it's not used by a particular instruction. For rA, rB and rC the invalid range is 32-63, for rD it is 32-62.
 
+Stack overflow/underflow leads to the abortion.
+
 ## Export
 
 In order to use result of scalar or vector operation further in shader pipeline, it needs to be stored in the export register.
@@ -225,6 +227,8 @@ Note on a bit 120: when it is set, the fetched address register is overridden as
 |                       1 | A0.y      |
 |                       2 | A0.z      |
 |                       3 | A0.w      |
+
+Address register A0.xyzw can be pushed/popped to the stack with a PUSHA/POPA scalar and vector operations. Simultaneous scalar-vector push/pop operation within one instruction results into only one push/pop actually being performed. Maximum depth of the stack is 8.
 
 ## Constant registers
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
