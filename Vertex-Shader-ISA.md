@@ -21,8 +21,9 @@ http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx
 
 Instruction set specifications:
 
-http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program.txt  
-http://developer.download.nvidia.com/opengl/specs/GL_NV_vertex_program2.txt  
+https://www.opengl.org/registry/specs/NV/vertex_program.txt  
+https://www.opengl.org/registry/specs/NV/vertex_program2.txt  
+https://www.opengl.org/registry/specs/NV/vertex_program3.txt  
 
 Patents:
 
@@ -103,7 +104,10 @@ https://www.google.com/patents/US7755634
 |     22 | SSG      | rD = sign(rA)                           |
 |     23 | ARR      | A0 = round(rA)                          |
 |     24 | ARA      | A0.x = A0.z = A0.x + A0.z<br>A0.y = A0.w = A0.y + A0.w |
-| 25..31 | ???      | ???                                     |
+|     25 | TXL ?    | ???                                     |
+|     26 | PUSHA    | push A0 to stack                        |
+|     27 | POPA     | pop A0 from stack                       |
+| 28..31 | ???      | ???                                     |
 
 ### scalar opcodes
 
@@ -124,6 +128,9 @@ https://www.google.com/patents/US7755634
 |     14 | EX2      | rD = exp2(rC)                                                         |
 |     15 | SIN      | rD = sin(rC)                                                          |
 |     16 | COS      | rD = cos(rC)                                                          |
+| 17..18 | ???      | ???                                                                   |
+|     19 | PUSHA    | push A0 to stack                                                      |
+|     20 | POPA     | pop A0 from stack                                                     |
 
 ### swizzle
 
