@@ -63,7 +63,7 @@ https://www.google.com/patents/US7755634
 |   40..45 | rB register                 |
 |   38..39 | rB type                     |
 |       37 | rC negate                   |
-|   29..36 | rC swizzle / branching IADDR|
+|   29..36 | rC swizzle / IADDR          |
 |   23..28 | rC register                 |
 |   21..22 | rC type                     |
 |   17..20 | scalar op write-mask        |
@@ -254,3 +254,5 @@ To use relative addressing:
 
 ## Branching
 Scalars BRA operation is used to jump to an arbitrary instruction. Following nouveau terminology, an argument of the BRA operation is the destination instruction ID (IADDR), it is embedded into the rC swizzle bitfield.
+
+Branching is performed only if the instruction predicate test is positive. So use of "predicate - *" bits is mandatory for the branching instruction.
