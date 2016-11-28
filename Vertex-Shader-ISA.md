@@ -7,8 +7,6 @@ Each instruction contains up to two operations; one 4-component vector ALU (arit
 
 There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
 
-There's no branching what-so-ever in the instruction set. Instead, predicated operations as well as normal ALU operations are used. This means that all loops must be unrolled, among other things.
-
 Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 constant registers, 32(16?) export vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
 
 ### See also
@@ -65,7 +63,7 @@ https://www.google.com/patents/US7755634
 |   40..45 | rB register                 |
 |   38..39 | rB type                     |
 |       37 | rC negate                   |
-|   29..36 | rC swizzle                  |
+|   29..36 | rC swizzle / branching IADDR|
 |   23..28 | rC register                 |
 |   21..22 | rC type                     |
 |   17..20 | scalar op write-mask        |
@@ -121,7 +119,7 @@ https://www.google.com/patents/US7755634
 |      5 | EXP      | rD = vec4(pow(2.0, floor(rC.x)), fract(rC.x), pow(2.0, rC.x), 1.0)    |
 |      6 | LOG ?    | rD = vec4(floor(log2(abs(rC.x))), abs(rC.x) / pow(2.0, floor(log2(rC.x))), log2(abs(rC.x)), 1.0) |
 |      7 | LIT ?    | rD = vec4(1.0, max(rD.x, 0.0), rD.x > 0.0 ? pow(max(rC.y, 0.0), clamp(rC.w, -128.0, 128.0) : 0.0, 1.0) |
-|      9 | BRA ?    |                                                                       |
+|      9 | BRA      | jump to the IADDR                                                     |
 |     11 | CAL ?    |                                                                       |
 |     12 | RET ?    |                                                                       |
 |     13 | LG2      | rD = log2(rC)                                                         |
@@ -253,3 +251,6 @@ To use relative addressing:
 <!-- Out-of-bounds indexes not checked -->
 
     fetched attribute index = A0.c + attribute fetch index
+
+## Branching
+Scalars BRA operation is used to jump to an arbitrary instruction. Following nouveau terminology, an argument of the BRA operation is the destination instruction ID (IADDR), it is embedded into the rC swizzle bitfield.
