@@ -1,7 +1,6 @@
 ## Overview
 
-The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set (minus the flow control bits). The instruction set seems to be a strict subset of
-the NV30 vertex-shader, with control flow related features stripped.
+The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set (minus the flow control bits). The instruction set seems to be a strict subset of the NV30 vertex-shader.
 
 Each instruction contains up to two operations; one 4-component vector ALU (arithmetic logic unit) operation, and one 1-component SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
 
@@ -103,8 +102,8 @@ https://www.google.com/patents/US7755634
 |     23 | ARR      | A0 = round(rA)                          |
 |     24 | ARA      | A0.x = A0.z = A0.x + A0.z<br>A0.y = A0.w = A0.y + A0.w |
 |     25 | TXL ?    | ???                                     |
-|     26 | PUSHA    | push A0 to stack                        |
-|     27 | POPA     | pop A0 from stack                       |
+|     26 | PUSHA    | push(A0)                                |
+|     27 | POPA     | A0 = pop()                              |
 | 28..31 | ???      | ???                                     |
 
 ### scalar opcodes
@@ -119,16 +118,16 @@ https://www.google.com/patents/US7755634
 |      5 | EXP      | rD = vec4(pow(2.0, floor(rC.x)), fract(rC.x), pow(2.0, rC.x), 1.0)    |
 |      6 | LOG ?    | rD = vec4(floor(log2(abs(rC.x))), abs(rC.x) / pow(2.0, floor(log2(rC.x))), log2(abs(rC.x)), 1.0) |
 |      7 | LIT ?    | rD = vec4(1.0, max(rD.x, 0.0), rD.x > 0.0 ? pow(max(rC.y, 0.0), clamp(rC.w, -128.0, 128.0) : 0.0, 1.0) |
-|      9 | BRA      | jump to the IADDR                                                     |
-|     11 | CAL ?    |                                                                       |
-|     12 | RET ?    |                                                                       |
+|      9 | BRA      | jump(IADDR)                                                           |
+|     11 | CAL      | push(IP); jump(IADDR)                                                 |
+|     12 | RET      | jump( pop() )                                                         |
 |     13 | LG2      | rD = log2(rC)                                                         |
 |     14 | EX2      | rD = exp2(rC)                                                         |
 |     15 | SIN      | rD = sin(rC)                                                          |
 |     16 | COS      | rD = cos(rC)                                                          |
 | 17..18 | ???      | ???                                                                   |
-|     19 | PUSHA    | push A0 to stack                                                      |
-|     20 | POPA     | pop A0 from stack                                                     |
+|     19 | PUSHA    | push(A0)                                                              |
+|     20 | POPA     | A0 = pop()                                                            |
 
 ### swizzle
 
@@ -226,7 +225,7 @@ Note on a bit 120: when it is set, the fetched address register is overridden as
 |                       2 | A0.z      |
 |                       3 | A0.w      |
 
-Address register A0.xyzw can be pushed/popped to the stack with a PUSHA/POPA scalar and vector operations. Simultaneous and identical scalar-vector push/pop operation within one instruction results into only one push/pop actually being performed, while simultaneous and non-identical into the no-op. Maximum depth of the stack is 8.
+Address register A0.xyzw can be pushed/popped to the stack with a PUSHA/POPA scalar and vector operations. Simultaneous and identical scalar-vector push/pop operation within one instruction results into only one push/pop actually being performed, while simultaneous and non-identical into the no-op.
 
 ## Constant registers
 To multiplex source register rA/rB/rC to constant, its type needs to be set to "constant" and bitfield "constant fetch index" (in range of 0..1023) pointed to the required constant.
@@ -256,3 +255,9 @@ To use relative addressing:
 Scalars BRA operation is used to jump to an arbitrary instruction. Following nouveau terminology, an argument of the BRA operation is the destination instruction ID (IADDR), it is embedded into the rC swizzle bitfield.
 
 Branching is performed only if the instruction predicate test is positive. So use of "predicate - *" bits is mandatory for the branching instruction.
+
+## Functions
+Scalar instructions CAL and RET are used for the function calling and returning. Function call is essentially a branching operation with an instruction pointer being pushed to the stack. Return from the function is a branching to the address popped from the stack. Requirement of the predicate use is the same as for branching operation for both of CAL and RET operations, CAL's IADDR is embedded to the rC swizzle as well.
+
+## Stack
+Stack is shared by the PUSHA/POPA and CAL/RET operations. Maximum depth of the stack is 8.
