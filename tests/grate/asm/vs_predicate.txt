@@ -1,0 +1,37 @@
+.vs_attributes
+	[0] = "position";
+	[1] = "color";
+
+.vs_exports
+	[0] = "gl_Position";
+	[7] = "vcolor";
+
+.vs_constants
+	[1].x = 0.1f;
+	[1].y = 0.5f;
+
+	[2].x = 0.3f;
+	[2].z = 0.4f;
+
+.vs_asm
+
+EXEC(export[0]=vector)
+	MOVv r63.xyzw, a[0].xyzw
+	MOVs r0.xyzw, c[1].xyzw
+;
+
+EXEC(export[31]=vector)(cs)(cwr)(cr=0)
+	SLTv r63.xyzw, r0.xyzw, c[2].xyzw
+;
+
+EXEC(export[31]=vector)(cs)(cwr)(cr=1)
+	SEQv r63.xyzw, r0.xyzw, c[2].xyzw
+;
+
+EXEC(export[7]=vector)(cc)(cr=0)(gt)(p.xyzw)
+	MOVv r63.xyzw, c[1].yyyy
+;
+
+EXEC(export[7]=vector)(cc)(cr=1)(gt)(p.xyzw)
+	MOVv r63.xyzw, c[2].zzzz
+;

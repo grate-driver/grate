@@ -72,3 +72,13 @@ void grate_program_free(struct grate_program *program)
 void grate_program_link(struct grate_program *program)
 {
 }
+
+struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
+{
+	return NULL;
+}
+
+char *grate_shader_disasm_vs(struct grate_shader *shader)
+{
+	return NULL;
+}
