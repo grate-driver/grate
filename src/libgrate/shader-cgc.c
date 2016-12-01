@@ -121,7 +121,7 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 		fs = cgc->binary + header->binary_offset;
 		size = header->binary_size - sizeof(*fs);
 
-		fprintf(stdout, "DEBUG: fragment shader: %u words\n", size / 4);
+		fprintf(stdout, "DEBUG: fragment shader: %zu words\n", size / 4);
 		shader->num_words = size / 4;
 		shader->words = fs->words;
 		break;

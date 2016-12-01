@@ -130,6 +130,7 @@ static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
 	for (i = 0; i < res->count_planes && !id; i++) {
 		drmModePlane *p = drmModeGetPlane(drm->fd, res->planes[i]);
 		if (!p) {
+			continue;
 		}
 
 		if (!p->crtc_id && (p->possible_crtcs & (1 << display->pipe)))

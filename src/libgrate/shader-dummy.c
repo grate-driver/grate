@@ -33,13 +33,7 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 				      const char *lines[],
 				      unsigned int count)
 {
-	struct grate_shader *shader;
-
-	shader = calloc(1, sizeof(*shader));
-	if (!shader)
-		return NULL;
-
-	return shader;
+	return NULL;
 }
 
 void grate_shader_free(struct grate_shader *shader)
