@@ -68,8 +68,7 @@ https://www.google.com/patents/US7755634
 |   17..20 | scalar op write-mask        |
 |   13..16 | vector op write-mask        |
 |    7..12 | scalar destination register |
-|        6 | export disabled             |
-|     2..5 | export write index          |
+|     2..6 | export write index          |
 |        1 | constant relative addressing enable |
 |        0 | end of program              |
 
@@ -185,9 +184,11 @@ If vector opcode isn't NOP and rD is same as scalar's, then vector result takes 
 Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw components.
 
 ## Execution abortion
-Program execution aborts if rD, rA, rB or rC is set to an invalid value, even if it's not used by a particular instruction. For rA, rB and rC the invalid range is 32-63, for rD it is 32-62.
+Program execution aborts if:
 
-Stack overflow/underflow leads to the abortion.
+  1. rD, rA, rB or rC is set to an invalid value, even if it's not used by a particular instruction. For rA, rB and rC the invalid range is 32-63, for rD it is 32-62.
+  2. Export register number is invalid value 16-30.
+  3. On stack overflow/underflow.
 
 ## Export
 
@@ -195,10 +196,11 @@ In order to use result of scalar or vector operation further in shader pipeline,
 
 To write to the export:
 
-1. "export disabled" bit needs to be unset.
-2. "export write index" bitfield selected to the required export register number (0-15).
-3. To write the result of the vector instruction, bit "export vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
-5. To write the result of the scalar instruction, bit "export vector write enable" needs be unset.
+1. "export write index" bitfield selected to the required export valid register number (0-15, 31).
+2. To write the result of the vector instruction, bit "export vector write enable" needs be set and rD must be either a valid destination register 0-31 or a dummy 63, which is used when only write out is desired without clobbering some of the local registers.
+3. To write the result of the scalar instruction, bit "export vector write enable" needs be unset.
+
+When export register number is 31, export is disabled.
 
 The respective components of the resultant vector of the executed instruction, enabled by the vector/scalar write-mask, will be written to the export register, so consecutively executed instructions may alter only required export register components.
 
