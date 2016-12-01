@@ -265,3 +265,6 @@ Scalar instructions CAL and RET are used for the function calling and returning.
 
 ## Stack
 Stack is shared by the PUSHA/POPA and CAL/RET operations. Maximum depth of the stack is 8.
+
+## Clamping
+If bit "saturate result" is set, both vector and scalar operation results are clamped to [0.0f - 1.0f].
