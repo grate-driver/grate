@@ -733,3 +733,24 @@ bool grate_key_pressed(struct grate *grate)
 
 	return false;
 }
+
+void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
+{
+	struct host1x_framebuffer *host1x_fb = front ? fb->front : fb->back;
+	struct host1x_bo *fb_bo = host1x_fb->bo;
+	void *ret;
+	int err;
+
+	if (fb_bo == NULL) {
+		grate_error("failed to get framebuffer's bo\n");
+		return NULL;
+	}
+
+	err = host1x_bo_mmap(fb_bo, &ret);
+	if (err < 0) {
+		grate_error("failed to mmap framebuffer's bo\n");
+		return NULL;
+	}
+
+	return ret;
+}

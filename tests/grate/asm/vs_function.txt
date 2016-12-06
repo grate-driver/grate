@@ -1,0 +1,36 @@
+.vs_attributes
+	[0] = "position";
+	[1] = "color";
+
+.vs_exports
+	[0] = "gl_Position";
+	[7] = "vcolor";
+
+.vs_constants
+	[77].x = -1.5f;
+	[77].y = -3.3f;
+
+.vs_asm
+
+EXEC(eq)
+	ARLv A0.xy**, c[77].xyzw
+	CALs 2
+; /* 0 */
+
+EXEC_END(export[0]=vector)
+	MOVv r63.xyzw, a[A0.x + 2].xyzw
+; /* 1 */
+
+/***** FUNCTION BEGIN *****/
+
+EXEC(export[7]=vector)(eq)
+	MOVv r63.xyzw, a[A0.y + 5].xyzw
+	RETs
+; /* 2 */
+
+/***** FUNCTION END *****/
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 3 */

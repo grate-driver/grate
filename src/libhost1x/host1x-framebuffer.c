@@ -160,6 +160,7 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 	rows = malloc(fb->height * sizeof(png_bytep));
 	if (!rows) {
 		fprintf(stderr, "out-of-memory\n");
+		free(buffer);
 		return -ENOMEM;
 	}
 

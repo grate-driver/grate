@@ -33,13 +33,7 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 				      const char *lines[],
 				      unsigned int count)
 {
-	struct grate_shader *shader;
-
-	shader = calloc(1, sizeof(*shader));
-	if (!shader)
-		return NULL;
-
-	return shader;
+	return NULL;
 }
 
 void grate_shader_free(struct grate_shader *shader)
@@ -71,4 +65,14 @@ void grate_program_free(struct grate_program *program)
 
 void grate_program_link(struct grate_program *program)
 {
+}
+
+struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
+{
+	return NULL;
+}
+
+char *grate_shader_disasm_vs(struct grate_shader *shader)
+{
+	return NULL;
 }

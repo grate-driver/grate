@@ -1,0 +1,47 @@
+.vs_attributes
+	[0] = "position";
+	[1] = "color";
+
+.vs_exports
+	[0] = "gl_Position";
+	[7] = "vcolor";
+
+.vs_asm
+
+EXEC(eq)
+	BRAs 3
+; /* 0 */
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 1 */
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 2 */
+
+EXEC(export[0]=vector)(eq)
+	MOVv r63.xyzw, a[0].xyzw
+	BRAs 7
+; /* 3 */
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 4 */
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 5 */
+
+EXEC_END
+	NOPv
+	NOPs
+; /* 6 */
+
+EXEC(export[7]=vector)
+	MOVv r63.xyzw, a[1].xyzw
+; /* 7 */

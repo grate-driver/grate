@@ -6,6 +6,12 @@ libgrate_la_CPPFLAGS = \
 libgrate_la_CFLAGS = \
 	$(PNG_CFLAGS)
 
+libgrate_la_YFLAGS = \
+	-d --debug
+
+libgrate_la_LFLAGS = \
+	--nounput
+
 libgrate_la_SOURCES = \
 	display.c \
 	grate.c \
@@ -22,7 +28,19 @@ libgrate_la_LIBADD = \
 	-lrt
 
 if ENABLE_CGC
+BUILT_SOURCES = \
+	libgrate_la-asm_parser.h
+
+CLEANFILES = \
+	libgrate_la-asm_parser.h \
+	libgrate_la-asm_parser.c \
+	libgrate_la-asm_lexer.c
+
 libgrate_la_SOURCES += \
+	asm_lexer.l \
+	asm_parser.y \
+	asm.h \
+	disasm.c \
 	shader-cgc.c
 
 libgrate_la_LIBADD += \

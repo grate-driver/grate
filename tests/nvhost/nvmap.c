@@ -391,6 +391,7 @@ int nvmap_framebuffer_save(struct nvmap_framebuffer *fb, const char *filename)
 	rows = malloc(fb->height * sizeof(png_bytep));
 	if (!rows) {
 		fprintf(stderr, "out-of-memory\n");
+		free(buffer);
 		return -ENOMEM;
 	}
 

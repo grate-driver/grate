@@ -57,6 +57,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path);
+void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front);
 
 struct grate_display *grate_display_open(struct grate *grate);
 void grate_display_close(struct grate_display *display);
@@ -139,6 +140,8 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 				      const char *lines[],
 				      unsigned int count);
 void grate_shader_free(struct grate_shader *shader);
+struct grate_shader *grate_shader_parse_asm(const char *);
+char *grate_shader_disasm_vs(struct grate_shader *shader);
 
 struct grate_program;
 
