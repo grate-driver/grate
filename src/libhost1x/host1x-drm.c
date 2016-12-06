@@ -812,14 +812,6 @@ struct host1x *host1x_drm_open(void)
 	drm->base.framebuffer_init = drm_framebuffer_init;
 	drm->base.close = drm_close;
 
-	err = drm_display_create(&drm->display, drm);
-	if (err < 0 && err != -ENODEV) {
-		fprintf(stderr, "drm_display_create() failed: %d\n", err);
-		free(drm);
-		close(fd);
-		return NULL;
-	}
-
 	err = drm_gr2d_create(&drm->gr2d, drm);
 	if (err < 0) {
 		fprintf(stderr, "drm_gr2d_create() failed: %d\n", err);
@@ -836,7 +828,13 @@ struct host1x *host1x_drm_open(void)
 		return NULL;
 	}
 
-	drm->base.display = &drm->display->base;
+	err = drm_display_create(&drm->display, drm);
+	if (err < 0) {
+		fprintf(stderr, "drm_display_create() failed: %d\n", err);
+	} else {
+		drm->base.display = &drm->display->base;
+	}
+
 	drm->base.gr2d = &drm->gr2d->base;
 	drm->base.gr3d = &drm->gr3d->base;
 
