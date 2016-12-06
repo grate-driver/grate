@@ -30,7 +30,7 @@ https://www.google.com/patents/US7755634
 
 |     Bits | Meaning                     |
 |---------:|:----------------------------|
-|      127 | ???                         |
+|      127 | dummy / unused              |
 |      126 | export vector write enable  |
 |      125 | condition flags write enable|
 |      124 | export relative addressing enable |
