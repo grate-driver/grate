@@ -451,6 +451,7 @@ char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 	case SCALAR_OPCODE_NOP:
 	case SCALAR_OPCODE_PUSHA:
 	case SCALAR_OPCODE_POPA:
+	case SCALAR_OPCODE_RET:
 		buf += sprintf(buf, "\n");
 		break;
 	case SCALAR_OPCODE_BRA:
