@@ -182,6 +182,19 @@ static const char * scalar_opcode(unsigned opcode)
 	return "INVALID!";
 }
 
+static char address_register(int index)
+{
+	switch (index) {
+	case 0: return 'x';
+	case 1: return 'y';
+	case 2: return 'z';
+	case 3: return 'w';
+	default: break;
+	}
+
+	return '!';
+}
+
 #define A	0
 #define B	1
 #define C	2
@@ -253,16 +266,16 @@ static char * r(int reg, const vpe_instr128 *ins)
 		buf += sprintf(buf, "a[");
 
 		if (ins->attribute_relative_addressing_enable) {
-			buf += sprintf(buf, "a%d + ",
-				       ins->address_register_select);
+			buf += sprintf(buf, "A0.%c + ",
+				address_register(ins->address_register_select));
 		}
 		break;
 	case REG_TYPE_UNIFORM:
 		buf += sprintf(buf, "c[");
 
 		if (ins->constant_relative_addressing_enable) {
-			buf += sprintf(buf, "a%d + ",
-				       ins->address_register_select);
+			buf += sprintf(buf, "A0.%c + ",
+				address_register(ins->address_register_select));
 		}
 		break;
 	default:
@@ -342,8 +355,8 @@ char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 	buf += sprintf(buf, "(export[");
 
 	if (ins->export_relative_addressing_enable) {
-		buf += sprintf(buf, "a%d + ",
-				ins->address_register_select);
+		buf += sprintf(buf, "A0.%c + ",
+				address_register(ins->address_register_select));
 	}
 
 	buf += sprintf(buf, "%d]=%s)",

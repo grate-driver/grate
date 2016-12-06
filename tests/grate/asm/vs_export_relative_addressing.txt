@@ -29,28 +29,28 @@ EXEC
 	NOPs
 ;
 
-/* A0 = A0 + A2 = 3 + 1 = 4, so A0.xyzw = (4, 7, 1, -14) */
+/* A0.x = A0.x + A0.z = 3 + 1 = 4, so A0.xyzw = (4, 7, 1, -14) */
 EXEC
 	ARAv A0.x***
 	NOPs
 ;
 
-EXEC(export[A2 + 6]=vector)
-	MOVv r63.xy**, a[A2].xyzw
+EXEC(export[A0.z + 6]=vector)
+	MOVv r63.xy**, a[A0.z].xyzw
 	NOPs
 ;
 
-EXEC(export[A3 + 15]=vector)
-	MOVv r63.**z*, a[A3 + 9].xyzw
+EXEC(export[A0.w + 15]=vector)
+	MOVv r63.**z*, a[A0.w + 9].xyzw
 	NOPs
 ;
 
-EXEC(export[A1]=vector)
-	MOVv r63.x***, c[A1 + 126].zzzz
+EXEC(export[A0.y]=vector)
+	MOVv r63.x***, c[A0.y + 126].zzzz
 	NOPs
 ;
 
-EXEC(export[A0 + 3]=vector)
-	MOVv r63.***w, c[A0 + 129].xxxx
+EXEC(export[A0.x + 3]=vector)
+	MOVv r63.***w, c[A0.x + 129].xxxx
 	NOPs
 ;

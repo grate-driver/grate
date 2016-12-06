@@ -30,7 +30,7 @@ EXEC
 ; /* 3 */
 
 EXEC(export[0]=vector)
-	MOVv r63.xyzw, a[A0 + 2].xyzw
+	MOVv r63.xyzw, a[A0.x + 2].xyzw
 ; /* 4 */
 
 EXEC_END
@@ -45,7 +45,7 @@ EXEC
 ; /* 6 */
 
 EXEC(export[7]=vector)(eq)
-	MOVv r63.xyzw, a[A0 + 5].xyzw
+	MOVv r63.xyzw, a[A0.x + 5].xyzw
 	RETs
 ; /* 7 */
 

@@ -34,11 +34,11 @@ EXEC
 ;
 
 EXEC(export[7]=vector)
-	MOVv r63.xy**, c[A0 + 85].xyzw
+	MOVv r63.xy**, c[A0.x + 85].xyzw
 	NOPs
 ;
 
 EXEC(export[7]=vector)
-	MOVv r63.**zw, c[A3 + 155].xyzw
+	MOVv r63.**zw, c[A0.w + 155].xyzw
 	NOPs
 ;

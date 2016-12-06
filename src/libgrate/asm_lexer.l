@@ -50,10 +50,7 @@ int yywrap(void)
 			}
 EXEC			return T_EXEC;
 EXEC_END		return T_EXEC_END;
-a[0-3]			{
-				yylval.u = atoi(yytext + 1);
-				return T_ADDRESS_REG;
-			}
+A0			return T_ADDRESS_REG;
 r			return T_REGISTER;
 a			return T_ATTRIBUTE;
 c			return T_CONSTANT;

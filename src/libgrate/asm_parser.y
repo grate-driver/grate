@@ -223,7 +223,7 @@ void reset_asm_parser_state(void)
 %token <u> T_FLOAT
 %token <u> T_HEX
 %token <u> T_NUMBER
-%token <u> T_ADDRESS_REG
+%token <c> T_ADDRESS_REG
 %token <s> T_STRING
 
 %type <c> COMPONENT
@@ -231,6 +231,7 @@ void reset_asm_parser_state(void)
 %type <c> DST_MASK_Y
 %type <c> DST_MASK_Z
 %type <c> DST_MASK_W
+%type <c> ADDRESS_REG
 %type <u> VALUE
 
 %union {
@@ -455,14 +456,14 @@ EXPORT_REG:
 		pst.export_write_index = $1;
 	}
 	|
-	T_ADDRESS_REG
+	ADDRESS_REG
 	{
 		instr.export_relative_addressing_enable = 1;
 		instr.address_register_select = $1;
 		pst.export_write_index = 0;
 	}
 	|
-	T_ADDRESS_REG '+' T_NUMBER
+	ADDRESS_REG '+' T_NUMBER
 	{
 		instr.export_relative_addressing_enable = 1;
 		instr.address_register_select = $1;
@@ -972,14 +973,14 @@ CONSTANT_REG:
 		pst.uniform_fetch_index = $1;
 	}
 	|
-	T_ADDRESS_REG
+	ADDRESS_REG
 	{
 		pst.constant_relative_addressing_enable = 1;
 		pst.address_register_select = $1;
 		pst.uniform_fetch_index = 0;
 	}
 	|
-	T_ADDRESS_REG '+' T_NUMBER
+	ADDRESS_REG '+' T_NUMBER
 	{
 		pst.constant_relative_addressing_enable = 1;
 		pst.address_register_select = $1;
@@ -993,20 +994,27 @@ ATTRIBUTE_REG:
 		pst.attribute_fetch_index = $1;
 	}
 	|
-	T_ADDRESS_REG
+	ADDRESS_REG
 	{
 		pst.attribute_relative_addressing_enable = 1;
 		pst.address_register_select = $1;
 		pst.attribute_fetch_index = 0;
 	}
 	|
-	T_ADDRESS_REG '+' T_NUMBER
+	ADDRESS_REG '+' T_NUMBER
 	{
 		pst.attribute_relative_addressing_enable = 1;
 		pst.address_register_select = $1;
 		pst.attribute_fetch_index = $3;
 	}
 	;
+
+ADDRESS_REG:
+	T_ADDRESS_REG '.' COMPONENT
+	{
+		/* swizzle() coincides with the address register number */
+		yyval.c = swizzle($3);
+	}
 
 SWIZZLE: COMPONENT COMPONENT COMPONENT COMPONENT
 	{

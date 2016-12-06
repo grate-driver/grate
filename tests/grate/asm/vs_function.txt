@@ -18,13 +18,13 @@ EXEC(eq)
 ; /* 0 */
 
 EXEC_END(export[0]=vector)
-	MOVv r63.xyzw, a[A0 + 2].xyzw
+	MOVv r63.xyzw, a[A0.x + 2].xyzw
 ; /* 1 */
 
 /***** FUNCTION BEGIN *****/
 
 EXEC(export[7]=vector)(eq)
-	MOVv r63.xyzw, a[A1 + 5].xyzw
+	MOVv r63.xyzw, a[A0.y + 5].xyzw
 	RETs
 ; /* 2 */
 
