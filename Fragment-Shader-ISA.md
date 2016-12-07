@@ -3,9 +3,11 @@
 The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]].
 
 The fragment shader is separated into (at least) three different instruction streams:
+* PSEQ - fetching data from the memory and feeding it to the pipeline as registers data or instructions, seems to be used for a large shaders
 * MFU - multi-function unit, varying interpolate and special functions
 * TEX - texture lookups
 * ALU - arithmetic logic unit
+* DW - writing ALU's result to the output surface / buffers
 
 The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth instruction can be traded for embedded constants). Each ALU instruction package seems to run pipelined, and each instruction in a package can use partial results from the previous instruction.
 
