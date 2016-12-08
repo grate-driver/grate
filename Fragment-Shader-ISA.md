@@ -89,7 +89,7 @@ Registers:
 
 ### MFU instruction word encoding
 
-Based on [this design](http://arith.polito.it/final/paper-164.pdf)?
+Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf)?
 
 |   Bits | Meaning  |
 |-------:|:---------|
