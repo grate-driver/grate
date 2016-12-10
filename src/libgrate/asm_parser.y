@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <asm.h>
+#include "asm.h"
 
 extern int yylex(void);
 extern int yylineno;
