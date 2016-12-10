@@ -55,6 +55,6 @@ extern int asm_vs_instructions_nb;
 
 extern void reset_asm_parser_state(void);
 
-char * vpe_vliw_disassemble(const vpe_instr128 *ins);
+const char * vpe_vliw_disassemble(const vpe_instr128 *ins);
 
 #endif

@@ -72,7 +72,7 @@ struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
 	return NULL;
 }
 
-char *grate_shader_disasm_vs(struct grate_shader *shader)
+const char *grate_shader_disasm_vs(struct grate_shader *shader)
 {
 	return NULL;
 }

@@ -199,7 +199,7 @@ static char address_register(int index)
 #define B	1
 #define C	2
 
-static char * r(int reg, const vpe_instr128 *ins)
+static const char * r(int reg, const vpe_instr128 *ins)
 {
 	static char ret[3][32];
 	char *buf = ret[reg];
@@ -311,7 +311,7 @@ static char * r(int reg, const vpe_instr128 *ins)
 	return ret[reg];
 }
 
-static char * vec_rD(const vpe_instr128 *ins)
+static const char * vec_rD(const vpe_instr128 *ins)
 {
 	static char ret[9];
 	char *buf = ret;
@@ -327,7 +327,7 @@ static char * vec_rD(const vpe_instr128 *ins)
 	return ret;
 }
 
-static char * sca_rD(const vpe_instr128 *ins)
+static const char * sca_rD(const vpe_instr128 *ins)
 {
 	static char ret[9];
 	char *buf = ret;
@@ -343,7 +343,7 @@ static char * sca_rD(const vpe_instr128 *ins)
 	return ret;
 }
 
-char * vpe_vliw_disassemble(const vpe_instr128 *ins)
+const char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 {
 	static char ret[256];
 	char *buf = ret;

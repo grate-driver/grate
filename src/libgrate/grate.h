@@ -141,7 +141,7 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 				      unsigned int count);
 void grate_shader_free(struct grate_shader *shader);
 struct grate_shader *grate_shader_parse_asm(const char *);
-char *grate_shader_disasm_vs(struct grate_shader *shader);
+const char *grate_shader_disasm_vs(struct grate_shader *shader);
 
 struct grate_program;
 

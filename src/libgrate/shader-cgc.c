@@ -491,10 +491,10 @@ struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
 	return shader;
 }
 
-char *grate_shader_disasm_vs(struct grate_shader *shader)
+const char *grate_shader_disasm_vs(struct grate_shader *shader)
 {
 	char *disassembly = malloc(1);
-	char *instr_txt;
+	const char *instr_txt;
 	char *tmp;
 	vpe_instr128 instr;
 	int i, sz;
