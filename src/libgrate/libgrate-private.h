@@ -2,6 +2,7 @@
 #define GRATE_LIBGRATE_PRIVATE_H 1
 
 #include "grate.h"
+#include "libcgc.h"
 
 #define GRATE_MAX_ATTRIBUTES 16
 
@@ -39,6 +40,13 @@ struct grate_attribute {
 struct grate_uniform {
 	unsigned int position;
 	const char *name;
+};
+
+struct grate_shader {
+	struct cgc_shader *cgc;
+
+	unsigned int num_words;
+	uint32_t *words;
 };
 
 struct grate_program {

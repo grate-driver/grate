@@ -32,13 +32,6 @@
 #include "grate.h"
 #include "asm.h"
 
-struct grate_shader {
-	struct cgc_shader *cgc;
-
-	unsigned int num_words;
-	uint32_t *words;
-};
-
 void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
 {
 	unsigned int i;

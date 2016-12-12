@@ -307,6 +307,57 @@ enum host1x_gr3d_primitive {
 	HOST1X_GR3D_TRIANGLE_FAN,
 };
 
+static unsigned int count_pseq_instructions_nb(struct grate_shader *shader)
+{
+	unsigned int pseq_instructions_nb = 0;
+	unsigned int i;
+
+	for (i = 0; i < shader->num_words; i++) {
+		uint32_t host1x_command = shader->words[i];
+		unsigned int host1x_opcode = host1x_command >> 28;
+		unsigned int offset = (host1x_command >> 16) & 0xfff;
+		unsigned int count = host1x_command & 0xffff;
+		unsigned int mask = count;
+
+		switch (host1x_opcode) {
+		case 0: /* SETCL */
+			break;
+		case 1: /* INCR */
+			if (offset <= 0x541 && offset + count > 0x541)
+				pseq_instructions_nb++;
+			i += count;
+			break;
+		case 2: /* NONINCR */
+			if (offset == 0x541)
+				pseq_instructions_nb += count;
+			i += count;
+			break;
+		case 3: /* MASK */
+			for (count = 0; count < 16; count++) {
+				if (mask & (1 << count)) {
+					if (offset + count == 0x541)
+						pseq_instructions_nb++;
+					i++;
+				}
+			}
+			break;
+		case 4: /* IMM */
+			if (offset == 0x541)
+				pseq_instructions_nb++;
+			break;
+		case 5: /* EXTEND */
+			break;
+		default:
+			fprintf(stderr,
+				"ERROR: fragment shader host1x command "
+					"stream is invalid\n");
+			break;
+		}
+	}
+
+	return pseq_instructions_nb;
+}
+
 void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 			 unsigned int size, unsigned int count,
 			 struct grate_bo *bo, unsigned long offset)
@@ -498,9 +549,10 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x603, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x803, 0x00));
 
-	/* unknown */
+	/* PSEQ instructions setup */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x520, 0x01));
-	host1x_pushbuf_push(pb, 0x20006001);
+	host1x_pushbuf_push(pb, 0x20006000 |
+				count_pseq_instructions_nb(grate->program->fs));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x546, 0x01));
 	host1x_pushbuf_push(pb, 0x00000040);

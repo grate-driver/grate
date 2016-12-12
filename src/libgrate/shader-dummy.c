@@ -25,9 +25,6 @@
 #include "libgrate-private.h"
 #include "host1x.h"
 
-struct grate_shader {
-};
-
 struct grate_shader *grate_shader_new(struct grate *grate,
 				      enum grate_shader_type type,
 				      const char *lines[],
