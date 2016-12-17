@@ -542,6 +542,9 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x01));
 	host1x_pushbuf_push(pb, 0x58000000);
 
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x501, 0x01));
+	host1x_pushbuf_push(pb, 0x003212CF);
+
 	/* reset upload counters ? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x545, 0x00));
