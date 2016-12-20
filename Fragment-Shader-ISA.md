@@ -134,7 +134,7 @@ Operands:
 |------:|:----------------------|
 | 12..6 | register selector     |
 |     5 | sub-register selector |
-|     4 | ???                   |
+|     4 | minus one             |
 |     3 | fixed10               |
 |     2 | absolute value        |
 |     1 | negate                |
