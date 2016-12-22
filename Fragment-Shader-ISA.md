@@ -112,6 +112,15 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 |      2 |    MAX   | Maximum            | max(rA * rB, rC * rD)      |
 |      3 |   CSEL   | Conditional select | (rA < 0) ? rB : rC ???     |
 
+#### Scale result:
+
+| Value |  Meaning |
+|:-----:|:--------:|
+|   0   | No scale |
+|   1   |    x2    |
+|   2   |    x4    |
+|   3   |    / 2   |
+
 #### Condition code:
 
 | Value | Meaning                  |
