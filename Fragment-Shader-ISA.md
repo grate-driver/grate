@@ -155,7 +155,7 @@ Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 pe
 |     73 | fragment y-position       |
 |     75 | polygon face              |
 
-#### Result accumulation
+#### Result accumulation:
 
 |       | Accumulate this | Accumulate other |
 |-------|-----------------|------------------|
