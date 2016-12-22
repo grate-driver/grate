@@ -190,10 +190,10 @@ Unlike a regular ALU instruction, the ALU3 instruction words, constituting immed
 
 When bit "addition disable" is set, the Multiply-Add operation turns into two multiplies. The fx10 result of each multiply goes to the low/high subregisters of the destination register.
 
-| write high subregister | write low subregister | destination low (fx10) | destination high (fx10)  |
-|-----------------------:|-----------------------|------------------------|--------------------------|
-|            1           |           0           |          rC*rD         |           rA*rB          |
-|            0           |           1           |          rA*rB         |           rC*rD          |
+| write high subregister | write low subregister | destination low | destination high |
+|:----------------------:|:---------------------:|:---------------:|:----------------:|
+|            1           |           0           |      rC*rD      |       rA*rB      |
+|            0           |           1           |      rA*rB      |       rC*rD      |
 
 ## MFU instruction word encoding
 
