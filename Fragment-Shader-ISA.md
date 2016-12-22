@@ -89,7 +89,7 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 | 62..63 | opcode                   |
 |     61 | accumulate result: other |
 |     60 | accumulate result: this  |
-|     59 | ???                      |
+|     59 | addition disable         |
 | 57..58 | scale result             |
 |     56 | saturate result          |
 | 54..55 | condition code           |
@@ -186,6 +186,14 @@ Unlike a regular ALU instruction, the ALU3 instruction words, constituting immed
 | ALU2: | ALU2 += ALU1    | ALU0 += ALU2     |
 | ALU3: | ALU3 += ALU2    | ALU2 += ALU3     |
 
+#### Addition disable
+
+When bit "addition disable" is set, the Multiply-Add operation turns into two multiplies. The fx10 result of each multiply goes to the low/high subregisters of the destination register.
+
+| write high subregister | write low subregister | destination low (fx10) | destination high (fx10)  |
+|-----------------------:|-----------------------|------------------------|--------------------------|
+|            1           |           0           |          rC*rD         |           rA*rB          |
+|            0           |           1           |          rA*rB         |           rC*rD          |
 
 ## MFU instruction word encoding
 
