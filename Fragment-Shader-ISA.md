@@ -1,4 +1,4 @@
-### Overview
+## Overview
 
 The Tegra fragment shader ISA is not as straight forward as [[Vertex Shader ISA]].
 
@@ -86,7 +86,7 @@ The different units seems to be synchronized by separate timing streams.
 
 Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 per fragment pipeline instructions batch.
 
-### ALU instruction word encoding
+## ALU instruction word encoding
 
 |   Bits | Meaning                  |
 |-------:|:-------------------------|
@@ -111,7 +111,7 @@ Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 pe
 |      1 | rD absolute value        |
 |      0 | ???                      |
 
-Opcodes:
+#### Opcodes:
 
 | opcode | Mnemonic | Meaning            | pseudo-code                |
 |-------:|:--------:|:-------------------|:---------------------------|
@@ -120,7 +120,7 @@ Opcodes:
 |      2 |    MAX   | Maximum            | max(rA * rB, rC * rD)      |
 |      3 |   CSEL   | Conditional select | (rA < 0) ? rB : rC ???     |
 
-Condition code:
+#### Condition code:
 
 | Value | Meaning                  |
 |------:|:-------------------------|
@@ -129,7 +129,7 @@ Condition code:
 |     2 | zero or less             |
 |     3 | less than zero           |
 
-Operands:
+#### Operands (rA, rB, rC):
 
 |  Bits | Meaning               |
 |------:|:----------------------|
@@ -141,7 +141,7 @@ Operands:
 |     1 | negate                |
 |     0 | scale by two          |
 
-Registers:
+#### Registers:
 
 |  Value | Meaning                   |
 |-------:|:--------------------------|
@@ -155,7 +155,7 @@ Registers:
 |     73 | fragment y-position       |
 |     75 | polygon face              |
 
-#### ALU result accumulation
+#### Result accumulation
 
 |       | Accumulate this | Accumulate other |
 |-------|-----------------|------------------|
@@ -165,7 +165,7 @@ Registers:
 | ALU3: | ALU3 += ALU2    | ALU2 += ALU3     |
 
 
-### MFU instruction word encoding
+## MFU instruction word encoding
 
 Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf)?
 
@@ -194,7 +194,7 @@ Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.
 |     10 |  PRESIN  | Sine, first step             | rD = sin(rA)        |
 |     11 |  PRECOS  | Cosine, first step           | rD = cos(rA)        |
 
-var0..3:
+#### var0..3:
 
 | Bits | Meaning              |
 |-----:|:---------------------|
@@ -209,7 +209,7 @@ var0..3:
 |      1 |   VAR1   | Interpolate one float20 value  |
 |      2 |   VAR2   | Interpolate two fixed10 values |
 
-### TEX instruction word encoding
+## TEX instruction word encoding
 
 |   Bits | Meaning           |
 |-------:|:------------------|
