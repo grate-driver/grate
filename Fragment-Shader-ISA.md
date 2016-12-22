@@ -101,11 +101,7 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 | 32..44 | operand rA               |
 | 19..31 | operand rB               |
 |  6..18 | operand rC               |
-|   4..5 | rD selector (rA, rB, rC) |
-|   3..4 | ???                      |
-|      2 | scale rC by rD           |
-|      1 | rD absolute value        |
-|      0 | ???                      |
+|   0..5 | operand rD               |
 
 #### Opcodes:
 
@@ -136,6 +132,17 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 |     2 | absolute value        |
 |     1 | negate                |
 |     0 | scale by two          |
+
+#### Operand rD:
+
+|   Bits | Meaning                      |
+|-------:|:-----------------------------|
+|      5 | rD selector (0 = rB, 1 = rC) |
+|      4 | sub-register selector        |
+|      3 | fixed10 minus one            |
+|      2 | enable rD (scale rC by rD)   |
+|      1 | absolute value               |
+|      0 | fixed10                      |
 
 #### Registers:
 
