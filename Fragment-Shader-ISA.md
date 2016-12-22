@@ -7,7 +7,7 @@ The fragment shader is separated into five different instruction streams:
 * MFU - multi-function unit, varying interpolate and special functions
 * TEX - texture lookups
 * ALU - arithmetic logic unit
-* DW - writing ALU's result to the output surface / buffers
+* DW - writing to the output surface / buffers
 
 The different units seems to be synchronized by separate timing streams.
 
