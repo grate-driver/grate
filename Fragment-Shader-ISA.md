@@ -9,12 +9,6 @@ The fragment shader is separated into five different instruction streams:
 * ALU - arithmetic logic unit
 * DW - writing ALU's result to the output surface / buffers
 
-The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth instruction can be traded for embedded constants). Each ALU instruction package seems to run pipelined, and each instruction in a package can use partial results from the previous instruction.
-
-The MFU unit can interpolate 4 component vectors per instruction and/or evaluate scalar special functions
-
-The TEX instructions take the texture coordinate from the VAR unit in the same cycles.
-
 The different units seems to be synchronized by separate timing streams.
 
 ### Fragment instructions flow
@@ -87,6 +81,8 @@ The different units seems to be synchronized by separate timing streams.
 Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 per fragment pipeline instructions batch.
 
 ## ALU instruction word encoding
+
+The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth instruction can be traded for embedded constants). Each ALU instruction package seems to run pipelined, and each instruction in a package can use partial results from the previous instruction.
 
 |   Bits | Meaning                  |
 |-------:|:-------------------------|
@@ -167,7 +163,7 @@ Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 pe
 
 ## MFU instruction word encoding
 
-Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf)?
+The MFU unit can interpolate 4 component vectors per instruction and/or evaluate scalar special functions. Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf).
 
 |   Bits | Meaning  |
 |-------:|:---------|
@@ -210,6 +206,8 @@ Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.
 |      2 |   VAR2   | Interpolate two fixed10 values |
 
 ## TEX instruction word encoding
+
+The TEX instructions take the texture coordinate from the VAR unit in the same cycles.
 
 |   Bits | Meaning           |
 |-------:|:------------------|
