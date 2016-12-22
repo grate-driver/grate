@@ -91,8 +91,9 @@ Instructions schedule specifies the number of MFU and ALU stages, from 1 to 3 pe
 |   Bits | Meaning                  |
 |-------:|:-------------------------|
 | 62..63 | opcode                   |
-|     61 | accumulate result        |
-| 59..60 | ???                      |
+|     61 | accumulate result: other |
+|     60 | accumulate result: this  |
+|     59 | ???                      |
 | 57..58 | scale result             |
 |     56 | saturate result          |
 | 54..55 | condition code           |
@@ -154,6 +155,14 @@ Registers:
 |     73 | fragment y-position       |
 |     75 | polygon face              |
 
+#### ALU result accumulation
+
+|       | Accumulate this | Accumulate other |
+|-------|-----------------|------------------|
+| ALU0: | ALU0 += ALU3    | No action        |
+| ALU1: | ALU1 += ALU0    | ALU0 += ALU1     |
+| ALU2: | ALU2 += ALU1    | ALU0 += ALU2     |
+| ALU3: | ALU3 += ALU2    | ALU2 += ALU3     |
 
 
 ### MFU instruction word encoding
