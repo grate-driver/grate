@@ -115,7 +115,7 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 #### Scale result:
 
 | Value |  Meaning |
-|:-----:|:--------:|
+|------:|:---------|
 |   0   | No scale |
 |   1   |    x2    |
 |   2   |    x4    |
