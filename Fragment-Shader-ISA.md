@@ -13,70 +13,13 @@ The different units seems to be synchronized by separate timing streams.
 
 #### Instructions flow
 
-<table>
-  <tr>
-    <th>Stage 1</th>
-    <th colspan="3">Stage 2</th>
-    <th>Stage 3<br></th>
-    <th colspan="3">Stage 4</th>
-    <th>Stage 5</th>
-  </tr>
-  <tr>
-    <td>PSEQ</td>
-    <td><br></td>
-    <td><br></td>
-    <td><br></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td>MFU</td>
-    <td>MFU</td>
-    <td>MFU</td>
-    <td><br></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td>TEX</td>
-    <td><br></td>
-    <td><br></td>
-    <td><br></td>
-    <td></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td>ALU</td>
-    <td>ALU</td>
-    <td>ALU</td>
-    <td><br></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td>DW</td>
-  </tr>
-</table>
+|   Cycle: |   1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9 |
+|---------:|:----:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:--:|
+| Stage 1: | PSEQ |     |     |     |     |     |     |     |    |
+| Stage 2: |      | MFU | MFU | MFU |     |     |     |     |    |
+| Stage 3: |      |     |     |     | TEX |     |     |     |    |
+| Stage 4: |      |     |     |     |     | ALU | ALU | ALU |    |
+| Stage 5: |      |     |     |     |     |     |     |     | DW |
 
 Instructions schedule specifies the number of MFU and ALU stages, each from 1 to 3 per fragment pipeline instructions batch.
 
