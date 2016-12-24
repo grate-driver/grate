@@ -21,7 +21,7 @@ The different units seems to be synchronized by separate timing streams.
 | Stage 4: |      |     |     |     |     | ALU | ALU | ALU |    |
 | Stage 5: |      |     |     |     |     |     |     |     | DW |
 
-Instructions schedule specifies the number of MFU and ALU stages, each from 1 to 3 per fragment pipeline instructions batch.
+Instructions schedule specifies the number of MFU and ALU instructions executed by the respective stage, each from 1 to 3 per fragment pipeline instructions batch.
 
 ## ALU instruction word encoding
 
