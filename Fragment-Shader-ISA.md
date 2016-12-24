@@ -26,7 +26,7 @@ The different units seems to be synchronized by separate timing streams.
 Instructions schedule specifies the number of MFU and ALU instructions executed by the respective stage, each from 1 to 3 per fragment pipeline instructions batch.
 
 | Bits | Meaning                           |
-|-----:|-----------------------------------|
+|-----:|:----------------------------------|
 | 2..7 | Address                           |
 | 0..1 | Number of instructions to execute |
 
