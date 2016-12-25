@@ -131,6 +131,8 @@ Unlike a regular ALU instruction, the ALU3 instruction words, constituting immed
 
 #### Result accumulation:
 
+Patent: https://www.google.com/patents/US8521800
+
 |       | Accumulate this | Accumulate other |
 |-------|-----------------|------------------|
 | ALU0: | ALU0 += ALU3    | No action        |
