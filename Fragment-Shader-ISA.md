@@ -23,6 +23,8 @@ The different units seems to be synchronized by separate timing streams.
 
 ## Instructions scheduling
 
+Patent: https://www.google.com/patents/US8856499
+
 Instructions schedule specifies the number of MFU and ALU instructions executed by the respective stage, each from 1 to 3 per fragment pipeline instructions batch.
 
 | Bits | Meaning                           |
