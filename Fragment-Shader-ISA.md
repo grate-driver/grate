@@ -21,6 +21,10 @@ The different units seems to be synchronized by separate timing streams.
 | Stage 4: |      |     |     |     |     | ALU | ALU | ALU |    |
 | Stage 5: |      |     |     |     |     |     |     |     | DW |
 
+## Program sequencer
+
+Patent: https://www.google.com/patents/US8411096
+
 ## Instructions scheduling
 
 Patent: https://www.google.com/patents/US8856499
