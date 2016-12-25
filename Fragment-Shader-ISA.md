@@ -59,6 +59,8 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 
 #### ALU embedded constants:
 
+Patent: https://www.google.com/patents/US8775777
+
 Unlike a regular ALU instruction, the ALU3 instruction words, constituting immediate constants, shouldn't be swapped. Constant is either one fp20 or two fx10.
 
 |   Bits | Meaning              |
