@@ -93,12 +93,14 @@ Unlike a regular ALU instruction, the ALU3 instruction words, constituting immed
 
 #### Condition code:
 
+The conditional operation is applied to the ALU's result, so the final result is either 0.0 (false) or 1.0 (true).
+
 | Value | Meaning                  |
 |------:|:-------------------------|
-|     0 | zero                     |
-|     1 | non-zero                 |
-|     2 | zero or less             |
-|     3 | less than zero           |
+|     0 | no comparison            |
+|     1 | zero                     |
+|     2 | greater than zero        |
+|     3 | greater or equal to zero |
 
 #### Operands (rA, rB, rC):
 
