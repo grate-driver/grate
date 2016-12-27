@@ -102,6 +102,12 @@ The conditional operation is applied to the ALU's result, so the final result is
 |     2 | greater than zero        |
 |     3 | greater or equal to zero |
 
+#### Condition registers:
+
+The condition register comprises two fixed10 values, 0.0 or 1.0. In order to write a value to the condition register, bit "write condition register" need to be set. The destination register numbers 0..8 will be mapped to the condition registers 64..71. To write to the higher part of the condition register, "write high subregister" bit needs to be set; otherwise lower part will be written regardless of the "write low subregister" bit state.
+
+    Condition register stored value = !!(ALU result)
+
 #### Operands (rA, rB, rC):
 
 |  Bits | Meaning               |
@@ -134,7 +140,7 @@ The conditional operation is applied to the ALU's result, so the final result is
 | 28..30 | embedded constants        |
 |     31 | lowp vec2(0, 1)           |
 | 32..63 | uniform registers         |
-|     64 | accumulation?             |
+| 64..71 | condition registers       |
 |     72 | fragment x-position       |
 |     73 | fragment y-position       |
 |     75 | polygon face              |
