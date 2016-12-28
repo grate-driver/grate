@@ -5,8 +5,8 @@ A very approximate MMIO-register overview:
 | 0x000 | 0x015 | HOST1X    | synchronization        |
 | 0x100 | 0x126 | IDX       | geometry submission    |
 | 0x200 | 0x20b | VPE       | vertex shader          |
-| 0x300 | 0x364 | SU        | (Setup Unit) program vertex to fragment shader<br>linker engine (VPE clip output to ATRAST) |
-| 0x400 | 0x411 | QRast     | (Quad Rasterizer) depth/stencil/VCAA,<br>output goes to PSEQ or ATRAST |
+| 0x300 | 0x364 | SU        | (Setup Unit) program vertex to fragment shader<br>linker engine (VPE clip output to MFU) |
+| 0x400 | 0x411 | QRast     | (Quad Rasterizer) depth/stencil/VCAA,<br>output goes to PSEQ or MFU |
 | 0x500 | 0x546 | PSEQ      | (Program Sequencer) control pixel pipeline flow  |
 | 0x600 | 0x60E | MFU       | attribute interpolate and special functions unit |
 | 0x700 | 0x741 | TEX       | texture mapping                                  |
