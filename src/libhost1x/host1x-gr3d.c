@@ -21,9 +21,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <fcntl.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "nvhost-gr3d.h"
@@ -33,6 +35,11 @@
 
 #define HOST1X_GR3D_SCISSOR_HORIZONTAL	0x350
 #define HOST1X_GR3D_SCISSOR_VERTICAL	0x351
+
+#define CLK_RST_CONTROLLER_RST_DEV_L_SET_0	0x300
+#define CLK_RST_CONTROLLER_RST_DEV_L_CLR_0	0x304
+
+#define CAR_3D	(1 << 24)
 
 static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 {
@@ -75,6 +82,56 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 	return 0;
 }
 
+static int map_mem(void **mem_virt, off_t phys_address, off_t size)
+{
+	off_t PageOffset, PageAddress;
+	size_t PagesSize;
+	int mem_dev;
+
+	mem_dev = open("/dev/mem", O_RDWR | O_SYNC);
+	if (mem_dev < 0)
+		return mem_dev;
+
+	PageOffset  = phys_address % getpagesize();
+	PageAddress = phys_address - PageOffset;
+	PagesSize   = (((size - 1) / getpagesize()) + 1) * getpagesize();
+
+	*mem_virt = mmap(NULL, PagesSize, PROT_READ | PROT_WRITE,
+			 MAP_SHARED, mem_dev, PageAddress);
+
+	if (*mem_virt == MAP_FAILED)
+		return -1;
+
+	*mem_virt += PageOffset;
+
+	return 0;
+}
+
+static void reg_write(void *mem_virt, uint32_t offset, uint32_t value)
+{
+	*(volatile uint32_t*)(mem_virt + offset) = value;
+}
+
+static void host1x_gr3d_reset_hw(void)
+{
+	void *CAR_io_mem_virt;
+	int err;
+
+	err = map_mem(&CAR_io_mem_virt, 0x60006000, 0x1000);
+	if (err < 0) {
+		fprintf(stderr, "host1x_gr3d_reset_hw() failed\n");
+		return;
+	}
+
+	reg_write(CAR_io_mem_virt,
+		  CLK_RST_CONTROLLER_RST_DEV_L_SET_0, CAR_3D);
+
+	usleep(1000);
+
+	reg_write(CAR_io_mem_virt,
+		  CLK_RST_CONTROLLER_RST_DEV_L_CLR_0, CAR_3D);
+}
+
 static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 {
 	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
@@ -84,6 +141,8 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	unsigned int i;
 	uint32_t fence;
 	int err;
+
+	host1x_gr3d_reset_hw();
 
 	job = host1x_job_create(syncpt->id, 2);
 	if (!job)
