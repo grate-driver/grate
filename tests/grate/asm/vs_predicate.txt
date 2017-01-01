@@ -1,19 +1,19 @@
-.vs_attributes
+.attributes
 	[0] = "position";
 	[1] = "color";
 
-.vs_exports
+.exports
 	[0] = "gl_Position";
 	[7] = "vcolor";
 
-.vs_constants
-	[1].x = 0.1f;
-	[1].y = 0.5f;
+.constants
+	[1].x = 0.1;
+	[1].y = 0.5;
 
-	[2].x = 0.3f;
-	[2].z = 0.4f;
+	[2].x = 0.3;
+	[2].z = 0.4;
 
-.vs_asm
+.asm
 
 EXEC(export[0]=vector)
 	MOVv r63.xyzw, a[0].xyzw

@@ -1,17 +1,17 @@
-.vs_attributes
+.attributes
 	[0] = "position";
 	[1] = "color";
 
-.vs_exports
+.exports
 	[0] = "gl_Position";
 	[7] = "vcolor";
 
-.vs_constants
-	[77].x = -1.5f;
+.constants
+	[77].x = -1.5;
 
-	[123].y = -3.3f;
+	[123].y = -3.3;
 
-.vs_asm
+.asm
 
 EXEC
 	ARLv A0.xy**, c[77].xyzw

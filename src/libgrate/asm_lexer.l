@@ -36,11 +36,11 @@ int yywrap(void)
 "/*"([^*]|(\*+[^*/]))*\*+\/ /* comment */;
 [\n]			yylineno++;
 
-".vs_asm"		return T_ASM;
-".vs_exports"		return T_EXPORTS;
-".vs_constants"		return T_CONSTANTS;
-".vs_attributes"	return T_ATTRIBUTES;
-[-]{0,1}[0-9]+"."[0-9]+f {
+".asm"			return T_ASM;
+".exports"		return T_EXPORTS;
+".constants"		return T_CONSTANTS;
+".attributes"		return T_ATTRIBUTES;
+[-]{0,1}[0-9]+\.[0-9]+	{
 				yylval.f = atof(yytext);
 				return T_FLOAT;
 			}
@@ -51,10 +51,16 @@ int yywrap(void)
 EXEC			return T_EXEC;
 EXEC_END		return T_EXEC_END;
 A0			return T_ADDRESS_REG;
-r			return T_REGISTER;
+r[0-9]{1,2}		{
+				yylval.u = atoi(yytext + 1);
+				return T_REGISTER;
+			}
 a			return T_ATTRIBUTE;
 c			return T_CONSTANT;
-u			return T_UNDEFINED;
+u			{
+				yylval.u = atoi(yytext + 1);
+				return T_UNDEFINED;
+			}
 neg			return T_NEG;
 abs			return T_ABS;
 export			return T_EXPORT;

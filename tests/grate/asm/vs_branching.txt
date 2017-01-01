@@ -1,12 +1,12 @@
-.vs_attributes
+.attributes
 	[0] = "position";
 	[1] = "color";
 
-.vs_exports
+.exports
 	[0] = "gl_Position";
 	[7] = "vcolor";
 
-.vs_asm
+.asm
 
 EXEC(eq)
 	BRAs 3

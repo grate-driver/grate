@@ -1,21 +1,21 @@
-.vs_attributes
+.attributes
 	[0] = "position";
 	[1] = "color";
 
-.vs_exports
+.exports
 	[0] = "gl_Position";
 	[7] = "vcolor";
 
-.vs_constants
-	[95].x = 1.5f;
-	[95].y = 3.3f;
-	[95].z = -8.3f;
-	[95].w = 7.3f;
+.constants
+	[95].x = 1.5;
+	[95].y = 3.3;
+	[95].z = -8.3;
+	[95].w = 7.3;
 
-	[133].x = 0.4f;
-	[133].z = 0.1f;
+	[133].x = 0.4;
+	[133].z = 0.1;
 
-.vs_asm
+.asm
 
 /* A0 = (3, 0, 1, 0) */
 EXEC(export[0]=scalar)

@@ -343,7 +343,6 @@ struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
 	/* atof() delimiter is locale-dependent! */
 	setlocale(LC_ALL, "C");
 
-	reset_asm_parser_state();
 	yy_scan_string(asm_txt);
 	err = yyparse();
 

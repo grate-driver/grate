@@ -53,8 +53,6 @@ extern asm_in_out asm_vs_attributes[16];
 extern asm_in_out asm_vs_exports[16];
 extern int asm_vs_instructions_nb;
 
-extern void reset_asm_parser_state(void);
-
 const char * vpe_vliw_disassemble(const vpe_instr128 *ins);
 
 #endif
