@@ -23,13 +23,13 @@
 
 #include "asm.h"
 
-extern int yylex(void);
-extern int yylineno;
-extern int yydebug;
+extern int vertex_asmlex(void);
+extern int vertex_asmlineno;
+extern int vertex_asmdebug;
 
 void yyerror(char *err)
 {
-	fprintf(stderr, "line %d: %s\n", yylineno, err);
+	fprintf(stderr, "line %d: %s\n", vertex_asmlineno, err);
 }
 
 vpe_instr128 asm_vs_instructions[256];
@@ -134,8 +134,8 @@ static void reset_asm_parser_state(void)
 
 	asm_vs_instructions_nb = 0;
 
-	yylineno = 1;
-	yydebug = 0;
+	vertex_asmlineno = 1;
+	vertex_asmdebug = 0;
 }
 %}
 

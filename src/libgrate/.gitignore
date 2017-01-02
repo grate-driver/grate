@@ -1,1 +1,3 @@
-libgrate_la-asm_*
+lex.*.c
+*.tab.c
+*.tab.h

@@ -22,8 +22,8 @@
 
 struct yy_buffer_state;
 
-extern struct yy_buffer_state *yy_scan_string(const char *);
-extern int yyparse(void);
+extern struct yy_buffer_state *vertex_asm_scan_string(const char *);
+extern int vertex_asmparse(void);
 
 struct asm_vec_component {
 	uint32_t value;

@@ -19,7 +19,7 @@
 
 %{
 #include <stdint.h>
-#include "libgrate_la-asm_parser.h"
+#include "vertex_asm.tab.h"
 
 #define YY_NO_INPUT
 
@@ -40,25 +40,25 @@ int yywrap(void)
 ".exports"		return T_EXPORTS;
 ".constants"		return T_CONSTANTS;
 ".attributes"		return T_ATTRIBUTES;
-[-]{0,1}[0-9]+\.[0-9]+	{
-				yylval.f = atof(yytext);
+[-]{0,1}[0-9]+"."[0-9]+ {
+				vertex_asmlval.f = atof(yytext);
 				return T_FLOAT;
 			}
 0x[0-9a-f]{1,8}		{
-				yylval.u = strtoul(yytext + 2, NULL, 16);
+				vertex_asmlval.u = strtoul(yytext + 2, NULL, 16);
 				return T_HEX;
 			}
 EXEC			return T_EXEC;
 EXEC_END		return T_EXEC_END;
 A0			return T_ADDRESS_REG;
 r[0-9]{1,2}		{
-				yylval.u = atoi(yytext + 1);
+				vertex_asmlval.u = atoi(yytext + 1);
 				return T_REGISTER;
 			}
 a			return T_ATTRIBUTE;
 c			return T_CONSTANT;
 u			{
-				yylval.u = atoi(yytext + 1);
+				vertex_asmlval.u = atoi(yytext + 1);
 				return T_UNDEFINED;
 			}
 neg			return T_NEG;
@@ -68,7 +68,7 @@ vector			return T_VECTOR;
 scalar			return T_SCALAR;
 saturate		return T_SATURATE;
 [0-9]+			{
-				yylval.u = atoi(yytext);
+				vertex_asmlval.u = atoi(yytext);
 				return T_NUMBER;
 			}
 p			return T_PREDICATE;
@@ -80,31 +80,31 @@ cc			return T_CHECK_CONDITION_CHECK;
 cwr			return T_CHECK_CONDITION_WR;
 cr			return T_CONDITION_REGISTER;
 x			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_X;
 			}
 y			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_Y;
 			}
 z			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_Z;
 			}
 w			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_W;
 			}
 "*"			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_DISABLED;
 			}
 \"(.+?)\"		{
-				if (yyleng > sizeof(yylval.s) - 1)
+				if (yyleng > sizeof(vertex_asmlval.s) - 1)
 					return T_SYNTAX_ERROR;
 
-				strcpy(yylval.s, yytext + 1);
-				yylval.s[yyleng - 2] = '\0';
+				strcpy(vertex_asmlval.s, yytext + 1);
+				vertex_asmlval.s[yyleng - 2] = '\0';
 
 				return T_STRING;
 			}

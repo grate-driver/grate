@@ -6,12 +6,6 @@ libgrate_la_CPPFLAGS = \
 libgrate_la_CFLAGS = \
 	$(PNG_CFLAGS)
 
-libgrate_la_YFLAGS = \
-	-d --debug
-
-libgrate_la_LFLAGS = \
-	--nounput
-
 libgrate_la_SOURCES = \
 	display.c \
 	grate.c \
@@ -29,18 +23,25 @@ libgrate_la_LIBADD = \
 
 if ENABLE_CGC
 BUILT_SOURCES = \
-	libgrate_la-asm_parser.h
+	vertex_asm.tab.c \
+	lex.vertex_asm.c
 
 CLEANFILES = \
-	libgrate_la-asm_parser.h \
-	libgrate_la-asm_parser.c \
-	libgrate_la-asm_lexer.c
+	vertex_asm.tab.h \
+	vertex_asm.tab.c \
+	lex.vertex_asm.c
+
+lex.vertex_asm.c: vertex_asm_lexer.l
+	$(LEX) -P vertex_asm --nounput vertex_asm_lexer.l
+
+vertex_asm.tab.c: vertex_asm_parser.y
+	$(YACC) -p vertex_asm -b vertex_asm -d --debug vertex_asm_parser.y
 
 libgrate_la_SOURCES += \
-	asm_lexer.l \
-	asm_parser.y \
+	vertex_asm.tab.c \
+	lex.vertex_asm.c \
 	asm.h \
-	disasm.c \
+	vertex_disasm.c \
 	shader-cgc.c
 
 libgrate_la_LIBADD += \
