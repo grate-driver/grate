@@ -463,7 +463,7 @@ const char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 		break;
 	}
 
-	buf += sprintf(buf, ";\n");
+	buf += sprintf(buf, ";");
 
 	return ret;
 }

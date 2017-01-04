@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 			      ARRAY_SIZE(vertex_shader));
 	fs = grate_shader_new(grate, GRATE_SHADER_FRAGMENT, fragment_shader,
 			      ARRAY_SIZE(fragment_shader));
-	program = grate_program_new(grate, vs, fs);
+	program = grate_program_new(grate, vs, fs, NULL);
 	grate_program_link(program);
 
 	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);

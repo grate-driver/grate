@@ -52,6 +52,7 @@ struct grate_shader {
 struct grate_program {
 	struct grate_shader *vs;
 	struct grate_shader *fs;
+	struct grate_shader *linker;
 
 	struct grate_attribute *attributes;
 	unsigned int num_attributes;
@@ -60,6 +61,8 @@ struct grate_program {
 	struct grate_uniform *uniforms;
 	unsigned int num_uniforms;
 	float uniform[256 * 4];
+
+	uint32_t fs_uniform[32];
 };
 
 void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader);

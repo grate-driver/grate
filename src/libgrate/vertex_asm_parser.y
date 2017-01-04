@@ -29,7 +29,7 @@ extern int vertex_asmdebug;
 
 void yyerror(char *err)
 {
-	fprintf(stderr, "line %d: %s\n", vertex_asmlineno, err);
+	fprintf(stderr, "vs: line %d: %s\n", vertex_asmlineno, err);
 }
 
 vpe_instr128 asm_vs_instructions[256];

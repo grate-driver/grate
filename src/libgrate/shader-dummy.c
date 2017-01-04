@@ -44,7 +44,8 @@ void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
 
 struct grate_program *grate_program_new(struct grate *grate,
 					struct grate_shader *vs,
-					struct grate_shader *fs)
+					struct grate_shader *fs,
+					struct grate_shader *linker)
 {
 	struct grate_program *program;
 
@@ -64,12 +65,32 @@ void grate_program_link(struct grate_program *program)
 {
 }
 
-struct grate_shader *grate_shader_parse_asm(const char *asm_txt)
+struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 {
 	return NULL;
 }
 
 const char *grate_shader_disasm_vs(struct grate_shader *shader)
+{
+	return NULL;
+}
+
+struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
+{
+	return NULL;
+}
+
+const char *grate_shader_disasm_fs(struct grate_shader *shader)
+{
+	return NULL;
+}
+
+struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
+{
+	return NULL;
+}
+
+const char *grate_shader_disasm_linker(struct grate_shader *shader)
 {
 	return NULL;
 }

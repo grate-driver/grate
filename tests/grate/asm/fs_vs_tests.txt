@@ -1,0 +1,13 @@
+alu_buffer_size = 1
+pseq_to_dw_exec_nb = 1
+
+.asm
+EXEC
+	MFU:	var unk(0x104E51BA0) r0.fp20, r0.fp20, r0.fp20, r0.fp20
+	TEX:	NOP
+	ALU0:	MAD  r3.*h,  r3,         #1,         #0,         #1
+	ALU1:	MAD  r3.l*,  r2,         #1,         #0,         #1
+	ALU2:	MAD  r2.*h,  r0,         #1,         #0,         #1
+	ALU3:	MAD  r2.l*,  r1,         #1,         #0,         #1
+	DW:	0x00028005
+;

@@ -358,6 +358,11 @@ static unsigned int count_pseq_instructions_nb(struct grate_shader *shader)
 	return pseq_instructions_nb;
 }
 
+unsigned linker_instructions_nb(struct grate_shader *linker)
+{
+	return (linker->num_words - 3) / 2;
+}
+
 void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 			 unsigned int size, unsigned int count,
 			 struct grate_bo *bo, unsigned long offset)
@@ -375,6 +380,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
 	int tiled = 1;
+	int alu_rows;
 	int err;
 
 	switch (type) {
@@ -529,7 +535,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 
 	grate_shader_emit(pb, grate->program->vs);
 
-	/* cull face */
+	/* cull face + linker size */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
 	host1x_pushbuf_push(pb, 0xb8e00000);
 
@@ -538,12 +544,18 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, 0x00000008);
 	host1x_pushbuf_push(pb, 0x0000fecd);
 
-	/* unknown */
+	/* Number of rows + 1 stored in the ALU buffer ? */
+	alu_rows = 1;
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x01));
-	host1x_pushbuf_push(pb, 0x58000000);
+	host1x_pushbuf_push(pb,
+			((0x12C - 1) / (alu_rows * 4)) << 24 | (alu_rows - 1));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x501, 0x01));
-	host1x_pushbuf_push(pb, 0x003212CF);
+	host1x_pushbuf_push(pb, (0x0032 << 16) | (0x12C << 4) | 0xF);
+
+	/* Used TRAM rows number (n, 64 / n) */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe21, 0x01));
+	host1x_pushbuf_push(pb, (2 << 8) | (64 / 2));
 
 	/* reset upload counters ? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x00));
@@ -557,9 +569,20 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	host1x_pushbuf_push(pb, 0x20006000 |
 				count_pseq_instructions_nb(grate->program->fs));
 
+	/* Number of executed PSEQ instructions before DW */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x546, 0x01));
-	host1x_pushbuf_push(pb, 0x00000040);
+	host1x_pushbuf_push(pb, (1 << 6));
 
+	/* asm linker overrides some of the registers programmed above */
+	if (grate->program->linker) {
+		grate_shader_emit(pb, grate->program->linker);
+
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
+		host1x_pushbuf_push(pb, 0xb8e00000 |
+			((linker_instructions_nb(grate->program->linker) - 1) << 5));
+	}
+
+	/* asm fs overrides some of the registers programmed above */
 	grate_shader_emit(pb, grate->program->fs);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x06));
@@ -587,6 +610,11 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 		host1x_pushbuf_push(pb, ptr[2]);
 		host1x_pushbuf_push(pb, ptr[3]);
 	}
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x820, 32));
+
+	for (i = 0; i < 32; i++)
+		host1x_pushbuf_push(pb, program->fs_uniform[i]);
 
 	/* select VPE in/out buffers */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x120, 0x01));

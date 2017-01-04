@@ -18,6 +18,8 @@
 #ifndef GRATE_ASM_H
 #define GRATE_ASM_H
 
+#include "fragment_asm.h"
+#include "linker_asm.h"
 #include "vpe_vliw.h"
 
 struct yy_buffer_state;
@@ -54,5 +56,43 @@ extern asm_in_out asm_vs_exports[16];
 extern int asm_vs_instructions_nb;
 
 const char * vpe_vliw_disassemble(const vpe_instr128 *ins);
+
+extern struct yy_buffer_state *fragment_asm_scan_string(const char *);
+extern int fragment_asmparse(void);
+
+extern pseq_instr	asm_pseq_instructions[64];
+extern mfu_instr	asm_mfu_instructions[64];
+extern tex_instr	asm_tex_instructions[64];
+extern alu_instr	asm_alu_instructions[64];
+extern dw_instr		asm_dw_instructions[64];
+
+extern instr_sched	asm_mfu_sched[64];
+extern instr_sched	asm_alu_sched[64];
+
+extern uint32_t		asm_fs_constants[32];
+
+extern unsigned asm_fs_instructions_nb;
+extern unsigned asm_mfu_instructions_nb;
+extern unsigned asm_alu_instructions_nb;
+
+extern unsigned asm_alu_buffer_size;
+extern unsigned asm_pseq_to_dw_exec_nb;
+
+const char * fragment_pipeline_disassemble(
+	const pseq_instr *pseq,
+	const mfu_instr *mfu, unsigned mfu_nb,
+	const tex_instr *tex,
+	const alu_instr *alu, unsigned alu_nb,
+	const dw_instr *dw);
+
+extern struct yy_buffer_state *linker_asm_scan_string(const char *);
+extern int linker_asmparse(void);
+
+extern link_instr	asm_linker_instructions[32];
+
+extern unsigned asm_linker_instructions_nb;
+extern unsigned asm_linker_used_tram_rows_nb;
+
+const char * linker_instruction_disassemble(const link_instr *instr);
 
 #endif
