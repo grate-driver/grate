@@ -55,7 +55,7 @@ Modifiers:
 
 Operations:
 
-The operation takes following form:
+A common operation takes the following form:
 
 	OPCODE rD.mask, mod(rA.swizzle), mod(rB.swizzle), mod(rC.swizzle)
 
