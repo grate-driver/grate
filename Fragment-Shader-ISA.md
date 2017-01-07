@@ -135,7 +135,8 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 
 |  Value | Meaning                   |
 |-------:|:--------------------------|
-|  0..23 | general purpose registers |
+|  0..15 | row registers             |
+| 16..23 | general purpose registers |
 | 24..27 | ALU result registers      |
 | 28..30 | embedded constants        |
 |     31 | lowp vec2(0, 1)           |
