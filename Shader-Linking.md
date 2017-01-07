@@ -12,7 +12,7 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 |     16 | TRAM.x is constant across width  |
 |     17 | TRAM.x is constant across length |
 | 18..19 | TRAM.x across point ?            |
-|     20 | VEC4.y is constant across width  |
+|     20 | TRAM.y is constant across width  |
 |     21 | TRAM.y is constant across length |
 | 22..23 | TRAM.y across point ?            |
 |     24 | TRAM.z is constant across width  |
