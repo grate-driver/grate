@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 		location = grate_get_uniform_location(grate, "mvp");
 		grate_uniform(grate, location, 16, (float *)&mvp);
 
-		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 3, bo, offset);
+		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 36, bo, offset);
 		grate_flush(grate);
 		grate_swap_buffers(grate);
 
