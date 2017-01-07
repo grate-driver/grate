@@ -77,7 +77,7 @@ Example:
 		NOPs
 	;
 
-Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w" components of an attribute register a0 (absolute'd and negated) will be written to the respective components of the destination register r0, as well as to the export register selected by the relative addressing. 
+Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w" components of an attribute register a0 (absolute'd and negated) will be written to the respective components of the destination register r0, as well as to the export register, which is addressed relatively to the address register A0.z by +3. 
 
 ## Fragment assembler
 
