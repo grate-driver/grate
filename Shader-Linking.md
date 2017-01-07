@@ -7,8 +7,8 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 | Bits   | Meaning                          |
 |-------:|:---------------------------------|
 |   0..1 | VEC4 select:<br>0 = full VEC4<br>1 = VEC4.z (VEC4.x = VEC4.z) |
-|   3..6 | Vertex import index              |
-|  9..14 | TRAM row number                  |
+|   3..6 | (in) Vertex export index         |
+|  9..14 | (out) TRAM row number            |
 |     16 | TRAM.x is constant across width  |
 |     17 | TRAM.x is constant across length |
 | 18..19 | TRAM.x across point ?            |
@@ -26,13 +26,13 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 
 | Bits   | Meaning                                   |
 |-------:|:------------------------------------------|
-|   0..1 | Import component swizzle to TRAM.x        |
+|   0..1 | Vertex component swizzle to TRAM.x        |
 |   2..3 | TRAM.x destination type                   |
-|   4..5 | Import component swizzle to TRAM.y        |
+|   4..5 | Vertex component swizzle to TRAM.y        |
 |   6..7 | TRAM.y destination type                   |
-|   8..9 | Import component swizzle to TRAM.z        |
+|   8..9 | Vertex component swizzle to TRAM.z        |
 | 10..11 | TRAM.z destination type                   |
-| 12..13 | Import component swizzle to TRAM.w        |
+| 12..13 | Vertex component swizzle to TRAM.w        |
 | 14..15 | TRAM.w destination type                   |
 |     16 | TRAM.x triangle interpolation disable     |
 |     17 | TRAM.y triangle interpolation disable     |
@@ -48,7 +48,7 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 |   2    | fx10 high halve |
 |   3    | fp20            |
 
-#### Import component swizzle:
+#### Vertex component swizzle:
 
 | Value  | Meaning |
 |-------:|:--------|
