@@ -50,7 +50,7 @@ Modifiers:
 - gt - condition register state test: greater than 0
 - cc - condition check enable
 - cwr - condition register write enable
-- cr=[n] - selects condition register "n" to use, where "n" is either 0 or 1.
+- cr=n - selects condition register "n" to use, where "n" is either 0 or 1.
 - export[n]=src - selects export register "n" and it's "src", where "src" is either "vector" or "scalar"
 
 Operations:
