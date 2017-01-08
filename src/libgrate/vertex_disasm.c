@@ -255,7 +255,7 @@ static const char * r(int reg, const vpe_instr128 *ins)
 	memset(ret[reg], 0, 32);
 
 	if (negate)
-		buf += sprintf(buf, "neg(");
+		buf += sprintf(buf, "-");
 
 	if (absolute_value)
 		buf += sprintf(buf, "abs(");
@@ -308,9 +308,6 @@ static const char * r(int reg, const vpe_instr128 *ins)
 		       swizzle(swizzle_w));
 
 	if (absolute_value)
-		buf += sprintf(buf, ")");
-
-	if (negate)
 		buf += sprintf(buf, ")");
 
 	return ret[reg];

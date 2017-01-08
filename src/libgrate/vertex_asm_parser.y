@@ -904,14 +904,20 @@ REGISTER_SRC:
 		pst.absolute = 0;
 	}
 	|
-	T_NEG '(' REGISTER_SRC ')'
+	T_NEG REGISTER_SRC_SWIZZLED
 	{
 		pst.negate = 1;
 	}
 	|
-	T_ABS '(' REGISTER_SRC ')'
+	T_ABS '(' REGISTER_SRC_SWIZZLED ')'
 	{
 		pst.absolute = 1;
+	}
+	|
+	T_NEG T_ABS '(' REGISTER_SRC_SWIZZLED ')'
+	{
+		pst.absolute = 1;
+		pst.negate = 1;
 	}
 	;
 

@@ -66,7 +66,7 @@ u			{
 				vertex_asmlval.u = atoi(yytext + 1);
 				return T_UNDEFINED;
 			}
-neg			return T_NEG;
+-			return T_NEG;
 abs			return T_ABS;
 export			return T_EXPORT;
 vector			return T_VECTOR;
