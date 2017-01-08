@@ -9,17 +9,17 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 |   0..1 | VEC4 select:<br>0 = full VEC4<br>1 = VEC4.z (VEC4.x = VEC4.z) |
 |   3..6 | (in) Vertex export index         |
 |  9..14 | (out) TRAM row index             |
-|     16 | TRAM.x is constant across width  |
-|     17 | TRAM.x is constant across length |
+|     16 | TRAM.x is constant across width ?|
+|     17 | TRAM.x is constant across length?|
 | 18..19 | TRAM.x across point ?            |
-|     20 | TRAM.y is constant across width  |
-|     21 | TRAM.y is constant across length |
+|     20 | TRAM.y is constant across width ?|
+|     21 | TRAM.y is constant across length?|
 | 22..23 | TRAM.y across point ?            |
-|     24 | TRAM.z is constant across width  |
-|     25 | TRAM.z is constant across length |
+|     24 | TRAM.z is constant across width ?|
+|     25 | TRAM.z is constant across length?|
 | 26..27 | TRAM.z across point ?            |
-|     28 | TRAM.w is constant across width  |
-|     29 | TRAM.w is constant across length |
+|     28 | TRAM.w is constant across width ?|
+|     29 | TRAM.w is constant across length?|
 | 30..31 | TRAM.w across point ?            |
 
 #### Latter word
