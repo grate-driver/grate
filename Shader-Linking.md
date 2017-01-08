@@ -8,7 +8,7 @@ This program is located at offset 0x300 and upwards, and consists of a 64-bit wo
 |-------:|:---------------------------------|
 |   0..1 | VEC4 select:<br>0 = full VEC4<br>1 = VEC4.z (VEC4.x = VEC4.z) |
 |   3..6 | (in) Vertex export index         |
-|  9..14 | (out) TRAM row number            |
+|  9..14 | (out) TRAM row index             |
 |     16 | TRAM.x is constant across width  |
 |     17 | TRAM.x is constant across length |
 | 18..19 | TRAM.x across point ?            |
