@@ -40,7 +40,7 @@ Here a float value 1.5 will be loaded to the "y" component of the constant regis
 
 #### .asm section
 
-Defines the actual vertex assembler. Instruction consists of the "EXEC" preamble, modifiers given in parens, one vector operation and one scalar operation.
+Defines the actual vertex assembler. Instruction consists of the "EXEC" preamble, modifiers given in parens, one vector operation and one scalar operation, a termination semicolon.
 
 Preamble:
 
