@@ -1,6 +1,6 @@
 In order to pass data between the vertex and fragment shader, a sort of link-program seems to be copying from the output of the vertex shader into the TRAM (the RAM used as input to rasterization and shading).
 
-This program is located at offset 0x300 and upwards, and consists of a 64-bit words. The first word contains the location to copy from, in the vertex shader export, the latter word contains the location in TRAM, interpolation parameters are mixed in.
+This program is located at offset 0x300 and upwards, and consists of a 64-bit words. The first word contains the location in the vertex shader export to copy from, the latter word contains the location in TRAM, interpolation parameters are mixed in.
 
 #### First word
 
