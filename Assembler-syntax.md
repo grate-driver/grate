@@ -89,4 +89,33 @@ TBD
 
 ## Linker assembler
 
-TBD
+The linker assembler defines which vertex export registers will be copied to the TRAM, hence the (from)export register-(to)TRAM row locations, and to what format the exported vertex register components will be converted during the copying.
+
+There is only one LINK instruction, which takes the following form:
+
+	LINK fmt (mod), fmt (mod), fmt (mod), fmt (mod), tramN, exportM.swizzle
+
+- fmt - destination TRAM component format:
+	- fp20 - 20bit float
+	- fx10.l - 10bit fixed point float, the low halve of the TRAM component 
+	- fx10.h - 10bit fixed point float, the high halve of the TRAM component 
+	- NOP - the TRAM component is "skipped", i.e. unaffected by the LINK operation
+- mod - interpolation modifiers, given in parens:
+	- cw - constant across width
+	- cl  - constant across length
+	- dis - interpolation disable
+- tramN - the TRAM row N, where N is 0..31
+- exportM.swizzle - the exported vertex register M, where M is 0..15 and swizzle is "xyzw"
+
+The first "fmt" operand represents the TRAM's row "x" component, second "y", third "w" and fourth "w".
+
+Example:
+
+	LINK fp20, NOP, fp20 (cw), fx10.h, tram0, export1.zyzx
+
+Here the content of the VEC4 vertex export register 1 will be swizzled and copied to the TRAM row 0, so that:
+- export1.z => converted to fp20 => copied to the tram0.x
+- export1.y => skipped => the content of tram0.y is not altered
+- export1.z => converted to fp20 => copied to the tram0.z and interpolation parameter "constant across width" is set for the the tram0.z
+- export1.x => converted to fx10 => copied to the high halve of the tram0.w
+
