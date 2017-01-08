@@ -42,6 +42,10 @@ Here a float value 1.5 will be loaded to the "y" component of the constant regis
 
 Defines the actual vertex assembler. Instruction consists of the "EXEC" preamble, modifiers given in parens, one vector operation and one scalar operation.
 
+Preamble:
+
+There are two kinds of the instruction preamble: a regular "EXEC" and "EXEC_END". The latter will set the instructions "end of program" bit. 
+
 Modifiers:
 - p.xyzw - predicate swizzle, swizzles the condition register components when performing condition check
 - cs - condition set
