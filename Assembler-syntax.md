@@ -89,7 +89,7 @@ TBD
 
 ## Linker assembler
 
-The linker assembler defines which vertex export registers will be copied to the TRAM, hence the (from)export register-(to)TRAM row locations, and to what format the exported vertex register components will be converted during the copying.
+The linker assembler defines which vertex export registers will be copied to the TRAM, hence the (from)export register-(to)TRAM row locations, to what format the exported vertex register components will be converted during the copying to the TRAM and how the TRAM row component will be interpolated during the rasterization stage of graphics pipeline.
 
 There is only one LINK instruction, which takes the following form:
 
