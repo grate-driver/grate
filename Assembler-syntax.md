@@ -66,7 +66,7 @@ A common operation takes the following form:
 - Source registers (rA, rB, rC) are: general purpose rN, where N is 0-31; constant c[N], where N is 0-255; attribute
 a[N], where N is 0-31.
 - Destination register rD is rN or address register A0/A1, depending on the operation.
-- Relative addressing could be applied to the constant, attribute and export register, hence they are given in square brackets.
+- Relative addressing could be applied to the constant, attribute and export registers, hence they are given in square brackets.
 - Source register swizzle "xyzw", swizzles the respective components of the source register.
 
 Example:
