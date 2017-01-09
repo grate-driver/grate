@@ -85,7 +85,220 @@ Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w
 
 ## Fragment assembler
 
-TBD
+The fragment assembler is defined by the fragment program parameters and the instructions placed in the .asm section. The instruction starts with the "EXEC" preamble, consists of 5 sub-instructions, each representing the respective stage of the fragment processor pipeline, and ends with the termination semicolon.
+
+Fragment program parameters:
+- alu_buffer_size = N, where N is 1..4
+- pseq_to_dw_exec_nb = N, where N is 0..?
+
+Fragment instruction takes the following form:
+
+	EXEC
+		PSEQ:	OPCODE operands
+		MFU:	OPCODE operands
+		TEX:	OPCODE operands
+		ALU0:	OPCODE operands
+		ALU1:	OPCODE operands
+		ALU2:	OPCODE operands
+		ALU3:	OPCODE operands
+		DW:	OPCODE operands
+	;
+
+For brevity, "OPCODE operands" could be replace with a "NOP", so the sub-instruction will be set to a respective No-Operation opcode.
+
+Example:
+
+	EXEC
+		PSEQ:	NOP
+		MFU:	NOP
+		TEX:	NOP
+		ALU0:	NOP
+		ALU1:	NOP
+		ALU2:	NOP
+		ALU3:	NOP
+		DW:	NOP
+	;
+
+Here all sub-instructions are NOP's.
+
+The instruction schedule allows up to 3 MFU and 3 ALU sub-instructions to be executed in series, as well as skipping them.
+
+To execute more than one MFU and/or ALU instruction in series, additional sub-instruction simply should be appended to the respective stage.
+
+Example:
+
+	EXEC
+		PSEQ:	OPCODE operands
+
+		MFU:	OPCODE operands
+		MFU:	OPCODE operands
+		MFU:	OPCODE operands
+
+		TEX:	OPCODE operands
+
+		ALU0:	OPCODE operands
+		ALU1:	OPCODE operands
+		ALU2:	OPCODE operands
+		ALU3:	OPCODE operands
+
+		ALU0:	OPCODE operands
+		ALU1:	OPCODE operands
+		ALU2:	OPCODE operands
+		ALU3:	OPCODE operands
+
+		DW:	OPCODE operands
+	;
+
+Here three MFU instructions and two ALU instructions will be executed consecutively.
+
+To skip the MFU and/or ALU stages, i.e. to not schedule them during an exec batch, they (sub-instructions) should omitted from the instruction.
+
+Example:
+
+	EXEC
+		PSEQ:	OPCODE operands
+		TEX:	OPCODE operands
+		DW:	OPCODE operands
+	;
+
+Here no MFU and no ALU sub-instructions will be scheduled-executed.
+
+For brevity, PSEQ/TEX/DW sub-instructions could be omitted from the instruction exec batch, they will be NOP's effectively.
+
+Example:
+
+	EXEC
+		MFU:	OPCODE operands
+	;
+
+Here PSEQ/TEX/DW are NOP's, one MFU sub-instruction is scheduled and ALU stage is skipped.
+
+Since not all sub-instructions are known yet, the "OPCODE operands" could be replaced with a raw hex value. The number of the hex words depends on the size of the sub-instruction; for example MFU instruction is 64bit sized, so two hex words, separated by a comma, will be necessary for it.
+
+Example:
+
+	EXEC
+		MFU:	0x00000000, 0x12345678
+	;
+
+Here the MFU sub-instruction is represented in raw by a two hex values.
+
+#### PSEQ sub-instruction
+
+Opcodes are unknown, available only in a hex form.
+
+Example:
+
+	EXEC
+		PSEQ:	0x00000000
+	;
+
+#### MFU sub-instruction
+
+There two forms of the MFU sub-instruction: varying and special function.
+
+The varying form:
+
+	var unk(HEX value) rN.fmt, rN.fmt, rN.fmt, rN.fmt
+
+- unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems.
+- rN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first rN.fmt operand is the TRAM's row "x" component and so on.
+
+Example:
+
+	EXEC
+		MFU:	var unk(0x104E51BA0) r2.fx10, r7.fp20, NOP, r5.fp20
+	;
+
+Here the varying sub-instruction performs a read of a TRAM row, interpolates the row components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
+- tram2.x read as two fx10 and stored into the r0 of the "pixel packet" row
+- tram7.y read as fp20 and stored into the r1 of the "pixel packet" row
+- the r2 of the "pixel packet" row is untouched
+- tram5.y read as fp20 and stored into the r3 of the "pixel packet" row
+
+The special function form:
+
+	OPCODE operand
+
+- OPCODE is one of the MFU special function operations.
+- operand is a "pixel packet" row register in fp20 format to which the operation will be applied.
+
+Example:
+
+	EXEC
+		MFU:	RCP r1
+	;
+
+Here a reciprocal operation is applied to the register r1, r1 = 1.0 / r1.
+
+#### TEX sub-instruction
+
+Opcodes are unknown, available only in a hex form.
+
+Example:
+
+	EXEC
+		TEX:	0x00000000
+	;
+
+
+#### ALU sub-instruction
+
+The ALU sub-instruction consists of four ALU instructions, one per ALU.
+
+ALU instruction takes the following form:
+
+	OPCODE rDst.mask, rA, rB, rC, rD (modifier)
+
+- OPCODE is one of the ALU operations: MAD, MUL, MIN, MAX or CSEL. The MUL operations is effectively a MAD with an "addition disable" bit set.
+- rDst is the destination register; it's mask is 'lh', 'l\*', '\*h' or '\*\*', where 'l' - enabled write to the low halve, 'h' - to the high and '*' disables the write to the respective halve. The write-mask defines the destination format for the MAD/CSEL instructions: both halves - fp20, one halve - fx10 low/high.
+- rA, rB, rC and rD are the source registers. The format is defined by a register postfix:
+	- ".l" - fx10 low halve of the source register is read
+	- ".h" - fx10 high halve of the source register is read
+	- no postfix - the source register is read as fp20
+- instruction modifiers are given in parens:
+	- this - Sets "accumulate this" ALU bit.
+	- other - Sets "accumulate other" ALU bit.
+	- eq - rDst result "equal to 0" ? 0.0 : 1.0.
+	- gt - rDst result "greater than 0" ? 0.0 : 1.0.
+	- ge - rDst result "greater or equal to 0" ? 0.0 : 1.0.
+	- x2 - rDst result multiplied by 2.
+	- x4 - rDst result multiplied by 4.
+	- /2 - rDst result divided by 2.
+	- sat - rDst result is clamped to 0..1.
+
+ALU registers:
+- rN - ALU buffer row register, N is 0..15 (4 registers per row)
+- gN - General purpose register, N is 0..8
+- aluN - ALU result register, N is 0..3
+- immN - ALU3 immediate constant, N is 0..2
+- lp - Low precision register, the "lp" form is used only for the destination register, while source registers uses "#0" or "#1" form.
+- uN - Uniform register, N is 0..31
+- crN - Condition register, N is 0..15
+- posx - Fragment position X + 8192.0
+- posy - Fragment position Y + ?
+- pface - Polygon face direction
+- #dis - Only applicable to the rD. disables rC * rD multiplication, rD is 1.0 effectively.
+
+Example:
+
+
+
+The ALU3 could be traded for the immediate constants, it takes the following form:
+
+	imm0 = float, imm1 = float, imm2 = float
+
+If immN is postfix'ed with ".l" / ".h", the fx10 representation of a float value will be loaded into the respective halve of the immediate constant. When not prefix'ed, the fp20 representation is loaded. 
+
+#### DW sub-instruction
+
+Opcodes are unknown, available only in a hex form.
+
+Example:
+
+	EXEC
+		DW:	0x00020005
+	;
 
 ## Linker assembler
 
@@ -116,4 +329,3 @@ Here the content of the VEC4 vertex export register 1 will be swizzled and copie
 - export1.y => skipped => the content of tram0.y is not altered
 - export1.z => converted to fp20 => copied to the tram0.z and interpolation parameter "interpolation disable" is set for the the tram0.z
 - export1.x => converted to fx10 => copied to the high halve of the tram0.w
-
