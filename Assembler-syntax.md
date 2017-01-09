@@ -214,7 +214,7 @@ Here the varying sub-instruction performs a read of a TRAM row, interpolates the
 - tram2.x read as two fx10 and stored into the r0 of the "pixel packet" row
 - tram7.y read as fp20 and stored into the r1 of the "pixel packet" row
 - the r2 of the "pixel packet" row is untouched
-- tram5.y read as fp20 and stored into the r3 of the "pixel packet" row
+- tram5.w read as fp20 and stored into the r3 of the "pixel packet" row
 
 The special function form:
 
