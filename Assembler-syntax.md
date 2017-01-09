@@ -104,7 +104,7 @@ Fragment instruction takes the following form:
 		DW:	OPCODE operands
 	;
 
-For brevity, "OPCODE operands" could be replace with a "NOP", so the sub-instruction will be set to a respective No-Operation opcode.
+For brevity, "OPCODE operands" could be replaced with a "NOP", so the sub-instruction will be set to the respective No-Operation opcode.
 
 Example:
 
@@ -282,7 +282,7 @@ ALU registers:
 
 Example:
 
-
+-
 
 The ALU3 could be traded for the immediate constants, it takes the following form:
 
