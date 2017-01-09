@@ -101,6 +101,7 @@ Fragment instruction takes the following form:
 		ALU1:	OPCODE operands
 		ALU2:	OPCODE operands
 		ALU3:	OPCODE operands
+		ALU_COMPLEMENT: HEX
 		DW:	OPCODE operands
 	;
 
@@ -140,11 +141,13 @@ Example:
 		ALU1:	OPCODE operands
 		ALU2:	OPCODE operands
 		ALU3:	OPCODE operands
+		ALU_COMPLEMENT: HEX
 
 		ALU0:	OPCODE operands
 		ALU1:	OPCODE operands
 		ALU2:	OPCODE operands
 		ALU3:	OPCODE operands
+		ALU_COMPLEMENT: HEX
 
 		DW:	OPCODE operands
 	;
@@ -163,7 +166,7 @@ Example:
 
 Here no MFU and no ALU sub-instructions will be scheduled-executed.
 
-For brevity, PSEQ/TEX/DW sub-instructions could be omitted from the instruction exec batch, they will be NOP's effectively.
+For brevity, PSEQ/TEX/DW sub-instructions and ALU_COMPLEMENT could be omitted from the instruction exec batch, they will be NOP's effectively.
 
 Example:
 
@@ -181,7 +184,7 @@ Example:
 		MFU:	0x00000000, 0x12345678
 	;
 
-Here the MFU sub-instruction is represented in raw by a two hex values.
+Here the MFU sub-instruction is represented in raw by a two hex values, 0x00000000 is a high 64bit halve and 0x12345678 is low.
 
 #### PSEQ sub-instruction
 
@@ -195,28 +198,29 @@ Example:
 
 #### MFU sub-instruction
 
-There two forms of the MFU sub-instruction: varying and special function.
+There are two forms of the MFU sub-instruction: varying and special function.
 
-The varying form:
+The varying operation:
 
-	var unk(HEX value) rN.fmt, rN.fmt, rN.fmt, rN.fmt
+	var unk(HEX value) mod(rN.fmt), mod(rN.fmt), mod(rN.fmt), mod(rN.fmt)
 
 - unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems.
 - rN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first rN.fmt operand is the TRAM's row "x" component and so on.
+- an optional sat(rN.fmt) saturate modifier could be applied to the operand
 
 Example:
 
 	EXEC
-		MFU:	var unk(0x104E51BA0) r2.fx10, r7.fp20, NOP, r5.fp20
+		MFU:	var unk(0x104E51BA0) r2.fx10, r7.fp20, NOP, sat(r5.fp20)
 	;
 
 Here the varying sub-instruction performs a read of a TRAM row, interpolates the row components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
 - tram2.x read as two fx10 and stored into the r0 of the "pixel packet" row
 - tram7.y read as fp20 and stored into the r1 of the "pixel packet" row
 - the r2 of the "pixel packet" row is untouched
-- tram5.w read as fp20 and stored into the r3 of the "pixel packet" row
+- tram5.w read as fp20, clamped to 0..1 and stored into the r3 of the "pixel packet" row
 
-The special function form:
+The special function:
 
 	OPCODE operand
 
@@ -244,11 +248,11 @@ Example:
 
 #### ALU sub-instruction
 
-The ALU sub-instruction consists of four ALU instructions, one per ALU.
+The ALU sub-instruction consists of four ALU instructions, one per ALU, and an ALU_COMPLEMENT hex value.
 
 ALU instruction takes the following form:
 
-	OPCODE rDst.mask, rA, rB, rC, rD (modifier)
+	OPCODE rDst.mask, -mod(rA)*2-1, -mod(rA)*2-1, -mod(rA)*2-1, -mod(rA)*2-1 (modifier)
 
 - OPCODE is one of the ALU operations: MAD, MUL, MIN, MAX or CSEL. The MUL operations is effectively a MAD with an "addition disable" bit set.
 - rDst is the destination register; it's mask is 'lh', 'l\*', '\*h' or '\*\*', where 'l' - enabled write to the low halve, 'h' - to the high and '*' disables the write to the respective halve. The write-mask defines the destination format for the MAD/CSEL instructions: both halves - fp20, one halve - fx10 low/high.
@@ -256,12 +260,17 @@ ALU instruction takes the following form:
 	- ".l" - fx10 low halve of the source register is read
 	- ".h" - fx10 high halve of the source register is read
 	- no postfix - the source register is read as fp20
-- instruction modifiers are given in parens:
+- optional operand rX modifier, X is for A-B-C-D:
+	- absolute modifier, abs(rX)
+	- multiply by 2, rX * 2 (not applicable to rD)
+	- decrement by 1.0, rX - 1; only affects the fx10 typed rX
+	- negate modifier, -rX (not applicable to rD)
+- optional instruction modifiers are given in parens after the operands:
 	- this - Sets "accumulate this" ALU bit.
 	- other - Sets "accumulate other" ALU bit.
-	- eq - rDst result "equal to 0" ? 0.0 : 1.0.
-	- gt - rDst result "greater than 0" ? 0.0 : 1.0.
-	- ge - rDst result "greater or equal to 0" ? 0.0 : 1.0.
+	- eq - rDst result "equal to 0" ? 1.0 : 0.0.
+	- gt - rDst result "greater than 0" ? 1.0 : 0.0.
+	- ge - rDst result "greater or equal to 0" ? 1.0 : 0.0.
 	- x2 - rDst result multiplied by 2.
 	- x4 - rDst result multiplied by 4.
 	- /2 - rDst result divided by 2.
@@ -270,25 +279,39 @@ ALU instruction takes the following form:
 ALU registers:
 - rN - ALU buffer row register, N is 0..15 (4 registers per row)
 - gN - General purpose register, N is 0..8
-- aluN - ALU result register, N is 0..3
+- aluN - ALUN result register, N is 0..3
 - immN - ALU3 immediate constant, N is 0..2
-- lp - Low precision register, the "lp" form is used only for the destination register, while source registers uses "#0" or "#1" form.
+- lp - Low precision register, the "lp" form is used only for the destination register, while source registers uses "#0" or "#1" form. When rD is set to #1, it's enable bit is unset, making rD 1.0 effectively.
 - uN - Uniform register, N is 0..31
 - crN - Condition register, N is 0..15
 - posx - Fragment position X + 8192.0
 - posy - Fragment position Y + ?
 - pface - Polygon face direction
-- #dis - Only applicable to the rD. disables rC * rD multiplication, rD is 1.0 effectively.
+- rB / rC - Only applicable to the rD. The rD source is a copy of either ALU source register rB or rC.
 
 Example:
 
--
+	EXEC
+		ALU0:	MUL  u3.lh,  r3,         posx,       r1.l - 1,   rB        (x2)(this)
+		ALU1:	CSEL cr6,    r2,         u5.h,       #0,         #1
+		ALU2:	MIN  r2.*h,  r1,         #1,         r2 * 2,     abs(rC)
+		ALU3:	MAD  r2.l*,  r0,         #1,         alu2,       #1
+	;
 
 The ALU3 could be traded for the immediate constants, it takes the following form:
 
 	imm0 = float, imm1 = float, imm2 = float
 
 If immN is postfix'ed with ".l" / ".h", the fx10 representation of a float value will be loaded into the respective halve of the immediate constant. When not prefix'ed, the fp20 representation is loaded. 
+
+Example:
+
+	EXEC
+		ALU0:	MAD  cr0,    imm0.h,     #1,         imm1,       rB   (gt)
+		ALU1:	MAD  lp,     -posx,      #1,         #0,         #1   
+		ALU2:	NOP 
+		ALU3:	imm0.h = -0.187500, imm1 = 8192.000000
+	;
 
 #### DW sub-instruction
 
