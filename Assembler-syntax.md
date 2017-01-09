@@ -61,11 +61,11 @@ Operations:
 
 A typical operation takes the following form:
 
-	OPCODE rD.mask, mod(rA.swizzle), mod(rB.swizzle), mod(rC.swizzle)
+	OPCODE rD.mask, -mod(rA.swizzle), -mod(rB.swizzle), -mod(rC.swizzle)
 
 - OPCODE is one of scalar/vector opcodes.
 - rD mask "xyzw" / "*" defines the write-enable mask.
-- The source register modifier "mod" is optional, where "mod" is "abs" (absolute) or "neg" (negate) or it's combination.
+- The source register modifier "mod" is optional, where "mod" is "abs" (absolute).
 - The scalar NOPs or vector NOPv operations could be omitted for brevity.
 - Source registers (rA, rB, rC) are: general purpose rN, where N is 0-31; constant c[N], where N is 0-255; attribute
 a[N], where N is 0-31.
@@ -77,7 +77,7 @@ Example:
 
 	.asm
 	EXEC(export[A0.z + 3]=vector)
-		MOVv r0.x**w, neg(abs(a[0].xyzw))
+		MOVv r0.x**w, -abs(a[0].xyzw)
 		NOPs
 	;
 
