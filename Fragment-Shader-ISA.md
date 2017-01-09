@@ -51,9 +51,7 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 | 57..58 | scale result             |
 |     56 | saturate result          |
 | 54..55 | condition code           |
-|     53 | write condition register |
-|     52 | write uniform (?)        |
-| 47..51 | destination register     |
+| 47..53 | destination register     |
 |     46 | write high subregister   |
 |     45 | write low subregister    |
 | 32..44 | operand rA               |
@@ -104,7 +102,7 @@ The conditional operation is applied to the ALU's result, so the final result is
 
 #### Condition registers:
 
-The condition register comprises two fixed10 values, 0.0 or 1.0. In order to write a value to the condition register, bit "write condition register" need to be set. The destination register numbers 0..8 will be mapped to the condition registers 64..71. To write to the higher part of the condition register, "write high subregister" bit needs to be set; otherwise lower part will be written regardless of the "write low subregister" bit state.
+The condition register comprises two fixed10 values, 0.0 or 1.0. In order to write a value to the condition register, the destination register should be selected to the condition register 64..71. To write to the higher part of the condition register, "write high subregister" bit needs to be set; otherwise lower part will be written regardless of the "write low subregister" bit state.
 
     Condition register stored value = !!(ALU result)
 
