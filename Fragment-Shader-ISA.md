@@ -59,6 +59,10 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 |  6..18 | operand rC               |
 |   0..5 | operand rD               |
 
+#### ALU buffer and pixel packet:
+
+Patent: https://www.google.com/patents/US7710427
+
 #### ALU embedded constants:
 
 Patent: https://www.google.com/patents/US8775777
