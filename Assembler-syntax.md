@@ -141,7 +141,6 @@ Example:
 		ALU1:	OPCODE operands
 		ALU2:	OPCODE operands
 		ALU3:	OPCODE operands
-		ALU_COMPLEMENT: HEX
 
 		ALU0:	OPCODE operands
 		ALU1:	OPCODE operands
@@ -245,10 +244,9 @@ Example:
 		TEX:	0x00000000
 	;
 
-
 #### ALU sub-instruction
 
-The ALU sub-instruction consists of four ALU instructions, one per ALU, and an ALU_COMPLEMENT hex value.
+The ALU sub-instruction consists of four ALU instructions, one per ALU, and an ALU_COMPLEMENT hex value (one per exec batch).
 
 ALU instruction takes the following form:
 
