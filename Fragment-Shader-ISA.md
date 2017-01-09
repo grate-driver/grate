@@ -13,13 +13,13 @@ The different units seems to be synchronized by separate timing streams.
 
 #### Instructions flow
 
-|   Cycle: |   1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9 |
-|---------:|:----:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:--:|
-| Stage 1: | PSEQ |     |     |     |     |     |     |     |    |
-| Stage 2: |      | MFU | MFU | MFU |     |     |     |     |    |
-| Stage 3: |      |     |     |     | TEX |     |     |     |    |
-| Stage 4: |      |     |     |     |     | ALU | ALU | ALU |    |
-| Stage 5: |      |     |     |     |     |     |     |     | DW |
+| Sequence: |   1  |  2  |  2  |  2  |  3  |  4  |  4  |  4  |  5 |
+|----------:|:----:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:--:|
+|  Stage 1: | PSEQ |     |     |     |     |     |     |     |    |
+|  Stage 2: |      | MFU | MFU | MFU |     |     |     |     |    |
+|  Stage 3: |      |     |     |     | TEX |     |     |     |    |
+|  Stage 4: |      |     |     |     |     | ALU | ALU | ALU |    |
+|  Stage 5: |      |     |     |     |     |     |     |     | DW |
 
 ## Program sequencer
 
