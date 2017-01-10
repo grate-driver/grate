@@ -89,7 +89,7 @@ The fragment assembler is defined by the fragment program parameters, the unifor
 
 #### Parameters
 
-Fragment program parameters:
+Fragment program parameters must precede the .constants and .asm sections, they are:
 - alu_buffer_size = N, where N is 1..4 - somewhat defines the number of pixel packets (row registers r[i].xyzw) kept in the ALU buffer.
 - pseq_to_dw_exec_nb = N, where N is 0..? - the number of PSEQ instruction executed before the non-NOP DW operation.
 
@@ -175,7 +175,7 @@ Example:
 		DW:	OPCODE operands
 	;
 
-Here three MFU instructions and two ALU instructions will be executed consecutively.
+Here three MFU sub-instructions and two ALU sub-instructions will be executed consecutively.
 
 To skip the MFU and/or ALU stages, i.e. to not schedule them during an exec batch, they (sub-instructions) should omitted from the instruction.
 
