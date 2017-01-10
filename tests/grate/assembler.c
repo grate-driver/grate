@@ -31,28 +31,65 @@
 #include "grate.h"
 
 static const struct vs_asm_test {
-	char *path;
+	char *vs_path;
+	char *fs_path;
+	char *linker_path;
 	uint32_t expected_result;
 } tests[] = {
-	{ "asm/vs_mov.txt", 0xFF01FF00 },
-	{ "asm/vs_constant.txt", 0x664D331A },
-	{ "asm/vs_constant_relative_addressing.txt", 0x664D331A },
-	{ "asm/vs_attribute_relative_addressing.txt", 0xFF01FF00 },
-	{ "asm/vs_export_relative_addressing.txt", 0x6601FF1A },
-	{ "asm/vs_branching.txt", 0xFF01FF00 },
-	{ "asm/vs_function.txt", 0xFF01FF00 },
-	{ "asm/vs_stack.txt", 0xFF01FF00 },
-	{ "asm/vs_predicate.txt", 0x667F007F },
-};
-
-static const char *fragment_shader[] = {
-	"precision mediump float;\n",
-	"varying vec4 vcolor;\n",
-	"\n",
-	"void main()\n",
-	"{\n",
-	"    gl_FragColor = vcolor;\n",
-	"}"
+	{
+		.vs_path = "asm/vs_mov.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0xFF01FF00,
+	},
+	{
+		.vs_path = "asm/vs_constant.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0x664D331A,
+	},
+	{
+		.vs_path = "asm/vs_constant_relative_addressing.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0x664D331A,
+	},
+	{
+		.vs_path = "asm/vs_attribute_relative_addressing.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0xFF01FF00,
+	},
+	{
+		.vs_path = "asm/vs_export_relative_addressing.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0x6601FF1A,
+	},
+	{
+		.vs_path = "asm/vs_branching.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0xFF01FF00,
+	},
+	{
+		.vs_path = "asm/vs_function.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0xFF01FF00,
+	},
+	{
+		.vs_path = "asm/vs_stack.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0xFF01FF00,
+	},
+	{
+		.vs_path = "asm/vs_predicate.txt",
+		.fs_path = "asm/fs_vs_tests.txt",
+		.linker_path = "asm/linker_vs_tests.txt",
+		.expected_result = 0x667F007F,
+	},
 };
 
 static const float vertices[] = {
@@ -73,24 +110,53 @@ static const unsigned short indices[] = {
 	0, 1, 2, 1, 2, 3,
 };
 
+static void * open_file(int *fd, struct stat *sb, const char *path)
+{
+	void *ret;
+
+	*fd = open(path, O_RDONLY);
+	if (*fd == -1) {
+		fprintf(stderr, "failed to open %s: %s\n",
+			path, strerror(errno));
+		return NULL;
+	}
+
+	if (fstat(*fd, sb) == -1) {
+		fprintf(stderr, "failed to get stat %s: %s\n",
+			path, strerror(errno));
+		return NULL;
+	}
+
+	ret = mmap(NULL, sb->st_size, PROT_READ, MAP_PRIVATE, *fd, 0);
+	if (ret == MAP_FAILED) {
+		fprintf(stderr, "failed to mmap %s: %s\n",
+			path, strerror(errno));
+		return NULL;
+	}
+
+	return ret;
+}
+
 int main(int argc, char *argv[])
 {
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
-	struct grate_shader *vs, *fs;
+	struct grate_shader *vs, *fs, *linker;
 	struct grate_options options;
 	unsigned long offset = 0;
 	struct grate *grate;
 	struct grate_bo *bo;
-	struct stat sb;
+	struct stat sb[3];
 	void *vertex_shader;
+	void *fragment_shader;
+	void *linker_code;
 	void *buffer;
 	uint32_t *fb_data;
 	uint32_t result;
 	char *path;
 	int location;
 	int i, j;
-	int fd;
+	int fd[3];
 
 	path = dirname(argv[0]);
 	if (chdir(path) == -1)
@@ -126,43 +192,40 @@ int main(int argc, char *argv[])
 	for (i = 0; i < ARRAY_SIZE(tests); i++, offset = 0) {
 		grate_clear(grate);
 
-		fd = open(tests[i].path, O_RDONLY);
-		if (fd == -1) {
-			fprintf(stderr, "failed to open %s: %s\n",
-				tests[i].path, strerror(errno));
+		vertex_shader = open_file(&fd[0], &sb[0], tests[i].vs_path);
+		if (vertex_shader == NULL)
 			return 1;
-		}
 
-		if (fstat(fd, &sb) == -1) {
-			fprintf(stderr, "failed to get stat %s: %s\n",
-				tests[i].path, strerror(errno));
+		fragment_shader = open_file(&fd[1], &sb[1], tests[i].fs_path);
+		if (fragment_shader == NULL)
 			return 1;
-		}
 
-		vertex_shader = mmap(NULL, sb.st_size, PROT_READ,
-				     MAP_PRIVATE, fd, 0);
-
-		if (vertex_shader == MAP_FAILED) {
-			fprintf(stderr, "failed to mmap %s: %s\n",
-				tests[i].path, strerror(errno));
+		linker_code = open_file(&fd[2], &sb[2], tests[i].linker_path);
+		if (linker_code == NULL)
 			return 1;
-		}
 
-		vs = grate_shader_parse_asm(vertex_shader);
+		vs = grate_shader_parse_vertex_asm(vertex_shader);
 		if (!vs) {
 			fprintf(stderr, "%s assembler parse failed\n",
-				tests[i].path);
+				tests[i].vs_path);
 			return 1;
 		}
 
-		fs = grate_shader_new(grate, GRATE_SHADER_FRAGMENT,
-				      fragment_shader, ARRAY_SIZE(fragment_shader));
+		fs = grate_shader_parse_fragment_asm(fragment_shader);
 		if (!fs) {
-			fprintf(stderr, "fragment shader compilation failed\n");
+			fprintf(stderr, "%s assembler parse failed\n",
+				tests[i].fs_path);
 			return 1;
 		}
 
-		program = grate_program_new(grate, vs, fs);
+		linker = grate_shader_parse_linker_asm(linker_code);
+		if (!linker) {
+			fprintf(stderr, "%s assembler parse failed\n",
+				tests[i].linker_path);
+			return 1;
+		}
+
+		program = grate_program_new(grate, vs, fs, linker);
 		grate_program_link(program);
 
 		grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
@@ -202,26 +265,47 @@ int main(int argc, char *argv[])
 					fb_data[j], fb_data[j + 1],
 					fb_data[j + 2], fb_data[j + 3]);
 
-			fprintf(stderr, "\nDisassembly:\n%s\n",
+			fprintf(stderr, "\nVertex disassembly:\n%s\n",
 				grate_shader_disasm_vs(vs) ?: "");
 
-			fprintf(stderr, "\ntest %s failed: expected 0x%08X, got 0x%08X\n",
-				tests[i].path, tests[i].expected_result, result);
+			fprintf(stderr, "\nFragment disassembly:\n%s\n",
+				grate_shader_disasm_fs(fs) ?: "");
+
+			fprintf(stderr, "\nLinker disassembly:\n%s\n",
+				grate_shader_disasm_linker(linker) ?: "");
+
+			fprintf(stderr, "\ntest %s; %s; %s; failed: expected 0x%08X, got 0x%08X\n",
+				tests[i].vs_path,
+				tests[i].fs_path,
+				tests[i].linker_path,
+				tests[i].expected_result, result);
 
 			return 1;
 		}
 
 		grate_program_free(program);
 
-		if (munmap(vertex_shader, sb.st_size) == -1) {
+		if (munmap(vertex_shader, sb[0].st_size) == -1) {
 			fprintf(stderr, "failed to munmap %s: %s\n",
-				tests[i].path, strerror(errno));
+				tests[i].vs_path, strerror(errno));
 		}
 
-		close(fd);
+		if (munmap(fragment_shader, sb[1].st_size) == -1) {
+			fprintf(stderr, "failed to munmap %s: %s\n",
+				tests[i].fs_path, strerror(errno));
+		}
+
+		if (munmap(linker_code, sb[2].st_size) == -1) {
+			fprintf(stderr, "failed to munmap %s: %s\n",
+				tests[i].linker_path, strerror(errno));
+		}
+
+		close(fd[0]);
+		close(fd[1]);
+		close(fd[2]);
 	}
 
-	printf("All tests passed\n");
+	printf("\nAll tests passed\n");
 
 	grate_exit(grate);
 	return 0;

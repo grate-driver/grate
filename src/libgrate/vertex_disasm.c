@@ -1,18 +1,23 @@
 /*
  * Copyright (c) 2016 Dmitry Osipenko <digetx@gmail.com>
  *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- *  This program is distributed in the hope that it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- *  for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, see <http"//www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 #include <stdint.h>
@@ -199,7 +204,7 @@ static char address_register(int index)
 #define B	1
 #define C	2
 
-static char * r(int reg, const vpe_instr128 *ins)
+static const char * r(int reg, const vpe_instr128 *ins)
 {
 	static char ret[3][32];
 	char *buf = ret[reg];
@@ -250,7 +255,7 @@ static char * r(int reg, const vpe_instr128 *ins)
 	memset(ret[reg], 0, 32);
 
 	if (negate)
-		buf += sprintf(buf, "neg(");
+		buf += sprintf(buf, "-");
 
 	if (absolute_value)
 		buf += sprintf(buf, "abs(");
@@ -305,13 +310,10 @@ static char * r(int reg, const vpe_instr128 *ins)
 	if (absolute_value)
 		buf += sprintf(buf, ")");
 
-	if (negate)
-		buf += sprintf(buf, ")");
-
 	return ret[reg];
 }
 
-static char * vec_rD(const vpe_instr128 *ins)
+static const char * vec_rD(const vpe_instr128 *ins)
 {
 	static char ret[9];
 	char *buf = ret;
@@ -327,7 +329,7 @@ static char * vec_rD(const vpe_instr128 *ins)
 	return ret;
 }
 
-static char * sca_rD(const vpe_instr128 *ins)
+static const char * sca_rD(const vpe_instr128 *ins)
 {
 	static char ret[9];
 	char *buf = ret;
@@ -343,7 +345,7 @@ static char * sca_rD(const vpe_instr128 *ins)
 	return ret;
 }
 
-char * vpe_vliw_disassemble(const vpe_instr128 *ins)
+const char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 {
 	static char ret[256];
 	char *buf = ret;
@@ -463,7 +465,7 @@ char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 		break;
 	}
 
-	buf += sprintf(buf, ";\n");
+	buf += sprintf(buf, ";");
 
 	return ret;
 }

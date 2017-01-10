@@ -1,25 +1,30 @@
 /*
  * Copyright (c) 2016 Dmitry Osipenko <digetx@gmail.com>
  *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- *  This program is distributed in the hope that it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- *  for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 %option caseless
 
 %{
 #include <stdint.h>
-#include "libgrate_la-asm_parser.h"
+#include "vertex_asm.tab.h"
 
 #define YY_NO_INPUT
 
@@ -36,33 +41,39 @@ int yywrap(void)
 "/*"([^*]|(\*+[^*/]))*\*+\/ /* comment */;
 [\n]			yylineno++;
 
-".vs_asm"		return T_ASM;
-".vs_exports"		return T_EXPORTS;
-".vs_constants"		return T_CONSTANTS;
-".vs_attributes"	return T_ATTRIBUTES;
-[-]{0,1}[0-9]+"."[0-9]+f {
-				yylval.f = atof(yytext);
+".asm"			return T_ASM;
+".exports"		return T_EXPORTS;
+".constants"		return T_CONSTANTS;
+".attributes"		return T_ATTRIBUTES;
+[-]{0,1}[0-9]+"."[0-9]+ {
+				vertex_asmlval.f = atof(yytext);
 				return T_FLOAT;
 			}
 0x[0-9a-f]{1,8}		{
-				yylval.u = strtoul(yytext + 2, NULL, 16);
+				vertex_asmlval.u = strtoul(yytext + 2, NULL, 16);
 				return T_HEX;
 			}
 EXEC			return T_EXEC;
 EXEC_END		return T_EXEC_END;
 A0			return T_ADDRESS_REG;
-r			return T_REGISTER;
+r[0-9]{1,2}		{
+				vertex_asmlval.u = atoi(yytext + 1);
+				return T_REGISTER;
+			}
 a			return T_ATTRIBUTE;
 c			return T_CONSTANT;
-u			return T_UNDEFINED;
-neg			return T_NEG;
+u			{
+				vertex_asmlval.u = atoi(yytext + 1);
+				return T_UNDEFINED;
+			}
+-			return T_NEG;
 abs			return T_ABS;
 export			return T_EXPORT;
 vector			return T_VECTOR;
 scalar			return T_SCALAR;
 saturate		return T_SATURATE;
 [0-9]+			{
-				yylval.u = atoi(yytext);
+				vertex_asmlval.u = atoi(yytext);
 				return T_NUMBER;
 			}
 p			return T_PREDICATE;
@@ -74,31 +85,31 @@ cc			return T_CHECK_CONDITION_CHECK;
 cwr			return T_CHECK_CONDITION_WR;
 cr			return T_CONDITION_REGISTER;
 x			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_X;
 			}
 y			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_Y;
 			}
 z			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_Z;
 			}
 w			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_W;
 			}
 "*"			{
-				yylval.c = yytext[0];
+				vertex_asmlval.c = yytext[0];
 				return T_COMPONENT_DISABLED;
 			}
 \"(.+?)\"		{
-				if (yyleng > sizeof(yylval.s) - 1)
+				if (yyleng > sizeof(vertex_asmlval.s) - 1)
 					return T_SYNTAX_ERROR;
 
-				strcpy(yylval.s, yytext + 1);
-				yylval.s[yyleng - 2] = '\0';
+				strcpy(vertex_asmlval.s, yytext + 1);
+				vertex_asmlval.s[yyleng - 2] = '\0';
 
 				return T_STRING;
 			}

@@ -2,6 +2,7 @@
 #define GRATE_LIBGRATE_PRIVATE_H 1
 
 #include "grate.h"
+#include "libcgc.h"
 
 #define GRATE_MAX_ATTRIBUTES 16
 
@@ -41,9 +42,17 @@ struct grate_uniform {
 	const char *name;
 };
 
+struct grate_shader {
+	struct cgc_shader *cgc;
+
+	unsigned int num_words;
+	uint32_t *words;
+};
+
 struct grate_program {
 	struct grate_shader *vs;
 	struct grate_shader *fs;
+	struct grate_shader *linker;
 
 	struct grate_attribute *attributes;
 	unsigned int num_attributes;
@@ -52,6 +61,8 @@ struct grate_program {
 	struct grate_uniform *uniforms;
 	unsigned int num_uniforms;
 	float uniform[256 * 4];
+
+	uint32_t fs_uniform[32];
 };
 
 void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader);

@@ -140,14 +140,19 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 				      const char *lines[],
 				      unsigned int count);
 void grate_shader_free(struct grate_shader *shader);
-struct grate_shader *grate_shader_parse_asm(const char *);
-char *grate_shader_disasm_vs(struct grate_shader *shader);
+struct grate_shader *grate_shader_parse_vertex_asm(const char *);
+const char *grate_shader_disasm_vs(struct grate_shader *shader);
+struct grate_shader *grate_shader_parse_fragment_asm(const char *);
+const char *grate_shader_disasm_fs(struct grate_shader *shader);
+struct grate_shader *grate_shader_parse_linker_asm(const char *);
+const char *grate_shader_disasm_linker(struct grate_shader *shader);
 
 struct grate_program;
 
 struct grate_program *grate_program_new(struct grate *grate,
 					struct grate_shader *vs,
-					struct grate_shader *fs);
+					struct grate_shader *fs,
+					struct grate_shader *linker);
 void grate_program_free(struct grate_program *program);
 
 void grate_program_link(struct grate_program *program);

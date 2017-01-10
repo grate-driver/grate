@@ -1,18 +1,23 @@
 /*
  * Copyright (c) 2016 Dmitry Osipenko <digetx@gmail.com>
  *
- *  This program is free software; you can redistribute it and/or modify it
- *  under the terms of the GNU General Public License as published by the
- *  Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- *  This program is distributed in the hope that it will be useful, but WITHOUT
- *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- *  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- *  for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, see <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 
 %{
@@ -21,15 +26,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <asm.h>
+#include "asm.h"
 
-extern int yylex(void);
-extern int yylineno;
-extern int yydebug;
+extern int vertex_asmlex(void);
+extern int vertex_asmlineno;
+extern int vertex_asmdebug;
 
 void yyerror(char *err)
 {
-	fprintf(stderr, "line %d: %s\n", yylineno, err);
+	fprintf(stderr, "vs: line %d: %s\n", vertex_asmlineno, err);
 }
 
 vpe_instr128 asm_vs_instructions[256];
@@ -124,7 +129,7 @@ static void reset_instruction(void)
 	instr.predicate_swizzle_w = SWIZZLE_W;
 }
 
-void reset_asm_parser_state(void)
+static void reset_asm_parser_state(void)
 {
 	memset(&asm_vs_attributes, 0, sizeof(asm_vs_attributes));
 	memset(&asm_vs_constants, 0, sizeof(asm_vs_constants));
@@ -134,8 +139,8 @@ void reset_asm_parser_state(void)
 
 	asm_vs_instructions_nb = 0;
 
-	yylineno = 1;
-	yydebug = 0;
+	vertex_asmlineno = 1;
+	vertex_asmdebug = 0;
 }
 %}
 
@@ -192,10 +197,10 @@ void reset_asm_parser_state(void)
 %token T_ATTRIBUTES
 %token T_EXEC
 %token T_EXEC_END
-%token T_REGISTER
+%token <u> T_REGISTER
 %token T_ATTRIBUTE
 %token T_CONSTANT
-%token T_UNDEFINED
+%token <u> T_UNDEFINED
 %token T_NEG
 %token T_ABS
 %token T_SET_CONDITION
@@ -245,6 +250,9 @@ void reset_asm_parser_state(void)
 
 program: program sections
 	|
+	{
+		reset_asm_parser_state();
+	}
 	;
 
 sections:
@@ -783,18 +791,18 @@ SCALAR_OPCODE:
 	;
 
 REGISTER_DST_MASKED:
-	T_REGISTER T_NUMBER '.' DST_MASK_X DST_MASK_Y DST_MASK_Z DST_MASK_W
+	T_REGISTER '.' DST_MASK_X DST_MASK_Y DST_MASK_Z DST_MASK_W
 	{
-		pst.wr_x = !($4 == '*');
-		pst.wr_y = !($5 == '*');
- 		pst.wr_z = !($6 == '*');
-		pst.wr_w = !($7 == '*');
+		pst.wr_x = !($3 == '*');
+		pst.wr_y = !($4 == '*');
+ 		pst.wr_z = !($5 == '*');
+		pst.wr_w = !($6 == '*');
 
-		if ($2 > 31 && $2 != 63) {
+		if ($1 > 31 && $1 != 63) {
 			PARSE_ERROR("Invalid destination register index");
 		}
 
-		pst.rD = $2;
+		pst.rD = $1;
 	}
 	;
 
@@ -896,25 +904,31 @@ REGISTER_SRC:
 		pst.absolute = 0;
 	}
 	|
-	T_NEG '(' REGISTER_SRC ')'
+	T_NEG REGISTER_SRC_SWIZZLED
 	{
 		pst.negate = 1;
 	}
 	|
-	T_ABS '(' REGISTER_SRC ')'
+	T_ABS '(' REGISTER_SRC_SWIZZLED ')'
 	{
 		pst.absolute = 1;
+	}
+	|
+	T_NEG T_ABS '(' REGISTER_SRC_SWIZZLED ')'
+	{
+		pst.absolute = 1;
+		pst.negate = 1;
 	}
 	;
 
 REGISTER_SRC_SWIZZLED:
-	T_REGISTER T_NUMBER '.' SWIZZLE
+	T_REGISTER '.' SWIZZLE
 	{
-		if ($2 > 31) {
+		if ($1 > 31) {
 			PARSE_ERROR("Invalid source register index");
 		}
 
-		pst.index = $2;
+		pst.index = $1;
 		pst.type = REG_TYPE_TEMPORARY;
 	}
 	|
@@ -956,13 +970,13 @@ REGISTER_SRC_SWIZZLED:
 		pst.index = 0;
 	}
 	|
-	T_UNDEFINED T_NUMBER '.' SWIZZLE
+	T_UNDEFINED '.' SWIZZLE
 	{
-		if ($2 > 31) {
+		if ($1 > 31) {
 			PARSE_ERROR("Invalid source register index");
 		}
 
-		pst.index = $2;
+		pst.index = $1;
 		pst.type = REG_TYPE_UNDEFINED;
 	}
 	;
