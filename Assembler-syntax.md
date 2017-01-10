@@ -85,11 +85,35 @@ Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w
 
 ## Fragment assembler
 
-The fragment assembler is defined by the fragment program parameters and the instructions placed in the .asm section. The instruction starts with the "EXEC" preamble, consists of 5 sub-instructions, each representing the respective stage of the fragment processor pipeline, and ends with the termination semicolon.
+The fragment assembler is defined by the fragment program parameters, the uniform constants and the instructions placed in the .asm section. The instruction starts with the "EXEC" preamble, consists of 5 sub-instructions, each representing the respective stage of the fragment processor pipeline, and ends with the termination semicolon.
+
+#### Parameters
 
 Fragment program parameters:
 - alu_buffer_size = N, where N is 1..4
 - pseq_to_dw_exec_nb = N, where N is 0..?
+
+#### Constants
+
+The .constants code section defines the fragment uniform constants. The postfix of the constant register index defines the format of the float value and it's sub-location within the register value:
+- ".l" and ".h" the float is converted to fx10 and stored in low/high halves of the constant register respectively
+- no postfix - float is converted to fp20
+
+A 32bit raw hex value could be used as well.
+
+Example:
+
+	.constants
+		[0]   = 0.1;
+		[1].l = 0.2;
+		[1].h = -0.3;
+		[2]   = 0x12345678;
+
+Here: 0.1 is stored in the uniform register 0 as fp20, 0.2 is stored in the low halve uniform register 1 as fx10, -0.3 is stored in the high halve uniform register 1 as fx10, a raw hex value 0x12345678 is written to the uniform register 2.
+
+#### Instructions
+
+The .asm section code section defines the actual fragment program instructions.
 
 Fragment instruction takes the following form:
 
