@@ -90,8 +90,8 @@ The fragment assembler is defined by the fragment program parameters, the unifor
 #### Parameters
 
 Fragment program parameters:
-- alu_buffer_size = N, where N is 1..4
-- pseq_to_dw_exec_nb = N, where N is 0..?
+- alu_buffer_size = N, where N is 1..4 - somewhat defines the number of pixel packets (row registers r[i].xyzw) kept in the ALU buffer.
+- pseq_to_dw_exec_nb = N, where N is 0..? - the number of PSEQ instruction executed before the non-NOP DW operation.
 
 #### Constants
 
