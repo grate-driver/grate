@@ -203,7 +203,7 @@ The varying operation:
 
 	var unk(HEX value) mod(rN.fmt), mod(rN.fmt), mod(rN.fmt), mod(rN.fmt)
 
-- unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems.
+- an optional unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems. When omitted, it is treated as unk(0x0).
 - rN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first rN.fmt operand is the TRAM's row "x" component and so on.
 - an optional sat(rN.fmt) saturate modifier could be applied to the operand
 
