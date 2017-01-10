@@ -85,7 +85,7 @@ Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w
 
 ## Fragment assembler
 
-The fragment assembler is defined by the fragment program parameters, the uniform constants and the instructions placed in the .asm section. The instruction starts with the "EXEC" preamble, consists of 5 sub-instructions, each representing the respective stage of the fragment processor pipeline, and ends with the termination semicolon.
+The fragment assembler is defined by the fragment program parameters, the uniform constants and the instructions placed.
 
 #### Parameters
 
@@ -113,7 +113,7 @@ Here: 0.1 is stored in the uniform register 0 as fp20, 0.2 is stored in the low 
 
 #### Instructions
 
-The .asm section code section defines the actual fragment program instructions.
+The .asm section code section defines the actual fragment program instructions. The instruction starts with the "EXEC" preamble, consists of 5 sub-instructions, each representing the respective stage of the fragment processor pipeline, and ends with the termination semicolon.
 
 Fragment instruction takes the following form:
 
