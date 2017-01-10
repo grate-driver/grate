@@ -85,7 +85,7 @@ Here scalar operation is NOP, vector operation is MOV: the content of "x" and "w
 
 ## Fragment assembler
 
-The fragment assembler is defined by the fragment program parameters, the uniform constants and the instructions placed.
+The fragment assembler is defined by the fragment program parameters, the uniform constants and the instructions.
 
 #### Parameters
 
