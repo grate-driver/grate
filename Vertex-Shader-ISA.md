@@ -4,7 +4,7 @@ The Tegra vertex shader ISA is a relatively straight-forward implementation of t
 
 Each instruction contains up to two operations; one 4-component vector ALU (arithmetic logic unit) operation, and one 1-component SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
 
-There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
+There's four operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
 
 Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers, 256 input vec4 constant registers, 16 export vec4 registers, 2 condition registers, 4 address registers. Maximum size of vertex program is 256 VLIW instructions.
 
