@@ -124,10 +124,10 @@ static const char * mfu_var(const mfu_instr *mfu, int reg)
 
 		switch (opcode) {
 		case MFU_VAR_FP20:
-			buf += sprintf(buf, "%s.fp20", reg_name(source, 0));
+			buf += sprintf(buf, "t%d.fp20", source);
 			break;
 		case MFU_VAR_FX10:
-			buf += sprintf(buf, "%s.fx10", reg_name(source, 0));
+			buf += sprintf(buf, "t%d.fx10", source);
 			break;
 		default:
 			buf += sprintf(buf, "invalid opcode");

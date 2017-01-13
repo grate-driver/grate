@@ -170,6 +170,7 @@ static uint32_t float_to_fx10(float f)
 %token T_ALU_rC
 
 %token T_ALU_LOWP
+%token <u> T_TRAM_ROW
 %token <u> T_ROW_REGISTER
 %token <u> T_GLOBAL_REGISTER
 %token <u> T_ALU_RESULT_REGISTER
@@ -524,10 +525,10 @@ MFU_UNK:
 	;
 
 MFU_VAR:
-	T_ROW_REGISTER '.' MFU_VAR_PRECISION
+	T_TRAM_ROW '.' MFU_VAR_PRECISION
 	{
 		if ($1 > 15) {
-			PARSE_ERROR("Invalid TRAM row register, 16 maximum");
+			PARSE_ERROR("Invalid TRAM row number, should be 0..15");
 		}
 
 		yyval.mfu_var.saturate = 0;
@@ -535,10 +536,10 @@ MFU_VAR:
 		yyval.mfu_var.opcode = $3;
 	}
 	|
-	T_SATURATE '(' T_ROW_REGISTER '.' MFU_VAR_PRECISION ')'
+	T_SATURATE '(' T_TRAM_ROW '.' MFU_VAR_PRECISION ')'
 	{
 		if ($3 > 15) {
-			PARSE_ERROR("Invalid TRAM row register, 16 maximum");
+			PARSE_ERROR("Invalid TRAM row number, should be 0..15");
 		}
 
 		yyval.mfu_var.saturate = 1;
@@ -1043,7 +1044,7 @@ ALU_REG:
 	T_ROW_REGISTER ALU_SRC_FLOAT_TYPE
 	{
 		if ($1 > 15) {
-			PARSE_ERROR("Invalid rom reg, should be 0..15");
+			PARSE_ERROR("Invalid row reg, should be 0..15");
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
