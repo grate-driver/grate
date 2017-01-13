@@ -36,7 +36,6 @@
 
 extern int linker_asmlex(void);
 extern int linker_asmlineno;
-extern int linker_asmdebug;
 
 void __attribute__((weak)) yyerror(char *err)
 {
@@ -110,7 +109,6 @@ instructions: instructions instruction
 		asm_linker_used_tram_rows_nb = 1;
 
 		linker_asmlineno = 1;
-		linker_asmdebug = 0;
 	}
 	;
 

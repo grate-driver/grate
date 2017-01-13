@@ -30,7 +30,6 @@
 
 extern int vertex_asmlex(void);
 extern int vertex_asmlineno;
-extern int vertex_asmdebug;
 
 void __attribute__((weak)) yyerror(char *err)
 {
@@ -140,7 +139,6 @@ static void reset_asm_parser_state(void)
 	asm_vs_instructions_nb = 0;
 
 	vertex_asmlineno = 1;
-	vertex_asmdebug = 0;
 }
 %}
 

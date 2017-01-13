@@ -38,7 +38,6 @@
 
 extern int fragment_asmlex(void);
 extern int fragment_asmlineno;
-extern int fragment_asmdebug;
 
 void __attribute__((weak)) yyerror(char *err)
 {
@@ -90,7 +89,6 @@ static void reset_fragment_asm_parser_state(void)
 	asm_pseq_to_dw_exec_nb = 1;
 
 	fragment_asmlineno = 1;
-	fragment_asmdebug = 0;
 }
 
 static uint32_t float_to_fp20(float f)
