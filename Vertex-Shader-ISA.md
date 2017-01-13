@@ -213,6 +213,8 @@ To use relative addressing:
 
     export write index = A0.c + export write index
 
+The vertex export index 0 seems to be dedicated solely to the gl_Position.
+
 ## Address registers
 There are 4 relative base address registers (A0.xyzw). The ARL (address register load, rA floored) and ARR (address register load, rA rounded) vector operations are altering content of the address registers, so that each component of source register rA.xyzw represents the corresponding address register. The ARA (address register addition) adds 2 address register components together, so that A0 = (A0.x + A0.z, A0.y + A0.w, A0.x + A0.z, A0.y + A0.w).
 
