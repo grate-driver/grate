@@ -39,31 +39,31 @@ static const char * reg_name(int reg, int id)
 	char *buf = ret;
 
 	switch (reg) {
-	case FRAG_ROW_REG_0 ... FRAG_ROW_REG_15:
+	case FRAGMENT_ROW_REG_0 ... FRAGMENT_ROW_REG_15:
 		buf += sprintf(buf, "r%d", reg);
 		break;
-	case FRAG_GENERAL_PURPOSE_REG_0 ... FRAG_GENERAL_PURPOSE_REG_7:
-		buf += sprintf(buf, "g%d", reg - FRAG_GENERAL_PURPOSE_REG_0);
+	case FRAGMENT_GENERAL_PURPOSE_REG_0 ... FRAGMENT_GENERAL_PURPOSE_REG_7:
+		buf += sprintf(buf, "g%d", reg - FRAGMENT_GENERAL_PURPOSE_REG_0);
 		break;
-	case FRAG_ALU_RESULT_REG_0 ... FRAG_ALU_RESULT_REG_3:
-		buf += sprintf(buf, "alu%d", reg - FRAG_ALU_RESULT_REG_0);
+	case FRAGMENT_ALU_RESULT_REG_0 ... FRAGMENT_ALU_RESULT_REG_3:
+		buf += sprintf(buf, "alu%d", reg - FRAGMENT_ALU_RESULT_REG_0);
 		break;
-	case FRAG_EMBEDDED_CONSTANT_0 ... FRAG_EMBEDDED_CONSTANT_2:
-		buf += sprintf(buf, "imm%d", reg - FRAG_EMBEDDED_CONSTANT_0);
+	case FRAGMENT_EMBEDDED_CONSTANT_0 ... FRAGMENT_EMBEDDED_CONSTANT_2:
+		buf += sprintf(buf, "imm%d", reg - FRAGMENT_EMBEDDED_CONSTANT_0);
 		break;
-	case FRAG_LOWP_VEC2_0_1:
+	case FRAGMENT_LOWP_VEC2_0_1:
 		if (id == -1) {
 			buf += sprintf(buf, "lp");
 		} else {
 			buf += sprintf(buf, "#%d", id);
 		}
 		break;
-	case FRAG_UNIFORM_REG_0 ... FRAG_UNIFORM_REG_31:
-		buf += sprintf(buf, "u%d", reg - FRAG_UNIFORM_REG_0);
+	case FRAGMENT_UNIFORM_REG_0 ... FRAGMENT_UNIFORM_REG_31:
+		buf += sprintf(buf, "u%d", reg - FRAGMENT_UNIFORM_REG_0);
 		break;
-	case FRAG_CONDITION_REG_0 ... FRAG_CONDITION_REG_7:
+	case FRAGMENT_CONDITION_REG_0 ... FRAGMENT_CONDITION_REG_7:
 		buf += sprintf(buf, "cr%d",
-			       (reg - FRAG_CONDITION_REG_0) * 2 + id);
+			       (reg - FRAGMENT_CONDITION_REG_0) * 2 + id);
 		break;
 	case FRAGMENT_POS_X:
 		buf += sprintf(buf, "posx");
@@ -71,7 +71,7 @@ static const char * reg_name(int reg, int id)
 	case FRAGMENT_POS_Y:
 		buf += sprintf(buf, "posy");
 		break;
-	case FRAG_POLYGON_FACE:
+	case FRAGMENT_POLYGON_FACE:
 		buf += sprintf(buf, "pface");
 		break;
 	default:
@@ -289,24 +289,24 @@ static const char * alu_r(const union fragment_alu_instruction *alu, int reg)
 			       reg_name(reg_select, sub_reg_select_high));
 
 		switch (reg_select) {
-		case FRAG_EMBEDDED_CONSTANT_0 ... FRAG_EMBEDDED_CONSTANT_2:
+		case FRAGMENT_EMBEDDED_CONSTANT_0 ... FRAGMENT_EMBEDDED_CONSTANT_2:
 			if (fixed10) {
 				if (sub_reg_select_high) {
-					imm_fx10_high[reg_select - FRAG_EMBEDDED_CONSTANT_0] = 1;
+					imm_fx10_high[reg_select - FRAGMENT_EMBEDDED_CONSTANT_0] = 1;
 				} else {
-					imm_fx10_low[reg_select - FRAG_EMBEDDED_CONSTANT_0] = 1;
+					imm_fx10_low[reg_select - FRAGMENT_EMBEDDED_CONSTANT_0] = 1;
 				}
 			} else {
-				imm_fp20[reg_select - FRAG_EMBEDDED_CONSTANT_0] = 1;
+				imm_fp20[reg_select - FRAGMENT_EMBEDDED_CONSTANT_0] = 1;
 			}
 
 			alu_imm_used = 1;
 			break;
-		case FRAG_CONDITION_REG_0 ... FRAG_CONDITION_REG_7:
-		case FRAG_LOWP_VEC2_0_1:
+		case FRAGMENT_CONDITION_REG_0 ... FRAGMENT_CONDITION_REG_7:
+		case FRAGMENT_LOWP_VEC2_0_1:
 		case FRAGMENT_POS_X:
 		case FRAGMENT_POS_Y:
-		case FRAG_POLYGON_FACE:
+		case FRAGMENT_POLYGON_FACE:
 			precision = 0;
 		}
 		break;
@@ -347,7 +347,7 @@ static const char * alu_dst(const union fragment_alu_instruction *alu)
 	char *buf = ret;
 	int cr_adj;
 
-	if (alu->dst_reg >= FRAG_CONDITION_REG_0 && alu->dst_reg <= FRAG_CONDITION_REG_7) {
+	if (alu->dst_reg >= FRAGMENT_CONDITION_REG_0 && alu->dst_reg <= FRAGMENT_CONDITION_REG_7) {
 		cr_adj = (alu->write_low_sub_reg || alu->write_low_sub_reg);
 
 		buf += sprintf(buf, "%s", reg_name(alu->dst_reg, cr_adj));
