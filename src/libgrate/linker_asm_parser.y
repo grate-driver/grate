@@ -118,8 +118,8 @@ instruction:
 	{
 		memset(&yyval.instr, 0, sizeof(yyval.instr));
 
-		if ($10 > 31) {
-			PARSE_ERROR("Invalid TRAM row index, 31 maximum");
+		if ($10 > 15) {
+			PARSE_ERROR("Invalid TRAM row index, 15 maximum");
 		}
 
 		if ($12 > 15) {
