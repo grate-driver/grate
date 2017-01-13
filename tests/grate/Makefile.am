@@ -1,10 +1,10 @@
 noinst_PROGRAMS = \
+	assembler \
 	clear \
 	cube \
 	quad \
 	triangle \
-	triangle-rotate \
-	assembler
+	triangle-rotate
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/src/libgrate
