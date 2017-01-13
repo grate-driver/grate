@@ -40,7 +40,7 @@ extern int fragment_asmlex(void);
 extern int fragment_asmlineno;
 extern int fragment_asmdebug;
 
-void yyerror(char *err)
+void __attribute__((weak)) yyerror(char *err)
 {
 	fprintf(stderr, "fs: line %d: %s\n", fragment_asmlineno, err);
 }

@@ -38,7 +38,7 @@ extern int linker_asmlex(void);
 extern int linker_asmlineno;
 extern int linker_asmdebug;
 
-void yyerror(char *err)
+void __attribute__((weak)) yyerror(char *err)
 {
 	fprintf(stderr, "linker: line %d: %s\n", linker_asmlineno, err);
 }

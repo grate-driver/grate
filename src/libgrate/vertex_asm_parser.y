@@ -32,7 +32,7 @@ extern int vertex_asmlex(void);
 extern int vertex_asmlineno;
 extern int vertex_asmdebug;
 
-void yyerror(char *err)
+void __attribute__((weak)) yyerror(char *err)
 {
 	fprintf(stderr, "vs: line %d: %s\n", vertex_asmlineno, err);
 }
