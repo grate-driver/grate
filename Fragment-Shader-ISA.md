@@ -114,6 +114,10 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 
 Non-zero value written to the KILL register discards the fragment, zero keeps it alive. Destination register write mask (low/high halves) is ignored.
 
+#### Position registers:
+
+The returned fragment position X register value is accumulated by 8192.0, position Y value is also accumulated by 8192.0 and decremented by the render target height + 1.
+
 #### Operands (rA, rB, rC):
 
 |  Bits | Meaning               |
