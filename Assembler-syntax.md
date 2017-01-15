@@ -225,19 +225,19 @@ There are two forms of the MFU sub-instruction: varying and special function.
 
 The varying operation:
 
-	var unk(HEX value) mod(rN.fmt), mod(rN.fmt), mod(rN.fmt), mod(rN.fmt)
+	var unk(HEX value) mod(tN.fmt), mod(tN.fmt), mod(tN.fmt), mod(tN.fmt)
 
 - an optional unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems. When omitted, it is treated as unk(0x0).
-- rN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first rN.fmt operand is the TRAM's row "x" component and so on.
-- an optional sat(rN.fmt) saturate modifier could be applied to the operand
+- tN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first tN.fmt operand is the TRAM's row "x" component and so on.
+- an optional sat(tN.fmt) saturate modifier could be applied to the operand
 
 Example:
 
 	EXEC
-		MFU:	var unk(0x104E51BA0) r2.fx10, r7.fp20, NOP, sat(r5.fp20)
+		MFU:	var unk(0x104E51BA0) t2.fx10, t7.fp20, NOP, sat(t5.fp20)
 	;
 
-Here the varying sub-instruction performs a read of a TRAM row, interpolates the row components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
+Here the varying sub-instruction performs a read from TRAM, interpolates the read components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
 - tram2.x read as two fx10 and stored into the r0 of the "pixel packet" row
 - tram7.y read as fp20 and stored into the r1 of the "pixel packet" row
 - the r2 of the "pixel packet" row is untouched
