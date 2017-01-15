@@ -307,7 +307,7 @@ ALU registers:
 - uN - Uniform register, N is 0..31
 - crN - Condition register, N is 0..15
 - posx - Fragment position X + 8192.0
-- posy - Fragment position Y + ?
+- posy - Fragment position Y - (frame height - 1) + 8192.0
 - pface - Polygon face direction
 - rB / rC - Only applicable to the rD. The rD source is a copy of either ALU source register rB or rC.
 
