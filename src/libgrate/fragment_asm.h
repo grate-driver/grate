@@ -137,9 +137,7 @@ union fragment_alu_instruction {
 
 		unsigned write_low_sub_reg:1;
 		unsigned write_high_sub_reg:1;
-		unsigned dst_reg:5;
-		unsigned write_uniform:1;
-		unsigned write_condition_reg:1;
+		unsigned dst_reg:7;
 		unsigned condition_code:2;
 		unsigned saturate_result:1;
 		unsigned scale_result:2;
