@@ -38,9 +38,8 @@
 
 extern int fragment_asmlex(void);
 extern int fragment_asmlineno;
-extern int fragment_asmdebug;
 
-void yyerror(char *err)
+void __attribute__((weak)) yyerror(char *err)
 {
 	fprintf(stderr, "fs: line %d: %s\n", fragment_asmlineno, err);
 }
@@ -90,7 +89,6 @@ static void reset_fragment_asm_parser_state(void)
 	asm_pseq_to_dw_exec_nb = 1;
 
 	fragment_asmlineno = 1;
-	fragment_asmdebug = 0;
 }
 
 static uint32_t float_to_fp20(float f)
@@ -170,6 +168,7 @@ static uint32_t float_to_fx10(float f)
 %token T_ALU_rC
 
 %token T_ALU_LOWP
+%token <u> T_TRAM_ROW
 %token <u> T_ROW_REGISTER
 %token <u> T_GLOBAL_REGISTER
 %token <u> T_ALU_RESULT_REGISTER
@@ -524,10 +523,10 @@ MFU_UNK:
 	;
 
 MFU_VAR:
-	T_ROW_REGISTER '.' MFU_VAR_PRECISION
+	T_TRAM_ROW '.' MFU_VAR_PRECISION
 	{
 		if ($1 > 15) {
-			PARSE_ERROR("Invalid TRAM row register, 16 maximum");
+			PARSE_ERROR("Invalid TRAM row number, should be 0..15");
 		}
 
 		yyval.mfu_var.saturate = 0;
@@ -535,10 +534,10 @@ MFU_VAR:
 		yyval.mfu_var.opcode = $3;
 	}
 	|
-	T_SATURATE '(' T_ROW_REGISTER '.' MFU_VAR_PRECISION ')'
+	T_SATURATE '(' T_TRAM_ROW '.' MFU_VAR_PRECISION ')'
 	{
 		if ($3 > 15) {
-			PARSE_ERROR("Invalid TRAM row register, 16 maximum");
+			PARSE_ERROR("Invalid TRAM row number, should be 0..15");
 		}
 
 		yyval.mfu_var.saturate = 1;
@@ -730,12 +729,12 @@ ALU_OPERATION:
 		memset(&yyval.aluX_instr, 0, sizeof(yyval.aluX_instr));
 
 		yyval.aluX_instr.rC_fixed10		= 1;
-		yyval.aluX_instr.rC_reg_select		= FRAG_LOWP_VEC2_0_1;
+		yyval.aluX_instr.rC_reg_select		= FRAGMENT_LOWP_VEC2_0_1;
 		yyval.aluX_instr.rB_fixed10		= 1;
-		yyval.aluX_instr.rB_reg_select		= FRAG_LOWP_VEC2_0_1;
+		yyval.aluX_instr.rB_reg_select		= FRAGMENT_LOWP_VEC2_0_1;
 		yyval.aluX_instr.rA_fixed10		= 1;
-		yyval.aluX_instr.rA_reg_select		= FRAG_LOWP_VEC2_0_1;
-		yyval.aluX_instr.dst_reg		= FRAG_LOWP_VEC2_0_1;
+		yyval.aluX_instr.rA_reg_select		= FRAGMENT_LOWP_VEC2_0_1;
+		yyval.aluX_instr.dst_reg		= FRAGMENT_LOWP_VEC2_0_1;
 	}
 	;
 
@@ -906,14 +905,14 @@ ALU_DST:
 			PARSE_ERROR("Invalid dst reg, CR should be 0..15");
 		}
 
-		yyval.alu_dst.index	= FRAG_CONDITION_REG($1 >> 1);
+		yyval.alu_dst.index	= FRAGMENT_CONDITION_REG($1 >> 1);
 		yyval.alu_dst.low	= $1 & 1;
 		yyval.alu_dst.high	= $1 & 1;
 	}
 	|
 	T_ALU_LOWP
 	{
-		yyval.alu_dst.index = FRAG_LOWP_VEC2_0_1;
+		yyval.alu_dst.index = FRAGMENT_LOWP_VEC2_0_1;
 	}
 	;
 
@@ -924,7 +923,7 @@ ALU_DST_REG:
 			PARSE_ERROR("Invalid dst reg, row should be 0..15");
 		}
 
-		yyval.alu_dst.index = FRAG_ROW_REG($1);
+		yyval.alu_dst.index = FRAGMENT_ROW_REG($1);
 	}
 	|
 	T_GLOBAL_REGISTER
@@ -933,12 +932,12 @@ ALU_DST_REG:
 			PARSE_ERROR("Invalid dst reg, global should be 0..7");
 		}
 
-		yyval.alu_dst.index = FRAG_GENERAL_PURPOSE_REG($1);
+		yyval.alu_dst.index = FRAGMENT_GENERAL_PURPOSE_REG($1);
 	}
 	|
 	T_ALU_LOWP
 	{
-		yyval.alu_dst.index = FRAG_LOWP_VEC2_0_1;
+		yyval.alu_dst.index = FRAGMENT_LOWP_VEC2_0_1;
 	}
 	|
 	T_ALU_UNIFORM
@@ -947,7 +946,7 @@ ALU_DST_REG:
 			PARSE_ERROR("Invalid dst reg, uniform should be 0..7");
 		}
 
-		yyval.alu_dst.index = FRAG_UNIFORM_REG($1);
+		yyval.alu_dst.index = FRAGMENT_UNIFORM_REG($1);
 	}
 	;
 
@@ -1043,11 +1042,11 @@ ALU_REG:
 	T_ROW_REGISTER ALU_SRC_FLOAT_TYPE
 	{
 		if ($1 > 15) {
-			PARSE_ERROR("Invalid rom reg, should be 0..15");
+			PARSE_ERROR("Invalid row reg, should be 0..15");
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_ROW_REG($1);
+		yyval.alu_reg.index = FRAGMENT_ROW_REG($1);
 		yyval.alu_reg.lowp.enable = $2.lowp.enable;
 		yyval.alu_reg.lowp.high = $2.lowp.high;
 		yyval.alu_reg.absolute = 0;
@@ -1062,7 +1061,7 @@ ALU_REG:
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_GENERAL_PURPOSE_REG($1);
+		yyval.alu_reg.index = FRAGMENT_GENERAL_PURPOSE_REG($1);
 		yyval.alu_reg.lowp.enable = $2.lowp.enable;
 		yyval.alu_reg.lowp.high = $2.lowp.high;
 		yyval.alu_reg.absolute = 0;
@@ -1077,7 +1076,7 @@ ALU_REG:
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_ALU_RESULT_REG($1);
+		yyval.alu_reg.index = FRAGMENT_ALU_RESULT_REG($1);
 		yyval.alu_reg.lowp.enable = $2.lowp.enable;
 		yyval.alu_reg.lowp.high = $2.lowp.high;
 		yyval.alu_reg.absolute = 0;
@@ -1092,7 +1091,7 @@ ALU_REG:
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_EMBEDDED_CONSTANT($1);
+		yyval.alu_reg.index = FRAGMENT_EMBEDDED_CONSTANT($1);
 		yyval.alu_reg.lowp.enable = $2.lowp.enable;
 		yyval.alu_reg.lowp.high = $2.lowp.high;
 		yyval.alu_reg.absolute = 0;
@@ -1107,7 +1106,7 @@ ALU_REG:
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_UNIFORM_REG($1);
+		yyval.alu_reg.index = FRAGMENT_UNIFORM_REG($1);
 		yyval.alu_reg.lowp.enable = $2.lowp.enable;
 		yyval.alu_reg.lowp.high = $2.lowp.high;
 		yyval.alu_reg.absolute = 0;
@@ -1122,7 +1121,7 @@ ALU_REG:
 		}
 
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_CONDITION_REG($1 >> 1);
+		yyval.alu_reg.index = FRAGMENT_CONDITION_REG($1 >> 1);
 		yyval.alu_reg.lowp.enable = 1;
 		yyval.alu_reg.lowp.high = $1 & 1;
 		yyval.alu_reg.absolute = 0;
@@ -1133,7 +1132,7 @@ ALU_REG:
 	T_ALU_LOW_PRECISION
 	{
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_LOWP_VEC2_0_1;
+		yyval.alu_reg.index = FRAGMENT_LOWP_VEC2_0_1;
 		yyval.alu_reg.absolute = 0;
 		yyval.alu_reg.minus_one = 0;
 		yyval.alu_reg.lowp.enable = 1;
@@ -1166,7 +1165,7 @@ ALU_REG:
 	T_POLIGON_FACE
 	{
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
-		yyval.alu_reg.index = FRAG_POLYGON_FACE;
+		yyval.alu_reg.index = FRAGMENT_POLYGON_FACE;
 		yyval.alu_reg.absolute = 0;
 		yyval.alu_reg.minus_one = 0;
 		yyval.alu_reg.lowp.enable = 0;
@@ -1202,7 +1201,7 @@ ALU_SRC_D:
 	{
 		yyval.alu_reg = $2;
 
-		if (yyval.alu_reg.index == FRAG_LOWP_VEC2_0_1) {
+		if (yyval.alu_reg.index == FRAGMENT_LOWP_VEC2_0_1) {
 			yyval.alu_reg.rD = !!yyval.alu_reg.lowp.high;
 			yyval.alu_reg.disable = yyval.alu_reg.rD;
 		}

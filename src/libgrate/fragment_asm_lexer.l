@@ -107,6 +107,11 @@ PRECOS			return T_MFU_OPCODE_PRECOS;
 
 unk			return T_MFU_UNK;
 
+t[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 1);
+				return T_TRAM_ROW;
+			}
+
 r[0-9]{1,2}		{
 				fragment_asmlval.u = atoi(yytext + 1);
 				return T_ROW_REGISTER;

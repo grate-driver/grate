@@ -36,9 +36,8 @@
 
 extern int linker_asmlex(void);
 extern int linker_asmlineno;
-extern int linker_asmdebug;
 
-void yyerror(char *err)
+void __attribute__((weak)) yyerror(char *err)
 {
 	fprintf(stderr, "linker: line %d: %s\n", linker_asmlineno, err);
 }
@@ -110,7 +109,6 @@ instructions: instructions instruction
 		asm_linker_used_tram_rows_nb = 1;
 
 		linker_asmlineno = 1;
-		linker_asmdebug = 0;
 	}
 	;
 
@@ -120,8 +118,8 @@ instruction:
 	{
 		memset(&yyval.instr, 0, sizeof(yyval.instr));
 
-		if ($10 > 31) {
-			PARSE_ERROR("Invalid TRAM row index, 31 maximum");
+		if ($10 > 15) {
+			PARSE_ERROR("Invalid TRAM row index, 15 maximum");
 		}
 
 		if ($12 > 15) {
