@@ -564,7 +564,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		return NULL;
 
 	/* PSEQ + MFU SCHED + TEX + ALU SCHED + ALU COMPLEMENT + DW */
-	shader->num_words  = 6 + asm_fs_instructions_nb * 6;
+	shader->num_words  = 6 + asm_fs_instructions_nb * 6 + 1;
 	/* + MFU */
 	shader->num_words += 1 + asm_mfu_instructions_nb * 2;
 	/* + ALU */
@@ -585,6 +585,8 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 			HOST1X_OPCODE_NONINCR(0x541, asm_fs_instructions_nb);
 	for (i = 0; i < asm_fs_instructions_nb; i++)
 		shader->words[words++] = asm_pseq_instructions[i].data;
+
+	shader->words[words++] = HOST1X_OPCODE_IMM(0x500, 0x0);
 
 	/* MFU SCHED */
 	shader->words[words++] =
