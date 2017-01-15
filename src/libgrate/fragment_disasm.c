@@ -74,6 +74,9 @@ static const char * reg_name(int reg, int id)
 	case FRAGMENT_POLYGON_FACE:
 		buf += sprintf(buf, "pface");
 		break;
+	case FRAGMENT_KILL_REG:
+		buf += sprintf(buf, "kill");
+		break;
 	default:
 		buf += sprintf(buf, "invalid reg %d", reg);
 		break;
@@ -345,16 +348,19 @@ static const char * alu_dst(const union fragment_alu_instruction *alu)
 {
 	static char ret[32];
 	char *buf = ret;
-	int cr_adj;
+	int adj = -1;
 
-	if (alu->dst_reg >= FRAGMENT_CONDITION_REG_0 && alu->dst_reg <= FRAGMENT_CONDITION_REG_7) {
-		cr_adj = (alu->write_low_sub_reg || alu->write_low_sub_reg);
-
-		buf += sprintf(buf, "%s", reg_name(alu->dst_reg, cr_adj));
-	} else {
+	switch (alu->dst_reg) {
+	case FRAGMENT_CONDITION_REG_0 ... FRAGMENT_CONDITION_REG_7:
+		adj = (alu->write_low_sub_reg || alu->write_low_sub_reg);
+	case FRAGMENT_KILL_REG:
+		buf += sprintf(buf, "%s", reg_name(alu->dst_reg, adj));
+		break;
+	default:
 		buf += sprintf(buf, "%s.", reg_name(alu->dst_reg, -1));
 		buf += sprintf(buf, alu->write_low_sub_reg ? "l" : "*");
 		buf += sprintf(buf, alu->write_high_sub_reg ? "h" : "*");
+		break;
 	}
 
 	buf += sprintf(buf, ",");

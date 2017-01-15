@@ -168,6 +168,10 @@ static uint32_t float_to_fx10(float f)
 %token T_ALU_rC
 
 %token T_ALU_LOWP
+%token T_POSITION_X
+%token T_POSITION_Y
+%token T_POLIGON_FACE
+%token T_KILL
 %token <u> T_TRAM_ROW
 %token <u> T_ROW_REGISTER
 %token <u> T_GLOBAL_REGISTER
@@ -176,9 +180,6 @@ static uint32_t float_to_fx10(float f)
 %token <u> T_ALU_LOW_PRECISION
 %token <u> T_ALU_UNIFORM
 %token <u> T_ALU_CONDITION_REGISTER
-%token <u> T_POSITION_X
-%token <u> T_POSITION_Y
-%token <u> T_POLIGON_FACE
 
 %token T_FX10
 %token T_FP20
@@ -912,7 +913,16 @@ ALU_DST:
 	|
 	T_ALU_LOWP
 	{
-		yyval.alu_dst.index = FRAGMENT_LOWP_VEC2_0_1;
+		yyval.alu_dst.index	= FRAGMENT_LOWP_VEC2_0_1;
+		yyval.alu_dst.low	= 0;
+		yyval.alu_dst.high	= 0;
+	}
+	|
+	T_KILL
+	{
+		yyval.alu_dst.index	= FRAGMENT_KILL_REG;
+		yyval.alu_dst.low	= 1;
+		yyval.alu_dst.high	= 1;
 	}
 	;
 
