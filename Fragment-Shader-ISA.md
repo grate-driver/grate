@@ -110,6 +110,10 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 
     Condition register stored value = !!(ALU result)
 
+#### Kill register:
+
+Non-zero value written to the KILL register discards the fragment, zero keeps it alive. Destination register write mask (low/high halves) is ignored.
+
 #### Operands (rA, rB, rC):
 
 |  Bits | Meaning               |
@@ -147,6 +151,7 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 |     72 | fragment x-position       |
 |     73 | fragment y-position       |
 |     75 | polygon face              |
+|     76 | kill (discard) fragment   |
 
 #### Result accumulation:
 
