@@ -112,14 +112,14 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 
 #### Kill register:
 
-Non-zero value written to the KILL register discards the fragment, zero keeps it alive. Destination register write mask (low/high halves) is ignored.
+Non-zero value written to the KILL register discards the fragment, zero keeps it alive and doesn't resurrect the killed fragment. Destination register write mask (low/high halves) is ignored.
 
 #### Position registers:
 
-The returned fragment position X register value is accumulated by 8192.0, position Y value is accumulated by 8192.0 + 1 and decremented by the render target height - 1.
+The returned fragment position X register value is accumulated by 8192.0, position Y value is accumulated by 8192.0 plus the render target height - 1.
 
     pos.x = frag.x + 8192
-    pos.y = frag.y + 1 + 8192 - (target_height - 1)
+    pos.y = frag.y + 8192 + (target_height - 1)
 
 #### Operands (rA, rB, rC):
 
