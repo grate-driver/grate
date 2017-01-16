@@ -19,6 +19,7 @@ noinst_PROGRAMS = \
 	gles-cube \
 	gles-cube-textured \
 	gles-info \
+	gles-pbuffer-cgshader \
 	gles-pbuffer-clear \
 	gles-pbuffer-cube \
 	gles-pbuffer-fill \
