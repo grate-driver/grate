@@ -116,10 +116,10 @@ Non-zero value written to the KILL register discards the fragment, zero keeps it
 
 #### Position registers:
 
-The returned fragment position X register value is accumulated by 8192.0, position Y value is accumulated by 8192.0 plus the render target height - 1.
+The returned fragment position X register value is accumulated by 8192.0, fragment position Y value is negative and accumulated by 8192.0 plus the render target height - 1.
 
     pos.x = frag.x + 8192
-    pos.y = frag.y + 8192 + (target_height - 1)
+    pos.y = 8192 + (target_height - 1) - frag.y
 
 #### Operands (rA, rB, rC):
 
