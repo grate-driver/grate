@@ -116,8 +116,8 @@ static void window_setup(struct window *window)
 		return;
 
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, texture->id);
 	glActiveTexture(GL_TEXTURE0 + 0);
+	glBindTexture(GL_TEXTURE_2D, texture->id);
 	glUniform1i(tex, 0);
 }
 
