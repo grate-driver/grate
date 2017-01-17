@@ -98,7 +98,7 @@ const char * tram_component(const link_instr *instr, unsigned id)
 	return ret[id];
 }
 
-static char export_swizzle(unsigned swzl)
+static char tram_swizzle(unsigned swzl)
 {
 	switch (swzl) {
 	case LINK_SWIZZLE_X:
@@ -119,17 +119,17 @@ const char * linker_instruction_disassemble(const link_instr *instr)
 	static char ret[128];
 	char *buf = ret;
 
-	buf += sprintf(buf, "LINK %s, %s, %s, %s, tram%d, export%d.%c%c%c%c",
+	buf += sprintf(buf, "LINK %s, %s, %s, %s, tram%d.%c%c%c%c, export%d",
 		       tram_component(instr, 0),
 		       tram_component(instr, 1),
 		       tram_component(instr, 2),
 		       tram_component(instr, 3),
 		       instr->tram_row_index,
-		       instr->vertex_export_index,
-		       export_swizzle(instr->swizzle_x),
-		       export_swizzle(instr->swizzle_y),
-		       export_swizzle(instr->swizzle_z),
-		       export_swizzle(instr->swizzle_w));
+		       tram_swizzle(instr->tram_dst_swizzle_x),
+		       tram_swizzle(instr->tram_dst_swizzle_y),
+		       tram_swizzle(instr->tram_dst_swizzle_z),
+		       tram_swizzle(instr->tram_dst_swizzle_w),
+		       instr->vertex_export_index);
 
 	return ret;
 }

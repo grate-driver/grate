@@ -144,6 +144,7 @@ lp			return T_ALU_LOWP;
 posx			return T_POSITION_X;
 posy			return T_POSITION_Y;
 pface			return T_POLIGON_FACE;
+kill			return T_KILL;
 
 rB			return T_ALU_rB;
 rC			return T_ALU_rC;

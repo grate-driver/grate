@@ -114,7 +114,7 @@ instructions: instructions instruction
 
 instruction:
 	T_LINK COLUMN ',' COLUMN ',' COLUMN ',' COLUMN ','
-		T_TRAM_ROW ',' T_EXPORT '.' COMPONENT COMPONENT COMPONENT COMPONENT
+		T_TRAM_ROW '.' COMPONENT COMPONENT COMPONENT COMPONENT ',' T_EXPORT
 	{
 		memset(&yyval.instr, 0, sizeof(yyval.instr));
 
@@ -127,32 +127,32 @@ instruction:
 		}
 
 		yyval.instr.vec4_select			= 0;
-		yyval.instr.vertex_export_index		= $12;
+		yyval.instr.vertex_export_index		= $17;
 		yyval.instr.tram_row_index		= $10;
 
 		yyval.instr.const_x_across_width	= $2.const_accross_width;
 		yyval.instr.const_x_across_length	= $2.const_accross_length;
 		yyval.instr.interpolation_disable_x	= $2.interpolation_disable;
 		yyval.instr.tram_dst_type_x		= $2.type;
-		yyval.instr.swizzle_x			= $14;
+		yyval.instr.tram_dst_swizzle_x		= $12;
 
 		yyval.instr.const_y_across_width	= $4.const_accross_width;
 		yyval.instr.const_y_across_length	= $4.const_accross_length;
 		yyval.instr.interpolation_disable_y	= $4.interpolation_disable;
 		yyval.instr.tram_dst_type_y		= $4.type;
-		yyval.instr.swizzle_y			= $15;
+		yyval.instr.tram_dst_swizzle_y		= $13;
 
 		yyval.instr.const_z_across_width	= $6.const_accross_width;
 		yyval.instr.const_z_across_length	= $6.const_accross_length;
 		yyval.instr.interpolation_disable_z	= $6.interpolation_disable;
 		yyval.instr.tram_dst_type_z		= $6.type;
-		yyval.instr.swizzle_z			= $16;
+		yyval.instr.tram_dst_swizzle_z		= $14;
 
 		yyval.instr.const_w_across_width	= $8.const_accross_width;
 		yyval.instr.const_w_across_length	= $8.const_accross_length;
 		yyval.instr.interpolation_disable_w	= $8.interpolation_disable;
 		yyval.instr.tram_dst_type_w		= $8.type;
-		yyval.instr.swizzle_w			= $17;
+		yyval.instr.tram_dst_swizzle_w		= $15;
 
 		if ($10 > asm_linker_used_tram_rows_nb) {
 			asm_linker_used_tram_rows_nb = $10;

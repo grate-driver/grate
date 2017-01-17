@@ -25,6 +25,7 @@
 #define FRAGMENT_POS_X				72
 #define FRAGMENT_POS_Y				73
 #define FRAGMENT_POLYGON_FACE			75
+#define FRAGMENT_KILL_REG			76
 
 typedef union fragment_instruction_schedule {
 	struct __attribute__((packed)) {

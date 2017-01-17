@@ -15,8 +15,8 @@
 
 typedef union shader_linking_instruction {
 	struct __attribute__((packed)) {
-		unsigned vec4_select:2;
-		unsigned __pad1:1;
+		unsigned vec4_select:1;
+		unsigned __pad1:2;
 		unsigned vertex_export_index:4;
 		unsigned __pad2:2;
 		unsigned tram_row_index:6;
@@ -34,13 +34,13 @@ typedef union shader_linking_instruction {
 		unsigned const_w_across_length:1;
 		unsigned w_across_point:2;
 
-		unsigned swizzle_x:2;
+		unsigned tram_dst_swizzle_x:2;
 		unsigned tram_dst_type_x:2;
-		unsigned swizzle_y:2;
+		unsigned tram_dst_swizzle_y:2;
 		unsigned tram_dst_type_y:2;
-		unsigned swizzle_z:2;
+		unsigned tram_dst_swizzle_z:2;
 		unsigned tram_dst_type_z:2;
-		unsigned swizzle_w:2;
+		unsigned tram_dst_swizzle_w:2;
 		unsigned tram_dst_type_w:2;
 		unsigned interpolation_disable_x:1;
 		unsigned interpolation_disable_y:1;
