@@ -1,1 +1,1 @@
-LINK fp20, fp20, fp20, fp20, tram0, export1.yxzw
+LINK fp20, fp20, fp20, fp20, tram0.yxzw, export1
