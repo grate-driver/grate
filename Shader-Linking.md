@@ -8,7 +8,7 @@ Prior to linking, the vertex export is being squeezed. For instance, if vertex p
 
 | Bits   | Meaning                          |
 |-------:|:---------------------------------|
-|   0..1 | VEC4 select:<br>0 = full VEC4<br>1 = VEC4.z (VEC4.x = VEC4.z) |
+|      0 | Vertex export VEC4 select        |
 |   3..6 | (in) Vertex export index         |
 |  9..14 | (out) TRAM row index             |
 |     16 | TRAM.x is constant across width ?|
@@ -24,17 +24,24 @@ Prior to linking, the vertex export is being squeezed. For instance, if vertex p
 |     29 | TRAM.w is constant across length?|
 | 30..31 | TRAM.w across point ?            |
 
+#### Vertex export VEC4 select:
+
+| Value  | Meaning                  |
+|-------:|:-------------------------|
+|   0    | full VEC4                |
+|   1    | VEC4.z (VEC4.x = VEC4.z) |
+
 #### Latter word
 
 | Bits   | Meaning                                   |
 |-------:|:------------------------------------------|
-|   0..1 | Vertex component swizzle to TRAM.x        |
+|   0..1 | TRAM.x destination swizzle                |
 |   2..3 | TRAM.x destination type                   |
-|   4..5 | Vertex component swizzle to TRAM.y        |
+|   4..5 | TRAM.y destination swizzle                |
 |   6..7 | TRAM.y destination type                   |
-|   8..9 | Vertex component swizzle to TRAM.z        |
+|   8..9 | TRAM.z destination swizzle                |
 | 10..11 | TRAM.z destination type                   |
-| 12..13 | Vertex component swizzle to TRAM.w        |
+| 12..13 | TRAM.w destination swizzle                |
 | 14..15 | TRAM.w destination type                   |
 |     16 | TRAM.x triangle interpolation disable     |
 |     17 | TRAM.y triangle interpolation disable     |
@@ -50,14 +57,14 @@ Prior to linking, the vertex export is being squeezed. For instance, if vertex p
 |   2    | fx10 high halve |
 |   3    | fp20            |
 
-#### Vertex component swizzle:
+#### TRAM destination swizzle:
 
 | Value  | Meaning |
 |-------:|:--------|
-|   0    | VEC4.x  |
-|   1    | VEC4.y  |
-|   2    | VEC4.z  |
-|   3    | VEC4.w  |
+|   0    | TRAM.x  |
+|   1    | TRAM.y  |
+|   2    | TRAM.z  |
+|   3    | TRAM.w  |
 
 Disabling triangle interpolation picks the value from the third vertex in if drawing triangles. This is what we want for triangle strips and triangle fans, but not normal triangles. Which means we'll probably need to use the "constant across length"-flag in that case.
 
