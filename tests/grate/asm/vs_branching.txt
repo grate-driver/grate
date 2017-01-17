@@ -6,6 +6,12 @@
 	[0] = "gl_Position";
 	[7] = "vcolor";
 
+.constants
+	[0].x = 1.0;
+	[0].y = 1.0;
+	[0].z = 1.0;
+	[0].w = 1.0;
+
 .asm
 
 EXEC(eq)
@@ -27,21 +33,26 @@ EXEC(export[0]=vector)(eq)
 	BRAs 7
 ; /* 3 */
 
-EXEC_END
-	NOPv
+EXEC_END(export[0]=vector)
+	MOVv r63.xyzw, c[0].xyzw
 	NOPs
 ; /* 4 */
 
-EXEC_END
-	NOPv
+EXEC_END(export[0]=vector)
+	MOVv r63.xyzw, c[0].xyzw
 	NOPs
 ; /* 5 */
 
-EXEC_END
-	NOPv
+EXEC_END(export[0]=vector)
+	MOVv r63.xyzw, c[0].xyzw
 	NOPs
 ; /* 6 */
 
-EXEC(export[7]=vector)
+EXEC_END(export[7]=vector)
 	MOVv r63.xyzw, a[1].xyzw
 ; /* 7 */
+
+EXEC(export[0]=vector)
+	MOVv r63.xyzw, c[0].xyzw
+	NOPs
+; /* 8 */
