@@ -22,6 +22,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <libgen.h>
 #include <string.h>
 #include <unistd.h>
@@ -30,66 +31,13 @@
 
 #include "grate.h"
 
-static const struct vs_asm_test {
+struct vs_asm_test {
 	char *vs_path;
 	char *fs_path;
 	char *linker_path;
 	uint32_t expected_result;
-} tests[] = {
-	{
-		.vs_path = "asm/vs_mov.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0xFF01FF00,
-	},
-	{
-		.vs_path = "asm/vs_constant.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0x664D331A,
-	},
-	{
-		.vs_path = "asm/vs_constant_relative_addressing.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0x664D331A,
-	},
-	{
-		.vs_path = "asm/vs_attribute_relative_addressing.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0xFF01FF00,
-	},
-	{
-		.vs_path = "asm/vs_export_relative_addressing.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0x6601FF1A,
-	},
-	{
-		.vs_path = "asm/vs_branching.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0xFF01FF00,
-	},
-	{
-		.vs_path = "asm/vs_function.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0xFF01FF00,
-	},
-	{
-		.vs_path = "asm/vs_stack.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0xFF01FF00,
-	},
-	{
-		.vs_path = "asm/vs_predicate.txt",
-		.fs_path = "asm/fs_vs_tests.txt",
-		.linker_path = "asm/linker_vs_tests.txt",
-		.expected_result = 0x667F007F,
-	},
+	bool has_expected;
+	bool test_only;
 };
 
 static const float vertices[] = {
@@ -110,24 +58,26 @@ static const unsigned short indices[] = {
 	0, 1, 2, 1, 2, 3,
 };
 
-static void * open_file(int *fd, struct stat *sb, const char *path)
+static void * open_file(const char *path, const char *desc)
 {
+	struct stat sb;
+	int fd;
 	void *ret;
 
-	*fd = open(path, O_RDONLY);
-	if (*fd == -1) {
-		fprintf(stderr, "failed to open %s: %s\n",
-			path, strerror(errno));
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		fprintf(stderr, "failed to open %s %s: %s\n",
+			desc, path, strerror(errno));
 		return NULL;
 	}
 
-	if (fstat(*fd, sb) == -1) {
+	if (fstat(fd, &sb) == -1) {
 		fprintf(stderr, "failed to get stat %s: %s\n",
 			path, strerror(errno));
 		return NULL;
 	}
 
-	ret = mmap(NULL, sb->st_size, PROT_READ, MAP_PRIVATE, *fd, 0);
+	ret = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (ret == MAP_FAILED) {
 		fprintf(stderr, "failed to mmap %s: %s\n",
 			path, strerror(errno));
@@ -137,8 +87,90 @@ static void * open_file(int *fd, struct stat *sb, const char *path)
 	return ret;
 }
 
+static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
+{
+	int c;
+
+	memset(test, 0, sizeof(*test));
+
+	do {
+		struct option long_options[] =
+		{
+			{"expected",	required_argument, NULL, 0},
+			{"vs",		required_argument, NULL, 0},
+			{"fs",		required_argument, NULL, 0},
+			{"lnk",		required_argument, NULL, 0},
+			{"testonly",	no_argument, NULL, 0},
+			{ /* Sentinel */ }
+		};
+		int option_index = 0;
+
+		c = getopt_long(argc, argv, "h:", long_options, &option_index);
+
+		switch (c) {
+		case 0:
+			switch (option_index) {
+			case 0:
+				errno = 0;
+				sscanf(optarg, "0x%X", &test->expected_result);
+				if (errno != 0) {
+					fprintf(stderr, "failed to parse \"expected\" argument\n");
+					return 0;
+				}
+				test->has_expected = true;
+				break;
+			case 1:
+				test->vs_path = optarg;
+				break;
+			case 2:
+				test->fs_path = optarg;
+				break;
+			case 3:
+				test->linker_path = optarg;
+				break;
+			case 4:
+				test->test_only = true;
+				break;
+			default:
+				return 0;
+			}
+			break;
+		case -1:
+			break;
+		default:
+			fprintf(stderr, "Invalid arguments\n\n");
+		case 'h':
+			fprintf(stderr, "Valid arguments:\n");
+			fprintf(stderr, "\t--vs path : vertex asm path\n");
+			fprintf(stderr, "\t--fs path : fragment asm path\n");
+			fprintf(stderr, "\t--lnk path : linker asm path\n");
+			fprintf(stderr, "\t--expected 0x00000000 : perform the test\n");
+			fprintf(stderr, "\t--testonly : don't show the rendered result\n");
+			fprintf(stderr, "\t-h\n");
+			return 0;
+		}
+	} while (c != -1);
+
+	return 1;
+}
+
+static void dump_asm(struct grate_shader *vs,
+		     struct grate_shader *fs,
+		     struct grate_shader *linker)
+{
+	fprintf(stderr, "\nVertex disassembly:\n%s\n",
+		grate_shader_disasm_vs(vs) ?: "");
+
+	fprintf(stderr, "\nFragment disassembly:\n%s\n",
+		grate_shader_disasm_fs(fs) ?: "");
+
+	fprintf(stderr, "\nLinker disassembly:\n%s\n",
+		grate_shader_disasm_linker(linker) ?: "");
+}
+
 int main(int argc, char *argv[])
 {
+	struct vs_asm_test test;
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs, *linker;
@@ -146,21 +178,18 @@ int main(int argc, char *argv[])
 	unsigned long offset = 0;
 	struct grate *grate;
 	struct grate_bo *bo;
-	struct stat sb[3];
 	void *vertex_shader;
 	void *fragment_shader;
 	void *linker_code;
 	void *buffer;
 	uint32_t *fb_data;
 	uint32_t result;
-	char *path;
+	int ret = 0;
 	int location;
-	int i, j;
-	int fd[3];
+	int i;
 
-	path = dirname(argv[0]);
-	if (chdir(path) == -1)
-		fprintf(stderr, "failed to chdir to %s\n", path);
+	if (!parse_command_line(&test, argc, argv))
+		return 1;
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
@@ -188,125 +217,102 @@ int main(int argc, char *argv[])
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
+	grate_clear(grate);
 
-	for (i = 0; i < ARRAY_SIZE(tests); i++, offset = 0) {
-		grate_clear(grate);
+	vertex_shader = open_file(test.vs_path, "vertex shader");
+	if (vertex_shader == NULL)
+		return 1;
 
-		vertex_shader = open_file(&fd[0], &sb[0], tests[i].vs_path);
-		if (vertex_shader == NULL)
-			return 1;
+	fragment_shader = open_file(test.fs_path, "fragment shader");
+	if (fragment_shader == NULL)
+		return 1;
 
-		fragment_shader = open_file(&fd[1], &sb[1], tests[i].fs_path);
-		if (fragment_shader == NULL)
-			return 1;
+	linker_code = open_file(test.linker_path, "shader linker");
+	if (linker_code == NULL)
+		return 1;
 
-		linker_code = open_file(&fd[2], &sb[2], tests[i].linker_path);
-		if (linker_code == NULL)
-			return 1;
-
-		vs = grate_shader_parse_vertex_asm(vertex_shader);
-		if (!vs) {
-			fprintf(stderr, "%s assembler parse failed\n",
-				tests[i].vs_path);
-			return 1;
-		}
-
-		fs = grate_shader_parse_fragment_asm(fragment_shader);
-		if (!fs) {
-			fprintf(stderr, "%s assembler parse failed\n",
-				tests[i].fs_path);
-			return 1;
-		}
-
-		linker = grate_shader_parse_linker_asm(linker_code);
-		if (!linker) {
-			fprintf(stderr, "%s assembler parse failed\n",
-				tests[i].linker_path);
-			return 1;
-		}
-
-		program = grate_program_new(grate, vs, fs, linker);
-		grate_program_link(program);
-
-		grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
-		grate_use_program(grate, program);
-
-		location = grate_get_attribute_location(grate, "position");
-		if (location < 0) {
-			fprintf(stderr, "\"position\": attribute not found\n");
-			return 1;
-		}
-
-		memcpy(buffer + offset, vertices, sizeof(vertices));
-		grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
-					bo, offset);
-		offset += sizeof(vertices);
-
-		location = grate_get_attribute_location(grate, "color");
-		if (location < 0) {
-			fprintf(stderr, "\"color\": attribute not found\n");
-			return 1;
-		}
-
-		memcpy(buffer + offset, colors, sizeof(colors));
-		grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
-					bo, offset);
-		offset += sizeof(colors);
-
-		memcpy(buffer + offset, indices, sizeof(indices));
-		grate_draw_elements(grate, GRATE_TRIANGLES, 2, 6, bo, offset);
-		grate_flush(grate);
-
-		result = fb_data[0];
-
-		if (tests[i].expected_result != result) {
-			for (j = 0; j < options.width * options.height; j += 4)
-				fprintf(stderr, "%d: 0x%08X 0x%08X 0x%08X 0x%08X\n", j,
-					fb_data[j], fb_data[j + 1],
-					fb_data[j + 2], fb_data[j + 3]);
-
-			fprintf(stderr, "\nVertex disassembly:\n%s\n",
-				grate_shader_disasm_vs(vs) ?: "");
-
-			fprintf(stderr, "\nFragment disassembly:\n%s\n",
-				grate_shader_disasm_fs(fs) ?: "");
-
-			fprintf(stderr, "\nLinker disassembly:\n%s\n",
-				grate_shader_disasm_linker(linker) ?: "");
-
-			fprintf(stderr, "\ntest %s; %s; %s; failed: expected 0x%08X, got 0x%08X\n",
-				tests[i].vs_path,
-				tests[i].fs_path,
-				tests[i].linker_path,
-				tests[i].expected_result, result);
-
-			return 1;
-		}
-
-		grate_program_free(program);
-
-		if (munmap(vertex_shader, sb[0].st_size) == -1) {
-			fprintf(stderr, "failed to munmap %s: %s\n",
-				tests[i].vs_path, strerror(errno));
-		}
-
-		if (munmap(fragment_shader, sb[1].st_size) == -1) {
-			fprintf(stderr, "failed to munmap %s: %s\n",
-				tests[i].fs_path, strerror(errno));
-		}
-
-		if (munmap(linker_code, sb[2].st_size) == -1) {
-			fprintf(stderr, "failed to munmap %s: %s\n",
-				tests[i].linker_path, strerror(errno));
-		}
-
-		close(fd[0]);
-		close(fd[1]);
-		close(fd[2]);
+	vs = grate_shader_parse_vertex_asm(vertex_shader);
+	if (!vs) {
+		fprintf(stderr, "%s assembler parse failed\n",
+			test.vs_path);
+		return 1;
 	}
 
-	printf("\nAll tests passed\n");
+	fs = grate_shader_parse_fragment_asm(fragment_shader);
+	if (!fs) {
+		fprintf(stderr, "%s assembler parse failed\n",
+			test.fs_path);
+		return 1;
+	}
+
+	linker = grate_shader_parse_linker_asm(linker_code);
+	if (!linker) {
+		fprintf(stderr, "%s assembler parse failed\n",
+			test.linker_path);
+		return 1;
+	}
+
+	program = grate_program_new(grate, vs, fs, linker);
+	grate_program_link(program);
+
+	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
+	grate_use_program(grate, program);
+
+	location = grate_get_attribute_location(grate, "position");
+	if (location < 0) {
+		fprintf(stderr, "\"position\": attribute not found\n");
+		return 1;
+	}
+
+	memcpy(buffer + offset, vertices, sizeof(vertices));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
+				bo, offset);
+	offset += sizeof(vertices);
+
+	location = grate_get_attribute_location(grate, "color");
+	if (location < 0) {
+		fprintf(stderr, "\"color\": attribute not found\n");
+		return 1;
+	}
+
+	memcpy(buffer + offset, colors, sizeof(colors));
+	grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
+				bo, offset);
+	offset += sizeof(colors);
+
+	memcpy(buffer + offset, indices, sizeof(indices));
+
+	if (!test.test_only) {
+		dump_asm(vs, fs, linker);
+	}
+
+	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 6, bo, offset);
+	grate_flush(grate);
+
+	result = fb_data[0];
+
+	if (test.has_expected && test.expected_result != result) {
+		for (i = 0; i < options.width * options.height; i += 4)
+			fprintf(stderr, "%d: 0x%08X 0x%08X 0x%08X 0x%08X\n", i,
+				fb_data[i], fb_data[i + 1],
+				fb_data[i + 2], fb_data[i + 3]);
+
+		dump_asm(vs, fs, linker);
+
+		fprintf(stderr, "\ntest %s; %s; %s; failed: expected 0x%08X, got 0x%08X\n",
+			test.vs_path,
+			test.fs_path,
+			test.linker_path,
+			test.expected_result, result);
+
+		ret = 1;
+	}
+
+	if (!test.test_only) {
+		grate_swap_buffers(grate);
+		grate_wait_for_key(grate);
+	}
 
 	grate_exit(grate);
-	return 0;
+	return ret;
 }
