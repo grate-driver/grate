@@ -28,7 +28,7 @@ Prior to linking, the vertex export is being squeezed. For instance, if vertex p
 
 | Value  | Meaning                  |
 |-------:|:-------------------------|
-|   0    | full VEC4                |
+|   0    | VEC4.xyzw                |
 |   1    | VEC4.z (VEC4.x = VEC4.z) |
 
 #### Latter word
