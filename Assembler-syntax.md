@@ -310,6 +310,7 @@ ALU registers:
 - posy - 8192.0 + (target height - 1) - Fragment position Y
 - pface - Polygon face direction
 - rB / rC - Only applicable to the rD. The rD source is a copy of either ALU source register rB or rC.
+- kill - discard the fragment
 
 Example:
 
