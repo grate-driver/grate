@@ -351,7 +351,7 @@ The linker assembler defines which vertex export registers will be copied to the
 
 There is only one LINK instruction, which takes the following form:
 
-	LINK fmt (mod), fmt (mod), fmt (mod), fmt (mod), tramN, exportM.swizzle
+	LINK fmt (mod), fmt (mod), fmt (mod), fmt (mod), tramN.swizzle, exportM
 
 - fmt - destination TRAM component format:
 	- fp20 - 20bit float
@@ -360,17 +360,15 @@ There is only one LINK instruction, which takes the following form:
 	- NOP - the TRAM component is "skipped", i.e. unaffected by the LINK operation
 - mod - interpolation modifiers, given in parens:
 	- dis - interpolation disable
-- tramN - the TRAM row N, where N is 0..31
-- exportM.swizzle - the exported vertex register M, where M is 0..15 and swizzle is "xyzw"
-
-The first "fmt" operand represents the TRAM's row "x" component, second "y", third "w" and fourth "w".
+- tramN.swizzle - the TRAM row N, where N is 0..15 and destination components swizzle is "xyzw"
+- exportM - the exported vertex register M, where M is 0..15
 
 Example:
 
-	LINK fp20, NOP, fp20 (dis), fx10.h, tram0, export1.zyzx
+	LINK fp20, NOP, fp20 (dis), fx10.h, tram0.ywzx, export1
 
-Here the content of the VEC4 vertex export register 1 will be swizzled and copied to the TRAM row 0, so that:
-- export1.z => converted to fp20 => copied to the tram0.x
-- export1.y => skipped => the content of tram0.y is not altered
+Here the content of the VEC4 vertex export register 1 copied to the TRAM row 0, so that:
+- export1.x => converted to fp20 => copied to the tram0.y
+- export1.y => skipped => the content of tram0.w is not altered
 - export1.z => converted to fp20 => copied to the tram0.z and interpolation parameter "interpolation disable" is set for the the tram0.z
-- export1.x => converted to fx10 => copied to the high halve of the tram0.w
+- export1.w => converted to fx10 => copied to the high halve of the tram0.x
