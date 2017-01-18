@@ -190,7 +190,9 @@ The MFU unit can interpolate 4 component vectors per instruction and/or evaluate
 |-------:|:---------|
 | 58..63 | register |
 | 54..57 | opcode   |
-| 28..53 | ???      |
+| 43..53 | mul1     |
+| 32..42 | mul0     |
+| 28..31 | ???      |
 | 21..27 | var3     |
 | 14..20 | var2     |
 |  7..13 | var1     |
@@ -225,6 +227,23 @@ The MFU unit can interpolate 4 component vectors per instruction and/or evaluate
 |      0 |   NOP    | No operation                   |
 |      1 |   VAR1   | Interpolate one float20 value  |
 |      2 |   VAR2   | Interpolate two fixed10 values |
+
+#### mul0..1
+
+| Bits  | Meaning              |
+|------:|:---------------------|
+| 8..10 | destination register |
+|  4..7 | source register 1    |
+|  0..3 | source register 0    |
+
+##### mul0..1 source registers:
+
+|  Value | Meaning                          |
+|-------:|:---------------------------------|
+|   0..7 | ??? (general purpose registers?) |
+|  8..12 | ??? (barycentric coords ?)       |
+|     13 | 1.0                              |
+| 14..15 | ???                              |
 
 ## TEX instruction word encoding
 
