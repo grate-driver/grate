@@ -1,5 +1,4 @@
 noinst_PROGRAMS = \
-	assembler \
 	clear \
 	cube \
 	quad \
