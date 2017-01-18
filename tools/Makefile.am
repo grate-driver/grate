@@ -1,5 +1,6 @@
 noinst_PROGRAMS = \
 	assembler \
+	cgc \
 	hex2float \
 	fp20 \
 	fx10
@@ -10,13 +11,8 @@ assembler_CPPFLAGS = \
 assembler_LDADD = \
 	../src/libgrate/libgrate.la
 
-if ENABLE_CGC
-noinst_PROGRAMS += \
-	cgc
-
 cgc_CPPFLAGS = \
 	-I$(top_srcdir)/include
 
 cgc_LDADD = \
 	../src/libcgc/libcgc.la
-endif
