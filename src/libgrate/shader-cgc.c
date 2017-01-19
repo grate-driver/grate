@@ -236,6 +236,9 @@ void grate_program_link(struct grate_program *program)
 	struct cgc_shader *shader;
 	unsigned int i;
 
+	if (!program->vs || !program->fs)
+		return;
+
 	shader = program->vs->cgc;
 
 	for (i = 0; i < shader->num_symbols; i++) {

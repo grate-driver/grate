@@ -13,15 +13,16 @@ libgrate_la_SOURCES = \
 	libgrate-private.h \
 	matrix.c \
 	matrix.h \
-	profile.c
+	profile.c \
+	shader-cgc.c
 
 libgrate_la_LIBADD = \
+	../libcgc/libcgc.la \
 	../libhost1x/libhost1x.la \
 	$(PNG_LIBS) \
 	-lm \
 	-lrt
 
-if ENABLE_CGC
 BUILT_SOURCES = \
 	lex.fragment_asm.c \
 	lex.linker_asm.c \
@@ -67,13 +68,5 @@ libgrate_la_SOURCES += \
 	lex.vertex_asm.c \
 	linker_asm.tab.c \
 	linker_disasm.c \
-	shader-cgc.c \
 	vertex_asm.tab.c \
 	vertex_disasm.c
-
-libgrate_la_LIBADD += \
-	../libcgc/libcgc.la
-else
-libgrate_la_SOURCES += \
-	shader-dummy.c
-endif

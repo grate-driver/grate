@@ -308,7 +308,7 @@ static const char * r(int reg, const vpe_instr128 *ins)
 		       swizzle(swizzle_w));
 
 	if (absolute_value)
-		buf += sprintf(buf, ")");
+		sprintf(buf, ")");
 
 	return ret[reg];
 }
@@ -465,7 +465,7 @@ const char * vpe_vliw_disassemble(const vpe_instr128 *ins)
 		break;
 	}
 
-	buf += sprintf(buf, ";");
+	sprintf(buf, ";");
 
 	return ret;
 }

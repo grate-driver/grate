@@ -23,6 +23,7 @@
 
 #include "host1x-private.h"
 
+#include "nvhost-display.h"
 #include "nvhost-gr2d.h"
 #include "nvhost-gr3d.h"
 #include "nvhost.h"
@@ -145,6 +146,7 @@ static void host1x_nvhost_close(struct host1x *host1x)
 
 	nvhost_gr3d_close(nvhost->gr3d);
 	nvhost_gr2d_close(nvhost->gr2d);
+	nvhost_display_close(nvhost->display);
 	nvhost_ctrl_close(nvhost->ctrl);
 	nvmap_close(nvhost->nvmap);
 }
@@ -175,6 +177,13 @@ struct host1x *host1x_nvhost_open(void)
 	nvhost->gr3d = nvhost_gr3d_open(nvhost);
 	if (!nvhost->gr3d)
 		return NULL;
+
+	nvhost->display = nvhost_display_create(nvhost);
+	if (!nvhost->display) {
+		fprintf(stderr, "nvhost_display_create() failed\n");
+	} else {
+		nvhost->base.display = &nvhost->display->base;
+	}
 
 	nvhost->base.gr2d = &nvhost->gr2d->base;
 	nvhost->base.gr3d = &nvhost->gr3d->base;

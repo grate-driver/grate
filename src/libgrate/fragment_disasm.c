@@ -20,6 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <inttypes.h>
 #include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -40,45 +41,44 @@ static const char * reg_name(int reg, int id)
 
 	switch (reg) {
 	case FRAGMENT_ROW_REG_0 ... FRAGMENT_ROW_REG_15:
-		buf += sprintf(buf, "r%d", reg);
+		sprintf(buf, "r%d", reg);
 		break;
 	case FRAGMENT_GENERAL_PURPOSE_REG_0 ... FRAGMENT_GENERAL_PURPOSE_REG_7:
-		buf += sprintf(buf, "g%d", reg - FRAGMENT_GENERAL_PURPOSE_REG_0);
+		sprintf(buf, "g%d", reg - FRAGMENT_GENERAL_PURPOSE_REG_0);
 		break;
 	case FRAGMENT_ALU_RESULT_REG_0 ... FRAGMENT_ALU_RESULT_REG_3:
-		buf += sprintf(buf, "alu%d", reg - FRAGMENT_ALU_RESULT_REG_0);
+		sprintf(buf, "alu%d", reg - FRAGMENT_ALU_RESULT_REG_0);
 		break;
 	case FRAGMENT_EMBEDDED_CONSTANT_0 ... FRAGMENT_EMBEDDED_CONSTANT_2:
-		buf += sprintf(buf, "imm%d", reg - FRAGMENT_EMBEDDED_CONSTANT_0);
+		sprintf(buf, "imm%d", reg - FRAGMENT_EMBEDDED_CONSTANT_0);
 		break;
 	case FRAGMENT_LOWP_VEC2_0_1:
 		if (id == -1) {
-			buf += sprintf(buf, "lp");
+			sprintf(buf, "lp");
 		} else {
-			buf += sprintf(buf, "#%d", id);
+			sprintf(buf, "#%d", id);
 		}
 		break;
 	case FRAGMENT_UNIFORM_REG_0 ... FRAGMENT_UNIFORM_REG_31:
-		buf += sprintf(buf, "u%d", reg - FRAGMENT_UNIFORM_REG_0);
+		sprintf(buf, "u%d", reg - FRAGMENT_UNIFORM_REG_0);
 		break;
 	case FRAGMENT_CONDITION_REG_0 ... FRAGMENT_CONDITION_REG_7:
-		buf += sprintf(buf, "cr%d",
-			       (reg - FRAGMENT_CONDITION_REG_0) * 2 + id);
+		sprintf(buf, "cr%d", (reg - FRAGMENT_CONDITION_REG_0) * 2 + id);
 		break;
 	case FRAGMENT_POS_X:
-		buf += sprintf(buf, "posx");
+		sprintf(buf, "posx");
 		break;
 	case FRAGMENT_POS_Y:
-		buf += sprintf(buf, "posy");
+		sprintf(buf, "posy");
 		break;
 	case FRAGMENT_POLYGON_FACE:
-		buf += sprintf(buf, "pface");
+		sprintf(buf, "pface");
 		break;
 	case FRAGMENT_KILL_REG:
-		buf += sprintf(buf, "kill");
+		sprintf(buf, "kill");
 		break;
 	default:
-		buf += sprintf(buf, "invalid reg %d", reg);
+		sprintf(buf, "invalid reg %d", reg);
 		break;
 	}
 
@@ -119,7 +119,7 @@ static const char * mfu_var(const mfu_instr *mfu, int reg)
 	}
 
 	if (opcode == MFU_VAR_NOP) {
-		buf += sprintf(buf, "NOP");
+		sprintf(buf, "NOP");
 	} else {
 		if (saturate) {
 			buf += sprintf(buf, "sat(");
@@ -138,7 +138,7 @@ static const char * mfu_var(const mfu_instr *mfu, int reg)
 		}
 
 		if (saturate) {
-			buf += sprintf(buf, ")");
+			sprintf(buf, ")");
 		}
 	}
 
@@ -154,18 +154,18 @@ static const char * disassemble_mfu(const mfu_instr *mfu)
 		buf += sprintf(buf, "var ");
 
 		if (mfu->unk_varying != 0) {
-			buf += sprintf(buf, "unk(0x%llX) ",
+			buf += sprintf(buf, "unk(0x%" PRIx64 ") ",
 				       (uint64_t)mfu->unk_varying);
 		}
 
-		buf += sprintf(buf, "%s, %s, %s, %s",
-			       mfu_var(mfu, 0),
-			       mfu_var(mfu, 1),
-			       mfu_var(mfu, 2),
-			       mfu_var(mfu, 3));
+		sprintf(buf, "%s, %s, %s, %s",
+			mfu_var(mfu, 0),
+			mfu_var(mfu, 1),
+			mfu_var(mfu, 2),
+			mfu_var(mfu, 3));
 
 	} else if (mfu->opcode == MFU_NOP) {
-		buf += sprintf(buf, "NOP");
+		sprintf(buf, "NOP");
 	} else {
 		switch (mfu->opcode) {
 		case MFU_RCP:
@@ -206,7 +206,7 @@ static const char * disassemble_mfu(const mfu_instr *mfu)
 			break;
 		}
 
-		buf += sprintf(buf, " v%d", mfu->reg);
+		sprintf(buf, " v%d", mfu->reg);
 	}
 
 	return ret;
@@ -335,7 +335,7 @@ static const char * alu_r(const union fragment_alu_instruction *alu, int reg)
 	case ALU_rA:
 	case ALU_rB:
 	case ALU_rC:
-		buf += sprintf(buf, ",");
+		sprintf(buf, ",");
 		break;
 	default:
 		break;
@@ -363,7 +363,7 @@ static const char * alu_dst(const union fragment_alu_instruction *alu)
 		break;
 	}
 
-	buf += sprintf(buf, ",");
+	sprintf(buf, ",");
 
 	return ret;
 }
@@ -376,21 +376,21 @@ static const char * alu_opcode(const union fragment_alu_instruction *alu)
 	switch (alu->opcode) {
 	case ALU_OPCODE_MAD:
 		if (alu->addition_disable) {
-			buf += sprintf(buf, "MUL");
+			sprintf(buf, "MUL");
 		} else {
-			buf += sprintf(buf, "MAD");
+			sprintf(buf, "MAD");
 		}
 		break;
 	case ALU_OPCODE_MIN:
 	case ALU_OPCODE_MAX:
 		if (alu->opcode == ALU_OPCODE_MIN) {
-			buf += sprintf(buf, "MIN");
+			sprintf(buf, "MIN");
 		} else {
-			buf += sprintf(buf, "MAX");
+			sprintf(buf, "MAX");
 		}
 		break;
 	case ALU_OPCODE_CSEL:
-		buf += sprintf(buf, "CSEL");
+		sprintf(buf, "CSEL");
 		break;
 	}
 
@@ -436,13 +436,13 @@ static const char * disassemble_alu(const union fragment_alu_instruction *alu)
 
 	switch (alu->condition_code) {
 	case ALU_CC_ZERO:
-		buf += sprintf(buf, "(eq)");
+		sprintf(buf, "(eq)");
 		break;
 	case ALU_CC_GREATER_THAN_ZERO:
-		buf += sprintf(buf, "(gt)");
+		sprintf(buf, "(gt)");
 		break;
 	case ALU_CC_ZERO_OR_GREATER:
-		buf += sprintf(buf, "(ge)");
+		sprintf(buf, "(ge)");
 		break;
 	}
 
@@ -580,11 +580,9 @@ static const char * disassemble_alus(const alu_instr *alu)
 	buf += sprintf(buf, "\tALU2:\t%s\n", disassemble_alu(&alu->a[2]));
 
 	if (!alu_imm_used) {
-		buf += sprintf(buf, "\tALU3:\t%s\n",
-			       disassemble_alu(&alu->a[3]));
+		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu(&alu->a[3]));
 	} else {
-		buf += sprintf(buf, "\tALU3:\t%s\n",
-			       disassemble_alu_imm(alu));
+		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu_imm(alu));
 	}
 
 	return ret;
@@ -631,7 +629,7 @@ const char * fragment_pipeline_disassemble(
 		buf += sprintf(buf, "\tDW:\t0x%08X\n", dw->data);
 	}
 
-	buf += sprintf(buf, ";");
+	sprintf(buf, ";");
 
 	/* restore locale */
 	setlocale(LC_ALL, locale);

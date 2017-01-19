@@ -92,7 +92,7 @@ const char * tram_component(const link_instr *instr, unsigned id)
 	}
 
 	if (const_across_width) {
-		buf += sprintf(buf, "(cw)");
+		sprintf(buf, "(cw)");
 	}
 
 	return ret[id];
@@ -119,17 +119,17 @@ const char * linker_instruction_disassemble(const link_instr *instr)
 	static char ret[128];
 	char *buf = ret;
 
-	buf += sprintf(buf, "LINK %s, %s, %s, %s, tram%d.%c%c%c%c, export%d",
-		       tram_component(instr, 0),
-		       tram_component(instr, 1),
-		       tram_component(instr, 2),
-		       tram_component(instr, 3),
-		       instr->tram_row_index,
-		       tram_swizzle(instr->tram_dst_swizzle_x),
-		       tram_swizzle(instr->tram_dst_swizzle_y),
-		       tram_swizzle(instr->tram_dst_swizzle_z),
-		       tram_swizzle(instr->tram_dst_swizzle_w),
-		       instr->vertex_export_index);
+	sprintf(buf, "LINK %s, %s, %s, %s, tram%d.%c%c%c%c, export%d",
+		tram_component(instr, 0),
+		tram_component(instr, 1),
+		tram_component(instr, 2),
+		tram_component(instr, 3),
+		instr->tram_row_index,
+		tram_swizzle(instr->tram_dst_swizzle_x),
+		tram_swizzle(instr->tram_dst_swizzle_y),
+		tram_swizzle(instr->tram_dst_swizzle_z),
+		tram_swizzle(instr->tram_dst_swizzle_w),
+		instr->vertex_export_index);
 
 	return ret;
 }

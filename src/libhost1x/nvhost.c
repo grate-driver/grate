@@ -109,6 +109,27 @@ int nvhost_ctrl_read_syncpt(struct nvhost_ctrl *ctrl, uint32_t syncpt,
 	return 0;
 }
 
+int nvhost_ctrl_wait_syncpt(struct nvhost_ctrl *ctrl, uint32_t syncpt,
+			    uint32_t thresh, uint32_t timeout)
+{
+	struct nvhost_ctrl_syncpt_wait_args args;
+	int err;
+
+	if (!ctrl)
+		return -EINVAL;
+
+	memset(&args, 0, sizeof(args));
+	args.id = syncpt;
+	args.thresh = thresh;
+	args.timeout = timeout;
+
+	err = ioctl(ctrl->fd, NVHOST_IOCTL_CTRL_SYNCPT_WAIT, &args);
+	if (err < 0)
+		return -errno;
+
+	return 0;
+}
+
 struct nvhost_get_param_args {
 	uint32_t value;
 };

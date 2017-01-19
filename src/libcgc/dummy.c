@@ -22,75 +22,36 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "libgrate-private.h"
-#include "host1x.h"
+#include <stdio.h>
 
-struct grate_shader *grate_shader_new(struct grate *grate,
-				      enum grate_shader_type type,
-				      const char *lines[],
-				      unsigned int count)
+#include "libcgc.h"
+
+struct cgc_shader *cgc_compile(enum cgc_shader_type type, const char *code,
+			       size_t size)
+{
+	fprintf(stderr, "%s: BLOB compiler is unavailable\n", __func__);
+	return NULL;
+}
+
+void cgc_shader_free(struct cgc_shader *shader)
+{
+}
+
+void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
+{
+}
+
+struct cgc_symbol *cgc_shader_get_symbol_by_kind(struct cgc_shader *shader,
+						 enum glsl_kind kind,
+						 unsigned int index)
 {
 	return NULL;
 }
 
-void grate_shader_free(struct grate_shader *shader)
-{
-	free(shader);
-}
-
-void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
-{
-}
-
-struct grate_program *grate_program_new(struct grate *grate,
-					struct grate_shader *vs,
-					struct grate_shader *fs,
-					struct grate_shader *linker)
-{
-	struct grate_program *program;
-
-	program = calloc(1, sizeof(*program));
-	if (!program)
-		return NULL;
-
-	return program;
-}
-
-void grate_program_free(struct grate_program *program)
-{
-	free(program);
-}
-
-void grate_program_link(struct grate_program *program)
-{
-}
-
-struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
-{
-	return NULL;
-}
-
-const char *grate_shader_disasm_vs(struct grate_shader *shader)
-{
-	return NULL;
-}
-
-struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
-{
-	return NULL;
-}
-
-const char *grate_shader_disasm_fs(struct grate_shader *shader)
-{
-	return NULL;
-}
-
-struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
-{
-	return NULL;
-}
-
-const char *grate_shader_disasm_linker(struct grate_shader *shader)
+struct cgc_symbol *
+cgc_shader_find_symbol_by_kind(struct cgc_shader *shader,
+			       enum glsl_kind kind, const char *name,
+			       unsigned int *index)
 {
 	return NULL;
 }
