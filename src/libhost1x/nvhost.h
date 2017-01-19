@@ -39,6 +39,9 @@ void nvhost_ctrl_close(struct nvhost_ctrl *ctrl);
 int nvhost_ctrl_read_syncpt(struct nvhost_ctrl *ctrl, uint32_t syncpt,
 			    uint32_t *value);
 
+int nvhost_ctrl_wait_syncpt(struct nvhost_ctrl *ctrl, uint32_t syncpt,
+			    uint32_t thresh, uint32_t timeout);
+
 struct nvhost_pushbuf_reloc {
 	unsigned long source_offset;
 	unsigned long target_handle;
@@ -77,6 +80,7 @@ struct nvhost {
 	struct host1x base;
 
 	struct nvhost_ctrl *ctrl;
+	struct nvhost_display *display;
 	struct nvhost_gr2d *gr2d;
 	struct nvhost_gr3d *gr3d;
 	struct nvmap *nvmap;
