@@ -929,8 +929,13 @@ static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
 				   const struct nvhost_cmdbuf *cmdbuf)
 {
 	struct file *file = file_find("/dev/nvmap");
-	struct nvmap_file *nvmap = to_nvmap_file(file);
 	struct nvmap_handle *handle;
+	struct nvmap_file *nvmap;
+
+	if (!file)
+		file = file_find("/dev/knvmap");
+
+	nvmap = to_nvmap_file(file);
 
 	printf("  Command Buffer:\n");
 	printf("    mem: %x, offset: %x, words: %u\n", cmdbuf->mem,
@@ -1006,6 +1011,9 @@ static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
 		struct file *file = file_find("/dev/nvmap");
 		struct nvmap_handle *cmdbuf, *target;
 		struct nvmap_file *nvmap;
+
+		if (!file)
+			file = file_find("/dev/knvmap");
 
 		nvmap = to_nvmap_file(file);
 
@@ -1221,6 +1229,7 @@ struct file *nvhost_file_new(const char *path, int fd)
 }
 
 static const struct file_table nvhost_files[] = {
+	{ "/dev/knvmap", nvmap_file_new },
 	{ "/dev/nvmap", nvmap_file_new },
 	{ "/dev/nvhost-ctrl", nvhost_ctrl_file_new },
 	{ "/dev/nvhost-gr2d", nvhost_file_new },
