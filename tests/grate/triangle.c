@@ -48,6 +48,10 @@ static const char *fragment_shader[] = {
 	"}"
 };
 
+static const char *shader_linker =
+	"LINK fp20, fp20, fp20, fp20, tram0.yxzw, export1"
+;
+
 static const float vertices[] = {
 	 0.0f,  0.5f, 0.0f, 1.0f,
 	-0.5f, -0.5f, 0.0f, 1.0f,
@@ -68,7 +72,7 @@ int main(int argc, char *argv[])
 {
 	struct grate_program *program;
 	struct grate_framebuffer *fb;
-	struct grate_shader *vs, *fs;
+	struct grate_shader *vs, *fs, *linker;
 	struct grate_options options;
 	unsigned long offset = 0;
 	struct grate *grate;
@@ -109,7 +113,9 @@ int main(int argc, char *argv[])
 			      ARRAY_SIZE(vertex_shader));
 	fs = grate_shader_new(grate, GRATE_SHADER_FRAGMENT, fragment_shader,
 			      ARRAY_SIZE(fragment_shader));
-	program = grate_program_new(grate, vs, fs, NULL);
+	linker = grate_shader_parse_linker_asm(shader_linker);
+
+	program = grate_program_new(grate, vs, fs, linker);
 	grate_program_link(program);
 
 	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
