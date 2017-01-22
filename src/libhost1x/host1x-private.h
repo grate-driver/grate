@@ -35,10 +35,10 @@
 	})
 
 struct host1x_framebuffer {
-	unsigned short width;
+	unsigned int width;
+	unsigned int height;
+	unsigned int depth;
 	unsigned int pitch;
-	unsigned short height;
-	unsigned short depth;
 	unsigned long flags;
 	struct host1x_bo *bo;
 	uint32_t handle;
@@ -55,8 +55,9 @@ struct host1x_bo {
 	void *ptr;
 
 	int (*mmap)(struct host1x_bo *bo);
-	int (*invalidate)(struct host1x_bo *bo, loff_t offset, size_t length);
-	int (*flush)(struct host1x_bo *bo, loff_t offset, size_t length);
+	int (*invalidate)(struct host1x_bo *bo, unsigned long offset,
+			  size_t length);
+	int (*flush)(struct host1x_bo *bo, unsigned long offset, size_t length);
 	void (*free)(struct host1x_bo *bo);
 };
 

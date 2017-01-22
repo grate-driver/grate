@@ -86,8 +86,8 @@ void mat4_scale(struct mat4 *m, float x, float y, float z)
 
 void mat4_rotate_x(struct mat4 *m, float angle)
 {
-	float c = cos(angle * M_PI / 180.0);
-	float s = sin(angle * M_PI / 180.0);
+	float c = cosf(angle * (float)M_PI / 180.0f);
+	float s = sinf(angle * (float)M_PI / 180.0f);
 
 	mat4_identity(m);
 
@@ -99,8 +99,8 @@ void mat4_rotate_x(struct mat4 *m, float angle)
 
 void mat4_rotate_y(struct mat4 *m, float angle)
 {
-	float c = cos(angle * M_PI / 180.0);
-	float s = sin(angle * M_PI / 180.0);
+	float c = cosf(angle * (float)M_PI / 180.0f);
+	float s = sinf(angle * (float)M_PI / 180.0f);
 
 	mat4_identity(m);
 
@@ -112,8 +112,8 @@ void mat4_rotate_y(struct mat4 *m, float angle)
 
 void mat4_rotate_z(struct mat4 *m, float angle)
 {
-	float c = cos(angle * M_PI / 180.0);
-	float s = sin(angle * M_PI / 180.0);
+	float c = cosf(angle * (float)M_PI / 180.0f);
+	float s = sinf(angle * (float)M_PI / 180.0f);
 
 	mat4_identity(m);
 
@@ -126,14 +126,14 @@ void mat4_rotate_z(struct mat4 *m, float angle)
 void mat4_perspective(struct mat4 *m, float fov, float aspect,
 		      float near, float far)
 {
-	float radians = fov / 2 * M_PI / 180;
-	double sine, cosine, cotangent;
-	double depth = far - near;
+	float radians = fov / 2 * (float)M_PI / 180;
+	float sine, cosine, cotangent;
+	float depth = far - near;
 
 	mat4_identity(m);
 
-	sine = sin(radians);
-	cosine = cos(radians);
+	sine = sinf(radians);
+	cosine = cosf(radians);
 
 	if (depth == 0 || sine == 0 || aspect == 0)
 		return;

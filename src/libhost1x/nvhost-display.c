@@ -156,7 +156,7 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 	struct nvhost_display *display;
 	uint32_t num_outputs = 0;
 	uint32_t syncpt;
-	int output;
+	uint32_t output;
 	int err;
 	int fd;
 

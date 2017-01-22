@@ -42,7 +42,7 @@ static int nvhost_bo_mmap(struct host1x_bo *bo)
 	return 0;
 }
 
-static int nvhost_bo_invalidate(struct host1x_bo *bo, loff_t offset,
+static int nvhost_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 				size_t length)
 {
 	struct nvhost_bo *nbo = to_nvhost_bo(bo);
@@ -51,7 +51,8 @@ static int nvhost_bo_invalidate(struct host1x_bo *bo, loff_t offset,
 				       length);
 }
 
-static int nvhost_bo_flush(struct host1x_bo *bo, loff_t offset, size_t length)
+static int nvhost_bo_flush(struct host1x_bo *bo, unsigned long offset,
+			   size_t length)
 {
 	struct nvhost_bo *nbo = to_nvhost_bo(bo);
 

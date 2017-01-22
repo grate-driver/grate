@@ -262,9 +262,9 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	printf("  instructions:\n");
 
 	for (i = 0; i < header->binary_size; i += 16) {
-		uint8_t sx, sy, sz, sw, neg, op, constant, attribute, varying, abs;
-		uint8_t wx, wy, wz, ww, sat, write_varying, write_pred;
-		uint8_t pred, pneg, psx, psy, psz, psw;
+		uint32_t sx, sy, sz, sw, neg, op, constant, attribute, varying, abs;
+		uint32_t wx, wy, wz, ww, sat, write_varying, write_pred;
+		uint32_t pred, pneg, psx, psy, psz, psw;
 		struct instruction *inst;
 		uint32_t words[4], reg, type;
 
@@ -545,13 +545,13 @@ static void vertex_shader_disassemble(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
-static int gpr_written[256];
+static uint32_t gpr_written[256];
 
 #define pr(fmt, ...) do { str += sprintf(str, fmt, ##__VA_ARGS__); } while (0)
 
 static int fragment_alu_disasm(uint32_t *words)
 {
-	int i, op, dst_reg, subreg, sat, scale, accum;
+	uint32_t i, op, dst_reg, subreg, sat, scale, accum;
 	int embedded_constant_used = 0;
 	struct instruction *inst;
 	char buf[512], *str = buf;
@@ -589,7 +589,7 @@ static int fragment_alu_disasm(uint32_t *words)
 	scale = instruction_extract(inst, 57, 58);
 	sat = instruction_get_bit(inst, 56);
 	if (instruction_get_bit(inst, 53)) {
-		int cond = instruction_extract(inst, 54, 55);
+		uint32_t cond = instruction_extract(inst, 54, 55);
 		const char *cond_str[4] = {
 			"_z",
 			"_nz",
@@ -605,8 +605,8 @@ static int fragment_alu_disasm(uint32_t *words)
 	pr(".%c%c", "_h"[subreg >> 1], "_l"[subreg & 1]);
 
 	for (i = 0; i < 3; ++i) {
-		int reg, subreg, x10, abs, neg;
-		int offset = 32 - 13 * i;
+		uint32_t reg, subreg, x10, abs, neg;
+		uint32_t offset = 32 - 13 * i;
 
 		/* modifiers */
 		x10 = instruction_get_bit(inst, offset + 3);
@@ -672,7 +672,7 @@ out:
 	return embedded_constant_used;
 }
 
-static const char *get_mfu_opcode_str(int op)
+static const char *get_mfu_opcode_str(unsigned op)
 {
 	const char *op_str[16] = {
 		"nop", "rcp", "rsq", "log",
@@ -686,7 +686,7 @@ static const char *get_mfu_opcode_str(int op)
 
 static void fragment_mfu_disasm(uint32_t *words)
 {
-	int op, reg, var;
+	uint32_t op, reg, var;
 	struct instruction *inst;
 	char buf[512], *str = buf;
 
@@ -714,7 +714,7 @@ static void fragment_mfu_disasm(uint32_t *words)
 
 static void fragment_tex_disasm(uint32_t *words)
 {
-	int op;
+	uint32_t op;
 	struct instruction *inst;
 	char buf[512] = { 0 }, *str = buf;
 
@@ -722,8 +722,8 @@ static void fragment_tex_disasm(uint32_t *words)
 
 	op = instruction_get_bit(inst, 10);
 	if (op) {
-		int bias = instruction_get_bit(inst, 12);
-		int samp = instruction_extract(inst, 0, 3);
+		uint32_t bias = instruction_get_bit(inst, 12);
+		uint32_t samp = instruction_extract(inst, 0, 3);
 		pr(bias ? "txb" : "tex");
 		pr(" s%d", samp);
 	} else
@@ -741,7 +741,7 @@ static void fragment_tex_disasm(uint32_t *words)
 
 static void fragment_dw_disasm(uint32_t *words)
 {
-	int op;
+	uint32_t op;
 	struct instruction *inst;
 	char buf[512] = { 0 }, *str = buf;
 
@@ -842,7 +842,7 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 
 static void fragment_shader_disassemble(uint32_t *words, size_t length)
 {
-	int i, j, k;
+	unsigned i, j, k;
 	struct host1x_stream stream;
 	struct gr3d_context gr3d_ctx;
 
@@ -859,10 +859,10 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	assert(gr3d_ctx.regs[0x900] == gr3d_ctx.regs[0x800]);
 
 	for (i = 0; i < gr3d_ctx.regs[0x800]; i++) {
-		int mfu_sched = gr3d_ctx.mfu_sched[i];
-		int alu_sched = gr3d_ctx.alu_sched[i];
-		int mfu_offset = mfu_sched >> 2, mfu_count = mfu_sched & 3;
-		int alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
+		uint32_t mfu_sched = gr3d_ctx.mfu_sched[i];
+		uint32_t alu_sched = gr3d_ctx.alu_sched[i];
+		uint32_t mfu_offset = mfu_sched >> 2, mfu_count = mfu_sched & 3;
+		uint32_t alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
 
 		for (j = 0; j < mfu_count; ++j) {
 			printf("MFU:%03d", i + 1);

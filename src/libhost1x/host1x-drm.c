@@ -133,7 +133,7 @@ static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
 			continue;
 		}
 
-		if (!p->crtc_id && (p->possible_crtcs & (1 << display->pipe)))
+		if (!p->crtc_id && (p->possible_crtcs & (1u << display->pipe)))
 			id = p->plane_id;
 
 		drmModeFreePlane(p);
@@ -258,13 +258,13 @@ static int drm_display_set(struct host1x_display *display,
 		timeout.tv_usec = 0;
 
 		FD_ZERO(&fds);
-		FD_SET(drm->drm->fd, &fds);
+		FD_SET((unsigned)drm->drm->fd, &fds);
 
 		err = select(drm->drm->fd + 1, &fds, NULL, NULL, &timeout);
 		if (err <= 0) {
 		}
 
-		if (FD_ISSET(drm->drm->fd, &fds)) {
+		if (FD_ISSET((unsigned)drm->drm->fd, &fds)) {
 			drmEventContext context;
 
 			memset(&context, 0, sizeof(context));
@@ -410,7 +410,7 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 		return -errno;
 
 	ptr = mmap(NULL, bo->size, PROT_READ | PROT_WRITE, MAP_SHARED,
-		   drm->drm->fd, args.offset);
+		   drm->drm->fd, (__off_t)args.offset);
 	if (ptr == MAP_FAILED)
 		return -errno;
 
@@ -419,13 +419,14 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 	return 0;
 }
 
-static int drm_bo_invalidate(struct host1x_bo *bo, loff_t offset,
+static int drm_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 			     size_t length)
 {
 	return 0;
 }
 
-static int drm_bo_flush(struct host1x_bo *bo, loff_t offset, size_t length)
+static int drm_bo_flush(struct host1x_bo *bo, unsigned long offset,
+			size_t length)
 {
 	return 0;
 }

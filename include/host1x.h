@@ -90,7 +90,8 @@ struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags);
 void host1x_bo_free(struct host1x_bo *bo);
 
-int host1x_bo_invalidate(struct host1x_bo *bo, loff_t offset, size_t length);
+int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
+			 size_t length);
 int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
 
 #define HOST1X_OPCODE_SETCL(offset, classid, mask) \
@@ -104,7 +105,7 @@ int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
 #define HOST1X_OPCODE_IMM(offset, data) \
 	((0x4 << 28) | (((offset) & 0xfff) << 16) | ((data) & 0xffff))
 #define HOST1X_OPCODE_EXTEND(subop, value) \
-	((0xe << 28) | (((subop) & 0xf) << 24) | ((value) & 0xffffff))
+	((0xeu << 28) | (((subop) & 0xf) << 24) | ((value) & 0xffffff))
 
 struct host1x_pushbuf_reloc {
 	unsigned long source_offset;
@@ -159,9 +160,9 @@ int host1x_client_wait(struct host1x_client *client, uint32_t fence,
 		       uint32_t timeout);
 
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
-						     unsigned short width,
-						     unsigned short height,
-						     unsigned short depth,
+						     unsigned int width,
+						     unsigned int height,
+						     unsigned int depth,
 						     unsigned long flags);
 void host1x_framebuffer_free(struct host1x_framebuffer *fb);
 int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path);

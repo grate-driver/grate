@@ -62,7 +62,7 @@ static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, -1);
+	err = host1x_client_wait(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -139,7 +139,7 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, -1);
+	err = host1x_client_wait(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -263,7 +263,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, -1);
+	err = host1x_client_wait(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -339,7 +339,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, -1);
+	err = host1x_client_wait(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 

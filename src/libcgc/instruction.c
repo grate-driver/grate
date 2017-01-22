@@ -74,7 +74,7 @@ void instruction_free(struct instruction *inst)
 
 void instruction_print_raw(struct instruction *inst)
 {
-	int i;
+	unsigned i;
 
 	for (i = (inst->length / 32) - 1; i >= 0; i--)
 		printf(" %08x", inst->bits[i]);
@@ -84,7 +84,7 @@ void instruction_print_raw(struct instruction *inst)
 
 void instruction_print_unknown(struct instruction *inst)
 {
-	int i;
+	unsigned i;
 
 	for (i = (inst->length / 32) - 1; i >= 0; i--)
 		printf(" %08x", inst->bits[i] & ~(inst->taken[i]));
@@ -97,9 +97,9 @@ static unsigned int take(struct instruction *inst, unsigned int pos)
 	unsigned int word = pos / 32;
 	unsigned int bit = pos % 32;
 
-	inst->taken[word] |= (1 << bit);
+	inst->taken[word] |= (1u << bit);
 
-	return (inst->bits[word] & (1 << bit)) != 0;
+	return (inst->bits[word] & (1u << bit)) != 0;
 }
 
 unsigned int instruction_get_bit(struct instruction *inst, unsigned int pos)
@@ -130,12 +130,13 @@ uint32_t instruction_extract(struct instruction *inst, unsigned int from,
 
 	for (i = from; i <= to; i++)
 		if (take(inst, i))
-			value |= 1 << (i - from);
+			value |= 1u << (i - from);
 
 	return value;
 }
 
-void instruction_set_bit(struct instruction *inst, unsigned int pos, int value)
+void instruction_set_bit(struct instruction *inst, unsigned int pos,
+			 unsigned int value)
 {
 	unsigned int word = pos / 32;
 	unsigned int bit = pos % 32;
@@ -143,7 +144,7 @@ void instruction_set_bit(struct instruction *inst, unsigned int pos, int value)
 	if (pos >= inst->length)
 		fprintf(stderr, "WARNING: bit out of range: %u\n", pos);
 
-	inst->bits[word] &= ~(1 << bit);
+	inst->bits[word] &= ~(1u << bit);
 	inst->bits[word] |= (value & 1) << bit;
 }
 
@@ -160,8 +161,8 @@ void instruction_insert(struct instruction *inst, unsigned int from,
 		unsigned int word = i / 32;
 		unsigned int bit = i % 32;
 
-		inst->bits[word] &= ~(1 << bit);
-		if (value & (1 << (i - from)))
-			inst->bits[word] |= (1 << bit);
+		inst->bits[word] &= ~(1u << bit);
+		if (value & (1u << (i - from)))
+			inst->bits[word] |= (1u << bit);
 	}
 }

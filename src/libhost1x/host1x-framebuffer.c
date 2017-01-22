@@ -52,9 +52,9 @@ static void detile(void *target, struct host1x_framebuffer *fb,
 }
 
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
-						     unsigned short width,
-						     unsigned short height,
-						     unsigned short depth,
+						     unsigned int width,
+						     unsigned int height,
+						     unsigned int depth,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;

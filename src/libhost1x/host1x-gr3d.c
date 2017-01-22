@@ -75,17 +75,17 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, -1);
+	err = host1x_client_wait(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
 	return 0;
 }
 
-static int map_mem(void **mem_virt, off_t phys_address, off_t size)
+static int map_mem(void **mem_virt, off_t phys_address, int size)
 {
 	off_t PageOffset, PageAddress;
-	size_t PagesSize;
+	int PagesSize;
 	int mem_dev;
 
 	mem_dev = open("/dev/mem", O_RDWR | O_SYNC);
@@ -96,7 +96,7 @@ static int map_mem(void **mem_virt, off_t phys_address, off_t size)
 	PageAddress = phys_address - PageOffset;
 	PagesSize   = (((size - 1) / getpagesize()) + 1) * getpagesize();
 
-	*mem_virt = mmap(NULL, PagesSize, PROT_READ | PROT_WRITE,
+	*mem_virt = mmap(NULL, (size_t)PagesSize, PROT_READ | PROT_WRITE,
 			 MAP_SHARED, mem_dev, PageAddress);
 
 	if (*mem_virt == MAP_FAILED)
@@ -698,7 +698,7 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, -1);
+	err = host1x_client_wait(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -883,10 +883,10 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
 
-	host1x_pushbuf_push_float(pb, fb->width * 8.0f);
-	host1x_pushbuf_push_float(pb, fb->height * 8.0f);
-	host1x_pushbuf_push_float(pb, fb->width * 8.0f);
-	host1x_pushbuf_push_float(pb, fb->height * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)fb->width * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)fb->height * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)fb->width * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)fb->height * 8.0f);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
 	host1x_pushbuf_push(pb, 0x4376f000);
@@ -1115,7 +1115,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, -1);
+	err = host1x_client_wait(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 

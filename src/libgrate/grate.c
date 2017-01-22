@@ -116,11 +116,11 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			break;
 
 		case 'w':
-			options->width = atoi(optarg);
+			options->width = strtoul(optarg, NULL, 10);
 			break;
 
 		case 'h':
-			options->height = atoi(optarg);
+			options->height = strtoul(optarg, NULL, 10);
 			break;
 
 		case 'v':
@@ -313,7 +313,7 @@ static unsigned int count_pseq_instructions_nb(struct grate_shader *shader)
 			break;
 		case 3: /* MASK */
 			for (count = 0; count < 16; count++) {
-				if (mask & (1 << count)) {
+				if (mask & (1u << count)) {
 					if (offset + count == 0x541)
 						pseq_instructions_nb++;
 					i++;
@@ -352,8 +352,8 @@ void grate_3d_set_depth_range(struct host1x_pushbuf *pb,
 			      float near, float far)
 {
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_RANGE_NEAR, 2));
-	host1x_pushbuf_push(pb, 0xFFFFF * near);
-	host1x_pushbuf_push(pb, 0xFFFFF * far);
+	host1x_pushbuf_push(pb, (uint32_t)(0xFFFFF * near));
+	host1x_pushbuf_push(pb, (uint32_t)(0xFFFFF * far));
 }
 
 void grate_3d_set_dither(struct host1x_pushbuf *pb, uint32_t unk)
@@ -490,7 +490,7 @@ void grate_3d_set_render_targets_enable(struct host1x_pushbuf *pb,
 					unsigned index)
 {
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_ENABLE, 1));
-	host1x_pushbuf_push(pb, 1 << index);
+	host1x_pushbuf_push(pb, 1u << index);
 }
 
 void grate_3d_relocate_render_target(struct host1x_pushbuf *pb,
@@ -721,12 +721,12 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	uint32_t fence;
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
-	int depth = 32;
-	int dither = 0;
-	int tiled = 1;
-	int index_mode;
-	int draw_type;
-	int idx;
+	unsigned depth = 32;
+	unsigned dither = 0;
+	unsigned tiled = 1;
+	unsigned index_mode;
+	unsigned draw_type;
+	unsigned idx;
 	int err;
 
 	switch (type) {
@@ -863,7 +863,7 @@ void grate_draw_elements(struct grate *grate, enum grate_primitive type,
 	if (err < 0)
 		return;
 
-	err = host1x_client_wait(gr3d->client, fence, -1);
+	err = host1x_client_wait(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return;
 }

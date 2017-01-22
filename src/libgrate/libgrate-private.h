@@ -33,12 +33,12 @@ struct grate_vertex_attribute {
 };
 
 struct grate_attribute {
-	unsigned int position;
+	int position;
 	const char *name;
 };
 
 struct grate_uniform {
-	unsigned int position;
+	int position;
 	const char *name;
 };
 

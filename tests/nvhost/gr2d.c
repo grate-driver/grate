@@ -102,7 +102,7 @@ static int nvhost_gr2d_init(struct nvhost_gr2d *gr2d)
 
 	printf("fence: %u\n", fence);
 
-	err = nvhost_client_wait(&gr2d->client, fence, -1);
+	err = nvhost_client_wait(&gr2d->client, fence, ~0u);
 	if (err < 0) {
 		return err;
 	}
@@ -274,7 +274,7 @@ int nvhost_gr2d_clear(struct nvhost_gr2d *gr2d, struct nvmap_framebuffer *fb,
 
 	printf("fence: %u\n", fence);
 
-	err = nvhost_client_wait(&gr2d->client, fence, -1);
+	err = nvhost_client_wait(&gr2d->client, fence, ~0u);
 	if (err < 0) {
 		return err;
 	}
