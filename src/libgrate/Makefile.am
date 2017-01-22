@@ -10,6 +10,7 @@ libgrate_la_SOURCES = \
 	display.c \
 	grate.c \
 	grate.h \
+	grate-asm.c \
 	libgrate-private.h \
 	matrix.c \
 	matrix.h \
