@@ -173,32 +173,6 @@ void grate_viewport(struct grate *grate, float x, float y, float width,
 	grate->viewport.height = height;
 }
 
-void grate_clear_color(struct grate *grate, float red, float green,
-		       float blue, float alpha)
-{
-	grate->clear.r = red;
-	grate->clear.g = green;
-	grate->clear.b = blue;
-	grate->clear.a = alpha;
-}
-
-void grate_clear(struct grate *grate)
-{
-	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
-	struct grate_color *clear = &grate->clear;
-	int err;
-
-	if (!grate->fb) {
-		grate_error("no framebuffer bound to state\n");
-		return;
-	}
-
-	err = host1x_gr2d_clear(gr2d, grate->fb->back, clear->r, clear->g,
-				clear->b, clear->a);
-	if (err < 0)
-		grate_error("host1x_gr2d_clear() failed: %d\n", err);
-}
-
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 {
 	grate->fb = fb;
