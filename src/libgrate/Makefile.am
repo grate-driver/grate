@@ -13,6 +13,7 @@ libgrate_la_SOURCES = \
 	grate-asm.c \
 	grate-2d.c \
 	grate-3d.c \
+	grate-3d-ctx.c \
 	libgrate-private.h \
 	matrix.c \
 	matrix.h \

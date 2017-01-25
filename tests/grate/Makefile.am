@@ -6,6 +6,7 @@ noinst_PROGRAMS = \
 	triangle-rotate
 
 AM_CPPFLAGS = \
+	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libgrate
 
 LDADD = \

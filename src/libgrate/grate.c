@@ -59,6 +59,56 @@ struct grate_bo *grate_bo_create(struct grate *grate, size_t size,
 	return bo;
 }
 
+struct grate_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
+					   unsigned long flags,
+					   const void *data)
+{
+	struct grate_bo *bo;
+	void *map;
+
+	bo = calloc(1, sizeof(*bo));
+	if (!bo)
+		return NULL;
+
+	bo->bo = host1x_bo_create(grate->host1x, size, 2);
+	if (!bo->bo) {
+		free(bo);
+		return NULL;
+	}
+
+	bo->size = size;
+
+	map = grate_bo_map(bo);
+	if (!map) {
+		grate_bo_free(bo);
+		return NULL;
+	}
+
+	memcpy(map, data, size);
+
+	grate_bo_invalidate(bo, size);
+
+	return bo;
+}
+
+struct grate_bo *grate_wrap_bo(struct grate_bo *bo, unsigned long offset)
+{
+	struct grate_bo *wrap;
+
+	if (offset >= bo->size)
+		return NULL;
+
+	wrap = calloc(1, sizeof(*wrap));
+	if (!wrap)
+		return NULL;
+
+	wrap->bo = bo->bo;
+	wrap->size = bo->size - offset;
+	wrap->offset = bo->offset + offset;
+
+	return wrap;
+}
+
 void grate_bo_free(struct grate_bo *bo)
 {
 	host1x_bo_free(bo->bo);
@@ -71,14 +121,21 @@ void *grate_bo_map(struct grate_bo *bo)
 	int err;
 
 	err = host1x_bo_mmap(bo->bo, &ptr);
-	if (err < 0)
+	if (err < 0) {
+		grate_error("Failed to mmap BO: %s\n", strerror(err));
 		return NULL;
+	}
 
-	return ptr;
+	return ptr + bo->offset;
 }
 
 void grate_bo_unmap(struct grate_bo *bo, void *ptr)
 {
+}
+
+void grate_bo_invalidate(struct grate_bo *bo, size_t size)
+{
+	host1x_bo_invalidate(bo->bo, bo->offset, size);
 }
 
 bool grate_parse_command_line(struct grate_options *options, int argc,
@@ -164,91 +221,23 @@ void grate_exit(struct grate *grate)
 	free(grate);
 }
 
-void grate_viewport(struct grate *grate, float x, float y, float width,
-		    float height)
-{
-	grate->viewport.x = x;
-	grate->viewport.y = y;
-	grate->viewport.width = width;
-	grate->viewport.height = height;
-}
-
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 {
 	grate->fb = fb;
 }
 
-int grate_get_attribute_location(struct grate *grate, const char *name)
+struct grate_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb)
 {
-	struct grate_program *program = grate->program;
-	unsigned int i;
-
-	for (i = 0; i < program->num_attributes; i++) {
-		struct grate_attribute *attribute = &program->attributes[i];
-
-		if (strcmp(name, attribute->name) == 0)
-			return attribute->position;
-	}
-
-	return -1;
+	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
+	bo->bo = fb->front->bo;
+	return bo;
 }
 
-void grate_attribute_pointer(struct grate *grate, unsigned int location,
-			     unsigned int size, unsigned int stride,
-			     unsigned int count, struct grate_bo *bo,
-			     unsigned long offset)
+struct grate_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb)
 {
-	struct grate_vertex_attribute *attribute;
-	size_t length;
-	int err;
-
-	if (location > GRATE_MAX_ATTRIBUTES) {
-		fprintf(stderr, "ERROR: invalid location: %u\n", location);
-		return;
-	}
-
-	//fprintf(stdout, "DEBUG: using location %u\n", location);
-	attribute = &grate->attributes[location];
-	length = count * stride * size;
-
-	attribute->offset = offset;
-	attribute->stride = stride;
-	attribute->count = count;
-	attribute->size = size;
-	attribute->bo = bo;
-
-	err = host1x_bo_invalidate(bo->bo, offset, length);
-	if (err < 0) {
-		fprintf(stderr, "ERROR: failed to invalidate buffer\n");
-		return;
-	}
-}
-
-int grate_get_uniform_location(struct grate *grate, const char *name)
-{
-	struct grate_program *program = grate->program;
-	unsigned int i;
-
-	for (i = 0; i < program->num_uniforms; i++) {
-		struct grate_uniform *uniform = &program->uniforms[i];
-
-		if (strcmp(name, uniform->name) == 0)
-			return uniform->position;
-	}
-
-	return -1;
-}
-
-void grate_uniform(struct grate *grate, unsigned int location,
-		   unsigned int count, float *values)
-{
-	struct grate_program *program = grate->program;
-	unsigned int i;
-
-	//fprintf(stdout, "DEBUG: using location %u\n", location);
-
-	for (i = 0; i < count; i++)
-		program->uniform[location * 4 + i] = values[i];
+	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
+	bo->bo = fb->back->bo;
+	return bo;
 }
 
 void grate_flush(struct grate *grate)
@@ -305,18 +294,15 @@ void grate_framebuffer_swap(struct grate_framebuffer *fb)
 {
 	struct host1x_framebuffer *tmp = fb->front;
 
-	fb->front = fb->back;
-	fb->back = tmp;
+	if (fb->back) {
+		fb->front = fb->back;
+		fb->back = tmp;
+	}
 }
 
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path)
 {
 	host1x_framebuffer_save(fb->back, path);
-}
-
-void grate_use_program(struct grate *grate, struct grate_program *program)
-{
-	grate->program = program;
 }
 
 void grate_swap_buffers(struct grate *grate)

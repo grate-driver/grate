@@ -26,10 +26,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "libgrate-private.h"
-#include "host1x.h"
-#include "grate.h"
 #include "asm.h"
+#include "grate.h"
+#include "grate-3d.h"
+#include "host1x.h"
+#include "libgrate-private.h"
 
 struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 {
@@ -267,10 +268,6 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	shader->num_words += 1 + asm_mfu_instructions_nb * 2;
 	/* + ALU */
 	shader->num_words += 1 + asm_alu_instructions_nb * 8;
-	/* + ALU buffer size + (some config?) */
-	shader->num_words += 4;
-	/* + PSEQ/DW exec number */
-	shader->num_words += 2;
 
 	shader->words = malloc(shader->num_words * 4);
 	if (!shader->words) {
@@ -338,24 +335,15 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	for (i = 0; i < asm_fs_instructions_nb; i++)
 		shader->words[words++] = asm_dw_instructions[i].data;
 
-	/* ALU buffer size */
-	shader->words[words++] = HOST1X_OPCODE_NONINCR(0xe20, 1);
-	shader->words[words++] =
-		(0x12B / (asm_alu_buffer_size * 4)) << 24 | (asm_alu_buffer_size - 1);
-
-	shader->words[words++] = HOST1X_OPCODE_NONINCR(0x501, 1);
-	shader->words[words++] = 0x003212CF;
-
-	/* PSEQ/DW exec number */
-	shader->words[words++] = HOST1X_OPCODE_NONINCR(0x546, 1);
-	shader->words[words++] = asm_pseq_to_dw_exec_nb << 6;
-
 	cgc = calloc(1, sizeof(*cgc));
 	if (!shader) {
 		free(shader);
 		return NULL;
 	}
 
+	shader->pseq_to_dw_nb = asm_pseq_to_dw_exec_nb;
+	shader->pseq_inst_nb = asm_fs_instructions_nb;
+	shader->alu_buf_size = asm_alu_buffer_size;
 	shader->cgc = cgc;
 
 	for (i = 0; i < 32; i++) {
@@ -673,7 +661,7 @@ struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
 	if (!shader)
 		return NULL;
 
-	shader->num_words = 1 + asm_linker_instructions_nb * 2 + 2;
+	shader->num_words = 1 + asm_linker_instructions_nb * 2;
 	shader->words = malloc(shader->num_words * 4);
 	if (!shader->words) {
 		free(shader);
@@ -687,16 +675,14 @@ struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
 		shader->words[words++] = asm_linker_instructions[i].latter;
 	}
 
-	shader->words[words++] = HOST1X_OPCODE_NONINCR(0xe21, 1);
-	shader->words[words]  = asm_linker_used_tram_rows_nb << 8;
-	shader->words[words] |= 64 / asm_linker_used_tram_rows_nb;
-
 	cgc = calloc(1, sizeof(*cgc));
 	if (!shader) {
 		free(shader);
 		return NULL;
 	}
 
+	shader->used_tram_rows_nb = asm_linker_used_tram_rows_nb;
+	shader->linker_inst_nb = asm_linker_instructions_nb;
 	shader->cgc = cgc;
 
 	return shader;

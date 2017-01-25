@@ -29,13 +29,57 @@
 #include "host1x.h"
 #include "libcgc.h"
 #include "grate.h"
+#include "grate-3d.h"
 
-void grate_shader_emit(struct host1x_pushbuf *pb, struct grate_shader *shader)
+static unsigned count_pseq_instructions_nb(struct grate_shader *shader)
 {
-	unsigned int i;
+	unsigned pseq_instructions_nb = 0;
+	unsigned i;
 
-	for (i = 0; i < shader->num_words; i++)
-		host1x_pushbuf_push(pb, shader->words[i]);
+	for (i = 0; i < shader->num_words; i++) {
+		uint32_t host1x_command = shader->words[i];
+		unsigned host1x_opcode = host1x_command >> 28;
+		unsigned offset = (host1x_command >> 16) & 0xfff;
+		unsigned count = host1x_command & 0xffff;
+		unsigned mask = count;
+
+		switch (host1x_opcode) {
+		case 0: /* SETCL */
+			break;
+		case 1: /* INCR */
+			if (offset <= 0x541 && offset + count > 0x541)
+				pseq_instructions_nb++;
+			i += count;
+			break;
+		case 2: /* NONINCR */
+			if (offset == 0x541)
+				pseq_instructions_nb += count;
+			i += count;
+			break;
+		case 3: /* MASK */
+			for (count = 0; count < 16; count++) {
+				if (mask & (1u << count)) {
+					if (offset + count == 0x541)
+						pseq_instructions_nb++;
+					i++;
+				}
+			}
+			break;
+		case 4: /* IMM */
+			if (offset == 0x541)
+				pseq_instructions_nb++;
+			break;
+		case 5: /* EXTEND */
+			break;
+		default:
+			fprintf(stderr,
+				"ERROR: fragment shader host1x command "
+					"stream is invalid\n");
+			break;
+		}
+	}
+
+	return pseq_instructions_nb;
 }
 
 struct grate_shader *grate_shader_new(struct grate *grate,
@@ -115,6 +159,10 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 		fprintf(stdout, "DEBUG: fragment shader: %zu words\n", size / 4);
 		shader->num_words = size / 4;
 		shader->words = fs->words;
+
+		shader->pseq_inst_nb = count_pseq_instructions_nb(shader);
+		shader->pseq_to_dw_nb = 1;
+		shader->alu_buf_size = 1;
 		break;
 
 	default:
@@ -160,6 +208,9 @@ struct grate_program *grate_program_new(struct grate *grate,
 {
 	struct grate_program *program;
 
+	if (!vs || !fs || !linker)
+		return NULL;
+
 	program = calloc(1, sizeof(*program));
 	if (!program)
 		return NULL;
@@ -179,6 +230,51 @@ void grate_program_free(struct grate_program *program)
 	}
 
 	free(program);
+}
+
+int grate_get_attribute_location(struct grate_program *program,
+				 const char *name)
+{
+	unsigned i;
+
+	for (i = 0; i < program->num_attributes; i++) {
+		struct grate_attribute *attribute = &program->attributes[i];
+
+		if (strcmp(name, attribute->name) == 0)
+			return attribute->position;
+	}
+
+	return -1;
+}
+
+int grate_get_vertex_uniform_location(struct grate_program *program,
+				      const char *name)
+{
+	unsigned i;
+
+	for (i = 0; i < program->num_vs_uniforms; i++) {
+		struct grate_uniform *uniform = &program->vs_uniforms[i];
+
+		if (strcmp(name, uniform->name) == 0)
+			return uniform->position;
+	}
+
+	return -1;
+}
+
+int grate_get_fragment_uniform_location(struct grate_program *program,
+					const char *name)
+{
+	unsigned i;
+
+	for (i = 0; i < program->num_fs_uniforms; i++) {
+		struct grate_uniform *uniform = &program->fs_uniforms[i];
+
+		if (strcmp(name, uniform->name) == 0)
+			return uniform->position;
+	}
+
+	return -1;
 }
 
 static void grate_program_add_attribute(struct grate_program *program,
@@ -205,26 +301,35 @@ static void grate_program_add_attribute(struct grate_program *program,
 }
 
 static void grate_program_add_uniform(struct grate_program *program,
-				      struct cgc_symbol *symbol)
+				      struct cgc_symbol *symbol,
+				      bool vertex)
 {
 	struct grate_uniform *uniform;
 	size_t size;
 
-	size = (program->num_uniforms + 1) * sizeof(*uniform);
+	if (vertex) {
+		size = (program->num_vs_uniforms + 1) * sizeof(*uniform);
+		uniform = realloc(program->vs_uniforms, size);
+	} else {
+		size = (program->num_fs_uniforms + 1) * sizeof(*uniform);
+		uniform = realloc(program->fs_uniforms, size);
+	}
 
-	uniform = realloc(program->uniforms, size);
 	if (!uniform) {
 		fprintf(stderr, "ERROR: failed to allocate uniform\n");
 		return;
 	}
 
-	program->uniforms = uniform;
+	if (vertex) {
+		program->vs_uniforms = uniform;
+		uniform = &program->vs_uniforms[program->num_vs_uniforms++];
+	} else {
+		program->fs_uniforms = uniform;
+		uniform = &program->fs_uniforms[program->num_vs_uniforms++];
+	}
 
-	uniform = &program->uniforms[program->num_uniforms];
 	uniform->position = symbol->location;
 	uniform->name = symbol->name;
-
-	program->num_uniforms++;
 }
 
 void grate_program_link(struct grate_program *program)
@@ -232,8 +337,20 @@ void grate_program_link(struct grate_program *program)
 	struct cgc_shader *shader;
 	unsigned int i;
 
-	if (!program->vs || !program->fs)
+	if (!program->vs) {
+		grate_error("No vertex program?");
 		return;
+	}
+
+	if (!program->fs) {
+		grate_error("No fragment program?");
+		return;
+	}
+
+	if (!program->linker) {
+		grate_error("No linker program?");
+		return;
+	}
 
 	shader = program->vs->cgc;
 
@@ -251,9 +368,9 @@ void grate_program_link(struct grate_program *program)
 
 			if (symbol->input) {
 				grate_program_add_attribute(program, symbol);
-				program->attributes_mask |= attr_mask << 16;
+				program->attributes_use_mask |= attr_mask << 16;
 			} else {
-				program->attributes_mask |= attr_mask;
+				program->attributes_use_mask |= attr_mask;
 			}
 
 			break;
@@ -262,14 +379,14 @@ void grate_program_link(struct grate_program *program)
 			printf("uniform %s @%u", symbol->name,
 			       symbol->location);
 
-			grate_program_add_uniform(program, symbol);
+			grate_program_add_uniform(program, symbol, true);
 			break;
 
 		case GLSL_KIND_CONSTANT:
 			printf("constant %s @%u", symbol->name,
 			       symbol->location);
 
-			memcpy(&program->uniform[symbol->location * 4],
+			memcpy(&program->vs_constants[symbol->location * 4],
 			       symbol->vector, 16);
 
 			break;
@@ -306,6 +423,8 @@ void grate_program_link(struct grate_program *program)
 		case GLSL_KIND_UNIFORM:
 			printf("uniform %s @%u", symbol->name,
 			       symbol->location);
+
+			grate_program_add_uniform(program, symbol, false);
 			break;
 
 		case GLSL_KIND_CONSTANT:
@@ -313,7 +432,7 @@ void grate_program_link(struct grate_program *program)
 			       symbol->location);
 
 			if (strncmp(symbol->name, "asm-constant", 12) == 0)
-				program->fs_uniform[symbol->location] = symbol->vector[0];
+				program->fs_constants[symbol->location] = symbol->vector[0];
 			break;
 
 		default:

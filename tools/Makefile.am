@@ -6,6 +6,7 @@ noinst_PROGRAMS = \
 	fx10
 
 assembler_CPPFLAGS = \
+	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libgrate
 
 assembler_LDADD = \

@@ -8,8 +8,8 @@ http://github.com/envytools/envytools/
 git clone https://github.com/envytools/envytools.git
 
 The rules-ng-ng source files this header was generated from are:
-- /envytools/rnndb/tgr_3d.xml          (  11674 bytes, from 2017-01-22 22:32:33)
-- /envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-01-22 14:07:05)
+- /envytools/rnndb/tgr_3d.xml          (  11742 bytes, from 2017-01-25 16:37:26)
+- /envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-01-23 10:01:40)
 
 Copyright (C) 2012-2017 by the following authors:
 - Erik Faye-Lund <kusmabite@gmail.com> (kusma)
@@ -263,15 +263,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define TGR3D_DEPTH_RANGE_FAR					0x00000405
 
-#define TGR3D_PSEQ_UPLOAD_INST_BUFFER_FLUSH			0x00000500
+#define TGR3D_FP_PSEQ_UPLOAD_INST_BUFFER_FLUSH			0x00000500
 
-#define TGR3D_PSEQ_ENGINE_INST					0x00000520
+#define TGR3D_FP_PSEQ_ENGINE_INST				0x00000520
 
-#define TGR3D_PSEQ_UPLOAD_INST					0x00000541
+#define TGR3D_FP_PSEQ_UPLOAD_INST_ID				0x00000540
 
-#define TGR3D_PSEQ_DW_CFG					0x00000546
-#define TGR3D_PSEQ_DW_CFG_PSEQ_TO_DW_EXEC_NB__MASK		0xffffffc0
-#define TGR3D_PSEQ_DW_CFG_PSEQ_TO_DW_EXEC_NB__SHIFT		6
+#define TGR3D_FP_PSEQ_UPLOAD_INST				0x00000541
+
+#define TGR3D_FP_PSEQ_DW_CFG					0x00000546
+#define TGR3D_FP_PSEQ_DW_CFG_PSEQ_TO_DW_EXEC_NB__MASK		0xffffffc0
+#define TGR3D_FP_PSEQ_DW_CFG_PSEQ_TO_DW_EXEC_NB__SHIFT		6
 
 #define TGR3D_FP_UPLOAD_MFU_SCHED				0x00000601
 #define TGR3D_FP_UPLOAD_MFU_SCHED_OFFSET__MASK			0x000000fc
