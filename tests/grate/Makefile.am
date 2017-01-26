@@ -1,6 +1,7 @@
 noinst_PROGRAMS = \
 	clear \
 	cube \
+	cube-textured \
 	quad \
 	triangle \
 	triangle-rotate
@@ -11,3 +12,7 @@ AM_CPPFLAGS = \
 
 LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la
+
+cube_textured_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	$(DevIL_LIBS)

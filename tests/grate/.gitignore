@@ -1,5 +1,6 @@
 clear
 cube
+cube-textured
 quad
 triangle
 triangle-rotate
