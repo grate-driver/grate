@@ -69,6 +69,18 @@ struct grate_vtx_attribute {
 	unsigned type;
 };
 
+struct grate_texture {
+	struct grate_bo *bo;
+	unsigned width;
+	unsigned height;
+	unsigned wrap_mode;
+	unsigned max_lod;
+	unsigned format;
+	bool mip_filter;
+	bool mag_filter;
+	bool min_filter;
+};
+
 struct grate_3d_ctx {
 	uint32_t vs_uniforms[256 * 4];
 	uint32_t fs_uniforms[32];
@@ -78,6 +90,9 @@ struct grate_3d_ctx {
 
 	struct grate_render_target *render_targets[16];
 	struct grate_vtx_attribute *vtx_attributes[16];
+	struct grate_texture *textures[16];
+
+	unsigned active_texture;
 
 	float depth_range_near;
 	float depth_range_far;

@@ -206,6 +206,19 @@ void grate_3d_ctx_set_point_coord_range(struct grate_3d_ctx *ctx,
 void grate_3d_ctx_set_polygon_offset(struct grate_3d_ctx *ctx,
 				     float units, float factor);
 void grate_3d_ctx_set_provoking_vtx_last(struct grate_3d_ctx *ctx, bool last);
+struct grate_texture * grate_3d_ctx_create_texture(struct grate_3d_ctx *ctx,
+						   unsigned width,
+						   unsigned height,
+						   unsigned wrap_mode,
+						   unsigned max_lod,
+						   unsigned format,
+						   bool mip_filter,
+						   bool mag_filter,
+						   bool min_filter,
+						   struct grate_bo *tex_bo);
+int grate_3d_ctx_activate_texture(struct grate_3d_ctx *ctx, unsigned location);
+void grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
+			       struct grate_texture *tex);
 
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,

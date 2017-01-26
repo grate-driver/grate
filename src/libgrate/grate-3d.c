@@ -485,6 +485,82 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 	grate_3d_enable_render_targets(pb, enable_mask);
 }
 
+static void grate_3d_relocate_texture(struct host1x_pushbuf *pb,
+				      unsigned index,
+				      struct host1x_bo *bo,
+				      unsigned offset)
+{
+	host1x_pushbuf_push(pb,
+			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_POINTER(index), 1));
+	host1x_pushbuf_relocate(pb, bo, offset, 0);
+	host1x_pushbuf_push(pb, 0xdeadbeef);
+}
+
+static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
+				      unsigned index,
+				      unsigned format,
+				      unsigned max_lod,
+				      unsigned wrap_mode,
+				      unsigned width,
+				      unsigned height,
+				      bool mip_filter,
+				      bool mag_filter,
+				      bool min_filter)
+{
+	uint32_t value;
+
+	host1x_pushbuf_push(pb,
+			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_DESC1(index), 2));
+
+	value  = TGR3D_BOOL(TEXTURE_DESC1, MIPFILTER, mip_filter);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER, mag_filter);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER, min_filter);
+	value |= TGR3D_VAL(TEXTURE_DESC1, FORMAT, format);
+	value |= TGR3D_VAL(TEXTURE_DESC1, WRAP, wrap_mode);
+// 	value |= 0x50;
+
+	host1x_pushbuf_push(pb, value);
+
+	if (mip_filter) {
+		value  = TGR3D_VAL(TEXTURE_DESC2, WIDTH_LOG2, width);
+		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT_LOG2, height);
+		value |= TGR3D_VAL(TEXTURE_DESC2, MAX_LOD, max_lod);
+	} else {
+		value  = TGR3D_VAL(TEXTURE_DESC2, WIDTH, width);
+		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT, height);
+	}
+	value |= 0xC0;
+
+	host1x_pushbuf_push(pb, value);
+}
+
+static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
+				    struct grate_3d_ctx *ctx)
+{
+	unsigned i;
+
+	for (i = 0; i < 16; i++) {
+		struct grate_texture *tex = ctx->textures[i];
+
+		if (!tex)
+			continue;
+
+		grate_3d_relocate_texture(pb, i,
+					  tex->bo->bo,
+					  tex->bo->offset);
+
+		grate_3d_set_texture_desc(pb, i,
+					  tex->format,
+					  tex->max_lod,
+					  tex->wrap_mode,
+					  tex->width,
+					  tex->height,
+					  tex->mip_filter,
+					  tex->mag_filter,
+					  tex->min_filter);
+	}
+}
+
 static void grate_3d_setup_indices(struct host1x_pushbuf *pb,
 				   struct grate_bo *indices_bo,
 				   unsigned index_mode)
@@ -526,6 +602,7 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 
 	grate_3d_setup_attributes(pb, ctx);
 	grate_3d_setup_render_targets(pb, ctx);
+	grate_3d_setup_textures(pb, ctx);
 
 	grate_shader_emit(pb, ctx->program->vs);
 	grate_shader_emit(pb, ctx->program->fs);
