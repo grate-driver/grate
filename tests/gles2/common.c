@@ -453,7 +453,7 @@ GLuint glsl_shader_load(GLenum type, const GLchar *lines[], size_t count)
 	if (!status) {
 		GLint size;
 
-		fprintf(stderr, "failed to compile GLSL shader:\n");
+		fprintf(stderr, "failed to compile shader:\n");
 
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &size);
 		if (size > 0) {
@@ -503,7 +503,7 @@ void glsl_program_link(GLuint program)
 	if (!status) {
 		GLint size;
 
-		fprintf(stderr, "failed to link GLSL program:\n");
+		fprintf(stderr, "failed to link program:\n");
 
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &size);
 		if (size > 0) {
