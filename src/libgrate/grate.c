@@ -253,10 +253,16 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 	struct grate_framebuffer *fb;
 	enum pixel_format fb_format;
 
-	if (format != GRATE_RGBA8888)
+	switch (format) {
+	case GRATE_RGB565:
+		fb_format = PIX_BUF_FMT_RGB565_TILED;
+		break;
+	case GRATE_RGBA8888:
+		fb_format = PIX_BUF_FMT_RGBA8888_TILED;
+		break;
+	default:
 		return NULL;
-
-	fb_format = PIX_BUF_FMT_RGBA8888_TILED;
+	}
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)

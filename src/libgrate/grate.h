@@ -40,6 +40,7 @@ struct grate_bo;
 struct grate;
 
 enum grate_format {
+	GRATE_RGB565,
 	GRATE_RGBA8888,
 };
 
