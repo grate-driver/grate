@@ -311,7 +311,9 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	 * [20:20] destination write tile mode (0: linear, 1: tiled)
 	 * [ 0: 0] tile mode Y/RGB (0: linear, 1: tiled)
 	 */
-	host1x_pushbuf_push(pb, 0x00100001); /* tilemode */
+	host1x_pushbuf_push(pb, /* tilemode */
+			    PIX_BUF_FORMAT_TILED(dst->pb->format) << 20 |
+			    PIX_BUF_FORMAT_TILED(src->pb->format));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
 	host1x_pushbuf_relocate(pb, dst->pb->bo, 0, 0);
