@@ -247,29 +247,17 @@ void grate_flush(struct grate *grate)
 struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned int width,
 						   unsigned int height,
-						   enum grate_format format,
+						   enum pixel_format format,
 						   unsigned long flags)
 {
 	struct grate_framebuffer *fb;
-	enum pixel_format fb_format;
-
-	switch (format) {
-	case GRATE_RGB565:
-		fb_format = PIX_BUF_FMT_RGB565_TILED;
-		break;
-	case GRATE_RGBA8888:
-		fb_format = PIX_BUF_FMT_RGBA8888_TILED;
-		break;
-	default:
-		return NULL;
-	}
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
 		return NULL;
 
 	fb->front = host1x_framebuffer_create(grate->host1x, width, height,
-					      fb_format, 0);
+					      format, 0);
 	if (!fb->front) {
 		free(fb);
 		return NULL;
@@ -277,7 +265,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 
 	if (flags & GRATE_DOUBLE_BUFFERED) {
 		fb->back = host1x_framebuffer_create(grate->host1x, width,
-						     height, fb_format, 0);
+						     height, format, 0);
 		if (!fb->back) {
 			host1x_framebuffer_free(fb->front);
 			free(fb);

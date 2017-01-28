@@ -166,7 +166,8 @@ int main(int argc, char *argv[])
 		return 1;
 
 	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      GRATE_RGBA8888, GRATE_SINGLE_BUFFERED);
+				      PIX_BUF_FMT_RGBA8888_TILED,
+				      GRATE_SINGLE_BUFFERED);
 	if (!fb) {
 		fprintf(stderr, "grate_framebuffer_create() failed\n");
 		return 1;

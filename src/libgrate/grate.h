@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "host1x.h"
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 #define BIT(x) (1 << (x))
 
@@ -39,18 +41,13 @@ struct grate_overlay;
 struct grate_bo;
 struct grate;
 
-enum grate_format {
-	GRATE_RGB565,
-	GRATE_RGBA8888,
-};
-
 #define GRATE_SINGLE_BUFFERED (0 << 0)
 #define GRATE_DOUBLE_BUFFERED (1 << 0)
 
 struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned int width,
 						   unsigned int height,
-						   enum grate_format format,
+						   enum pixel_format format,
 						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
 void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path);
