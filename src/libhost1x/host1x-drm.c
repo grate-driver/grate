@@ -252,6 +252,12 @@ static int drm_display_set(struct host1x_display *display,
 		err = drmModePageFlip(drm->drm->fd, drm->crtc, fb->handle,
 				      DRM_MODE_PAGE_FLIP_EVENT, drm);
 		if (err < 0) {
+			err = drmModeSetCrtc(drm->drm->fd, drm->crtc,
+					     fb->handle, 0, 0, &drm->connector,
+					     1, &drm->mode);
+		}
+
+		if (err < 0) {
 			fprintf(stderr, "drmModePageFlip() failed: %m\n");
 			return -errno;
 		}
