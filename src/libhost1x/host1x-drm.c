@@ -181,6 +181,9 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 			},
 		};
 
+		vblank.request.type |=
+				display->pipe << DRM_VBLANK_HIGH_CRTC_SHIFT;
+
 		err = drmWaitVBlank(drm->fd, &vblank);
 		if (err < 0) {
 			fprintf(stderr, "drmWaitVBlank() failed: %m\n");
