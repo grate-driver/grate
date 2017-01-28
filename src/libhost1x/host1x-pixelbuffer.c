@@ -25,6 +25,9 @@
 
 #include "host1x-private.h"
 
+#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				struct host1x *host1x,
 				unsigned width, unsigned height,
@@ -53,6 +56,9 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	pb = calloc(1, sizeof(*pb));
 	if (!pb)
 		return NULL;
+
+	if ( PIX_BUF_FORMAT_TILED(format) )
+		pitch = ALIGN(pitch, 16);
 
 	pb->pitch = pitch;
 	pb->width = width;
