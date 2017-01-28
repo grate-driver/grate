@@ -257,6 +257,8 @@ int main(int argc, char *argv[])
 	/* Setup texture */
 
 	ilInit();
+	ilEnable(IL_ORIGIN_SET);
+	ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
 	ilGenImages(1, &ImageTex);
 	ilBindImage(ImageTex);
 	ilLoadImage("data/tegra.png");
