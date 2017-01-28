@@ -82,7 +82,8 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	flip.win[2].out_w = width;
 	flip.win[2].out_h = height;
 	flip.win[2].pre_syncpt_id = (uint32_t)-1;
-	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_TILED;
+	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
+	flip.win[2].flags |= TEGRA_DC_EXT_FLIP_FLAG_TILED;
 
 	if (vsync) {
 		err = nvhost_ctrl_read_syncpt(nvhost->ctrl,
