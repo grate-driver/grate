@@ -89,7 +89,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 	}
 
-	switch (flags) {
+	switch (flags & ~HOST1X_BO_CREATE_DRM_FLAGS_MASK) {
 	case 1: /* framebuffer */
 		heap_mask = 1 << 0;
 		flags = 1 << 0;

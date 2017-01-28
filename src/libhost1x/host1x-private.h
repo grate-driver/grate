@@ -34,6 +34,10 @@
 		(type *)((char *)__mptr - offsetof(type, member)); \
 	})
 
+#define HOST1X_BO_CREATE_FLAG_TILED	(1 << 8)
+#define HOST1X_BO_CREATE_FLAG_BOTTOM_UP	(1 << 9)
+#define HOST1X_BO_CREATE_DRM_FLAGS_MASK 0x300
+
 struct host1x_pixelbuffer {
 	struct host1x_bo *bo;
 	enum pixel_format format;
