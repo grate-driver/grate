@@ -190,7 +190,7 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
-			      fb->width << 16, fb->height << 16);
+			      fb->pb->width << 16, fb->pb->height << 16);
 	if (err < 0)
 		return -errno;
 
@@ -487,21 +487,29 @@ static int drm_framebuffer_init(struct host1x *host1x,
 				struct host1x_framebuffer *fb)
 {
 	uint32_t handles[1], pitches[1], offsets[1], format;
+	struct host1x_pixelbuffer *pb = fb->pb;
 	struct drm *drm = to_drm(host1x);
 	int err;
 
 	/* XXX: support other formats */
-	if (fb->depth != 32) {
-		fprintf(stderr, "ERROR: only 32-bit (XBGR8888) supported\n");
+	switch ( PIX_BUF_FORMAT(pb->format))
+	{
+	case PIX_BUF_FMT_RGB565:
+		format = DRM_FORMAT_RGB565;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		format = DRM_FORMAT_XBGR8888;
+		break;
+	default:
+		fprintf(stderr, "ERROR: unsupported framebuffer format\n");
 		return -EINVAL;
 	}
 
-	format = DRM_FORMAT_XBGR8888;
-	handles[0] = fb->bo->handle;
-	pitches[0] = fb->pitch;
+	handles[0] = pb->bo->handle;
+	pitches[0] = pb->pitch;
 	offsets[0] = 0;
 
-	err = drmModeAddFB2(drm->fd, fb->width, fb->height, format,  handles,
+	err = drmModeAddFB2(drm->fd, pb->width, pb->height, format, handles,
 			    pitches, offsets, &fb->handle, 0);
 	if (err < 0)
 		return -errno;

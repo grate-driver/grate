@@ -34,13 +34,17 @@
 		(type *)((char *)__mptr - offsetof(type, member)); \
 	})
 
-struct host1x_framebuffer {
-	unsigned int width;
-	unsigned int height;
-	unsigned int depth;
-	unsigned int pitch;
-	unsigned long flags;
+struct host1x_pixelbuffer {
 	struct host1x_bo *bo;
+	enum pixel_format format;
+	unsigned width;
+	unsigned height;
+	unsigned pitch;
+};
+
+struct host1x_framebuffer {
+	struct host1x_pixelbuffer *pb;
+	unsigned long flags;
 	uint32_t handle;
 };
 

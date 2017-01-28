@@ -229,14 +229,14 @@ void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 struct grate_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb)
 {
 	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
-	bo->bo = fb->front->bo;
+	bo->bo = fb->front->pb->bo;
 	return bo;
 }
 
 struct grate_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb)
 {
 	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
-	bo->bo = fb->back->bo;
+	bo->bo = fb->back->pb->bo;
 	return bo;
 }
 
@@ -251,17 +251,19 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned long flags)
 {
 	struct grate_framebuffer *fb;
-	unsigned int bpp = 32;
+	enum pixel_format fb_format;
 
 	if (format != GRATE_RGBA8888)
 		return NULL;
+
+	fb_format = PIX_BUF_FMT_RGBA8888_TILED;
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
 		return NULL;
 
 	fb->front = host1x_framebuffer_create(grate->host1x, width, height,
-					      bpp, 0);
+					      fb_format, 0);
 	if (!fb->front) {
 		free(fb);
 		return NULL;
@@ -269,7 +271,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 
 	if (flags & GRATE_DOUBLE_BUFFERED) {
 		fb->back = host1x_framebuffer_create(grate->host1x, width,
-						     height, bpp, 0);
+						     height, fb_format, 0);
 		if (!fb->back) {
 			host1x_framebuffer_free(fb->front);
 			free(fb);
@@ -373,7 +375,7 @@ bool grate_key_pressed(struct grate *grate)
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 {
 	struct host1x_framebuffer *host1x_fb = front ? fb->front : fb->back;
-	struct host1x_bo *fb_bo = host1x_fb->bo;
+	struct host1x_bo *fb_bo = host1x_fb->pb->bo;
 	void *ret;
 	int err;
 

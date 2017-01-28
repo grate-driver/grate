@@ -29,12 +29,12 @@
 
 #include "host1x-private.h"
 
-static void detile(void *target, struct host1x_framebuffer *fb,
+static void detile(void *target, struct host1x_pixelbuffer *pb,
 		   unsigned int tx, unsigned int ty)
 {
-	const unsigned int nx = fb->pitch / tx, ny = fb->height / ty;
+	const unsigned int nx = pb->pitch / tx, ny = pb->height / ty;
 	const unsigned int size = tx * ty, pitch = tx * nx;
-	const void *source = fb->bo->ptr;
+	const void *source = pb->bo->ptr;
 	unsigned int i, j, k;
 
 	for (j = 0; j < ny; j++) {
@@ -54,29 +54,36 @@ static void detile(void *target, struct host1x_framebuffer *fb,
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned int width,
 						     unsigned int height,
-						     unsigned int depth,
+						     enum pixel_format format,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;
+	unsigned pitch;
 	int err;
+
+	switch ( PIX_BUF_FORMAT(format) ) {
+	case PIX_BUF_FMT_RGB565:
+		pitch = width * 2;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		pitch = width * 4;
+		break;
+	default:
+		return NULL;
+	}
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
 		return NULL;
 
-	/* XXX: depth buffer */
-	//depth += 16;
-
-	fb->pitch = width * (depth / 8);
-	fb->width = width;
-	fb->height = height;
-	fb->depth = depth;
-
-	fb->bo = host1x_bo_create(host1x, fb->pitch * height, 1);
-	if (!fb->bo) {
+	fb->pb = host1x_pixelbuffer_create(host1x,
+					    width, height, pitch, format);
+	if (!fb->pb) {
 		free(fb);
 		return NULL;
 	}
+
+	fb->flags = flags;
 
 	if (host1x->framebuffer_init) {
 		err = host1x->framebuffer_init(host1x, fb);
@@ -91,12 +98,13 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 
 void host1x_framebuffer_free(struct host1x_framebuffer *fb)
 {
-	host1x_bo_free(fb->bo);
+	host1x_pixelbuffer_free(fb->pb);
 	free(fb);
 }
 
 int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 {
+	struct host1x_pixelbuffer *pb = fb->pb;
 	png_structp png;
 	png_bytep *rows;
 	png_infop info;
@@ -105,17 +113,17 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 	FILE *fp;
 	int err;
 
-	if (fb->depth != 32) {
+	if (PIX_BUF_FORMAT_BITS(pb->format) != 32) {
 		fprintf(stderr, "ERROR: %u bits per pixel not supported\n",
-			fb->depth);
+			PIX_BUF_FORMAT_BITS(pb->format));
 		return -EINVAL;
 	}
 
-	err = host1x_bo_mmap(fb->bo, NULL);
+	err = host1x_bo_mmap(pb->bo, NULL);
 	if (err < 0)
 		return -EFAULT;
 
-	err = host1x_bo_invalidate(fb->bo, 0, fb->bo->size);
+	err = host1x_bo_invalidate(pb->bo, 0, pb->bo->size);
 	if (err < 0)
 		return -EFAULT;
 
@@ -141,7 +149,7 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 	if (setjmp(png_jmpbuf(png)))
 		return -EIO;
 
-	png_set_IHDR(png, info, fb->width, fb->height, 8, PNG_COLOR_TYPE_RGBA,
+	png_set_IHDR(png, info, pb->width, pb->height, 8, PNG_COLOR_TYPE_RGBA,
 		     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 		     PNG_FILTER_TYPE_BASE);
 	png_write_info(png, info);
@@ -151,21 +159,21 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 		return -EIO;
 	}
 
-	buffer = malloc(fb->pitch * fb->height);
+	buffer = malloc(pb->pitch * pb->height);
 	if (!buffer)
 		return ENOMEM;
 
-	detile(buffer, fb, 16, 16);
+	detile(buffer, pb, 16, 16);
 
-	rows = malloc(fb->height * sizeof(png_bytep));
+	rows = malloc(pb->height * sizeof(png_bytep));
 	if (!rows) {
 		fprintf(stderr, "out-of-memory\n");
 		free(buffer);
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < fb->height; i++)
-		rows[fb->height - i - 1] = buffer + i * fb->pitch;
+	for (i = 0; i < pb->height; i++)
+		rows[pb->height - i - 1] = buffer + i * pb->pitch;
 
 	png_write_image(png, rows);
 

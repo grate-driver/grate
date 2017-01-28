@@ -84,13 +84,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	fb = host1x_framebuffer_create(host1x, width, height, 32, 0);
+	fb = host1x_framebuffer_create(host1x, width, height,
+				       PIX_BUF_FMT_RGBA8888_TILED, 0);
 	if (!fb) {
 		fprintf(stderr, "host1x_framebuffer_create() failed\n");
 		return 1;
 	}
 
-	copy = host1x_framebuffer_create(host1x, width, height, 32, 0);
+	copy = host1x_framebuffer_create(host1x, width, height,
+					 PIX_BUF_FMT_RGBA8888_TILED, 0);
 	if (!copy) {
 		fprintf(stderr, "host1x_framebuffer_create() failed\n");
 		return 1;

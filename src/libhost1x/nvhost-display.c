@@ -53,18 +53,30 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	struct nvhost *nvhost = display->nvhost;
 	struct tegra_dc_ext_flip flip;
 	uint32_t vblank_cnt;
+	unsigned pixformat;
 	int err;
+
+	switch ( PIX_BUF_FORMAT(fb->pb->format) ) {
+	case PIX_BUF_FMT_RGB565:
+		pixformat = TEGRA_DC_EXT_FMT_B5G6R5;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		pixformat = TEGRA_DC_EXT_FMT_R8G8B8A8;
+		break;
+	default:
+		return -1;
+	}
 
 	memset(&flip, 0, sizeof(flip));
 
 	flip.win[0].index = -1;
 	flip.win[1].index = -1;
 	flip.win[2].index = display->plane;
-	flip.win[2].stride = fb->pitch;
-	flip.win[2].buff_id = fb->bo->handle;
-	flip.win[2].pixformat = TEGRA_DC_EXT_FMT_R8G8B8A8;
-	flip.win[2].w = fb->width << 12;
-	flip.win[2].h = fb->height << 12;
+	flip.win[2].stride = fb->pb->pitch;
+	flip.win[2].buff_id = fb->pb->bo->handle;
+	flip.win[2].pixformat = pixformat;
+	flip.win[2].w = fb->pb->width << 12;
+	flip.win[2].h = fb->pb->height << 12;
 	flip.win[2].out_x = x;
 	flip.win[2].out_y = y;
 	flip.win[2].out_w = width;
