@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <libgen.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
@@ -167,6 +168,12 @@ int main(int argc, char *argv[])
 	ILuint ImageTex;
 	int location, mvp_loc;
 	float aspect;
+
+	if (chdir( dirname(argv[0]) ) == -1)
+		fprintf(stderr, "chdir failed\n");
+
+	if (chdir("../../") == -1)
+		fprintf(stderr, "chdir failed\n");
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
