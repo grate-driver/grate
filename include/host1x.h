@@ -57,7 +57,6 @@ void host1x_stream_init(struct host1x_stream *stream, const void *buffer,
 			size_t size);
 void host1x_stream_interpret(struct host1x_stream *stream);
 
-struct host1x_framebuffer;
 struct host1x_display;
 struct host1x_overlay;
 struct host1x_client;
@@ -107,7 +106,13 @@ enum pixel_format {
     PIX_BUF_FMT_RGBA_FP32_TILED     = PIX_BUF_FMT(10, 32, 1),
 };
 
-struct host1x_pixelbuffer;
+struct host1x_pixelbuffer {
+	struct host1x_bo *bo;
+	enum pixel_format format;
+	unsigned width;
+	unsigned height;
+	unsigned pitch;
+};
 
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				struct host1x *host1x,
@@ -121,6 +126,12 @@ void host1x_close(struct host1x *host1x);
 struct host1x_display *host1x_get_display(struct host1x *host1x);
 struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x);
 struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x);
+
+struct host1x_framebuffer {
+	struct host1x_pixelbuffer *pb;
+	unsigned long flags;
+	uint32_t handle;
+};
 
 int host1x_display_get_resolution(struct host1x_display *display,
 				  unsigned int *width, unsigned int *height);

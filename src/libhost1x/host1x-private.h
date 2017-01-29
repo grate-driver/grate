@@ -38,20 +38,6 @@
 #define HOST1X_BO_CREATE_FLAG_BOTTOM_UP	(1 << 9)
 #define HOST1X_BO_CREATE_DRM_FLAGS_MASK 0x300
 
-struct host1x_pixelbuffer {
-	struct host1x_bo *bo;
-	enum pixel_format format;
-	unsigned width;
-	unsigned height;
-	unsigned pitch;
-};
-
-struct host1x_framebuffer {
-	struct host1x_pixelbuffer *pb;
-	unsigned long flags;
-	uint32_t handle;
-};
-
 struct host1x_syncpt {
 	uint32_t id;
 	uint32_t value;
