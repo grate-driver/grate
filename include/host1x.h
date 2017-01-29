@@ -62,8 +62,15 @@ struct host1x_overlay;
 struct host1x_client;
 struct host1x_gr2d;
 struct host1x_gr3d;
-struct host1x_bo;
+struct host1x_bo_priv;
 struct host1x;
+
+struct host1x_bo {
+	struct host1x_bo_priv *priv;
+	uint32_t handle;
+	size_t size;
+	void *ptr;
+};
 
 #define PIX_BUF_FMT(id, bpp, tiled) \
 	((tiled) << 16 | (id) << 8 | (bpp))

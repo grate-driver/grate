@@ -69,8 +69,9 @@ static void nvhost_bo_free(struct host1x_bo *bo)
 	free(nbo);
 }
 
-static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
-					  unsigned long flags)
+static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
+					  struct host1x_bo_priv *priv,
+					  size_t size, unsigned long flags)
 {
 	struct nvhost *nvhost = to_nvhost(host1x);
 	unsigned long heap_mask, align;
@@ -82,6 +83,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 
 	bo->nvmap = nvhost->nvmap;
+	bo->base.priv = priv;
 
 	bo->handle = nvmap_handle_create(nvhost->nvmap, size);
 	if (!bo->handle) {
@@ -133,10 +135,10 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 	bo->base.handle = bo->handle->id;
 	bo->base.size = bo->handle->size;
 
-	bo->base.mmap = nvhost_bo_mmap;
-	bo->base.invalidate = nvhost_bo_invalidate;
-	bo->base.flush = nvhost_bo_flush;
-	bo->base.free = nvhost_bo_free;
+	bo->base.priv->mmap = nvhost_bo_mmap;
+	bo->base.priv->invalidate = nvhost_bo_invalidate;
+	bo->base.priv->flush = nvhost_bo_flush;
+	bo->base.priv->free = nvhost_bo_free;
 
 	return &bo->base;
 }

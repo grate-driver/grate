@@ -113,19 +113,33 @@ int host1x_overlay_set(struct host1x_overlay *overlay,
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags)
 {
-	return host1x->bo_create(host1x, size, flags);
+	struct host1x_bo_priv *priv;
+	struct host1x_bo *bo;
+
+	priv = calloc(1, sizeof(*priv));
+	if (!priv)
+		return NULL;
+
+	bo = host1x->bo_create(host1x, priv, size, flags);
+	if (!bo)
+		free(priv);
+
+	return bo;
 }
 
 void host1x_bo_free(struct host1x_bo *bo)
 {
-	bo->free(bo);
+	struct host1x_bo_priv *priv = bo->priv;
+
+	bo->priv->free(bo);
+	free(priv);
 }
 
 int host1x_bo_mmap(struct host1x_bo *bo, void **ptr)
 {
 	int err;
 
-	err = bo->mmap(bo);
+	err = bo->priv->mmap(bo);
 	if (err < 0)
 		return err;
 
@@ -138,8 +152,8 @@ int host1x_bo_mmap(struct host1x_bo *bo, void **ptr)
 int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 			 size_t length)
 {
-	if (bo->invalidate)
-		return bo->invalidate(bo, offset, length);
+	if (bo->priv->invalidate)
+		return bo->priv->invalidate(bo, offset, length);
 
 	return 0;
 }

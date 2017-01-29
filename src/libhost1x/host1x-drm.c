@@ -442,22 +442,23 @@ static int drm_bo_flush(struct host1x_bo *bo, unsigned long offset,
 
 static void drm_bo_free(struct host1x_bo *bo)
 {
-	struct drm_bo *drm = to_drm_bo(bo);
+	struct drm_bo *drm_bo = to_drm_bo(bo);
 	struct drm_gem_close args;
 	int err;
 
 	memset(&args, 0, sizeof(args));
 	args.handle = bo->handle;
 
-	err = ioctl(drm->drm->fd, DRM_IOCTL_GEM_CLOSE, &args);
+	err = ioctl(drm_bo->drm->fd, DRM_IOCTL_GEM_CLOSE, &args);
 	if (err < 0)
 		fprintf(stderr, "failed to delete buffer object: %m\n");
 
-	free(drm);
+	free(drm_bo);
 }
 
-static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
-				       unsigned long flags)
+static struct host1x_bo *drm_bo_create(struct host1x *host1x,
+				       struct host1x_bo_priv *priv,
+				       size_t size, unsigned long flags)
 {
 	struct drm_tegra_gem_create args;
 	struct drm *drm = to_drm(host1x);
@@ -469,6 +470,7 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 
 	bo->drm = drm;
+	bo->base.priv = priv;
 
 	memset(&args, 0, sizeof(args));
 	args.size = size;
@@ -488,10 +490,10 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
 	bo->base.handle = args.handle;
 	bo->base.size = size;
 
-	bo->base.mmap = drm_bo_mmap;
-	bo->base.invalidate = drm_bo_invalidate;
-	bo->base.flush = drm_bo_flush;
-	bo->base.free = drm_bo_free;
+	bo->base.priv->mmap = drm_bo_mmap;
+	bo->base.priv->invalidate = drm_bo_invalidate;
+	bo->base.priv->flush = drm_bo_flush;
+	bo->base.priv->free = drm_bo_free;
 
 	return &bo->base;
 }

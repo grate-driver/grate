@@ -43,11 +43,7 @@ struct host1x_syncpt {
 	uint32_t value;
 };
 
-struct host1x_bo {
-	uint32_t handle;
-	size_t size;
-	void *ptr;
-
+struct host1x_bo_priv {
 	int (*mmap)(struct host1x_bo *bo);
 	int (*invalidate)(struct host1x_bo *bo, unsigned long offset,
 			  size_t length);
@@ -108,8 +104,9 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d);
 void host1x_gr3d_exit(struct host1x_gr3d *gr3d);
 
 struct host1x {
-	struct host1x_bo *(*bo_create)(struct host1x *host1x, size_t size,
-				       unsigned long flags);
+	struct host1x_bo *(*bo_create)(struct host1x *host1x,
+				       struct host1x_bo_priv *priv,
+				       size_t size, unsigned long flags);
 	int (*framebuffer_init)(struct host1x *host1x,
 				struct host1x_framebuffer *fb);
 	void (*close)(struct host1x *host1x);
