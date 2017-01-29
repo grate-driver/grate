@@ -50,7 +50,8 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   enum pixel_format format,
 						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
-void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path);
+void grate_framebuffer_save(struct grate *grate, struct grate_framebuffer *fb,
+			    const char *path);
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front);
 
 struct grate_display *grate_display_open(struct grate *grate);

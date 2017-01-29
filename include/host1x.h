@@ -72,8 +72,10 @@ struct host1x_bo {
 	void *ptr;
 };
 
+#define PIX_BUF_FORMAT_TILED_BIT_SHIFT	16
+
 #define PIX_BUF_FMT(id, bpp, tiled) \
-	((tiled) << 16 | (id) << 8 | (bpp))
+	((tiled) << PIX_BUF_FORMAT_TILED_BIT_SHIFT | (id) << 8 | (bpp))
 
 #define PIX_BUF_FORMAT(f) \
 	((f) & 0xffff)
@@ -85,7 +87,7 @@ struct host1x_bo {
 	(PIX_BUF_FORMAT_BITS(f) >> 3)
 
 #define PIX_BUF_FORMAT_TILED(f) \
-	(((f) >> 16) & 1)
+	(((f) >> PIX_BUF_FORMAT_TILED_BIT_SHIFT) & 1)
 
 enum pixel_format {
     PIX_BUF_FMT_A8            = PIX_BUF_FMT(0, 8, 0),
@@ -232,7 +234,9 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     enum pixel_format format,
 						     unsigned long flags);
 void host1x_framebuffer_free(struct host1x_framebuffer *fb);
-int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path);
+int host1x_framebuffer_save(struct host1x *host1x,
+			    struct host1x_framebuffer *fb,
+			    const char *path);
 
 struct host1x_gr2d;
 struct host1x_gr3d;

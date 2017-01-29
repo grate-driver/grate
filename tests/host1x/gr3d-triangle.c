@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 				sleep(1);
 		}
 	} else {
-		host1x_framebuffer_save(fb, "test.png");
+		host1x_framebuffer_save(host1x, fb, "test.png");
 	}
 
 	host1x_framebuffer_free(fb);

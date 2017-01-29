@@ -296,9 +296,14 @@ void grate_framebuffer_swap(struct grate_framebuffer *fb)
 	}
 }
 
-void grate_framebuffer_save(struct grate_framebuffer *fb, const char *path)
+void grate_framebuffer_save(struct grate *grate,
+			    struct grate_framebuffer *fb,
+			    const char *path)
 {
-	host1x_framebuffer_save(fb->back, path);
+	if (fb->back)
+		host1x_framebuffer_save(grate->host1x, fb->back, path);
+	else
+		host1x_framebuffer_save(grate->host1x, fb->front, path);
 }
 
 void grate_swap_buffers(struct grate *grate)
@@ -314,7 +319,7 @@ void grate_swap_buffers(struct grate *grate)
 			grate_display_show(grate->display, grate->fb,
 					   options->vsync);
 	} else {
-		grate_framebuffer_save(grate->fb, "test.png");
+		grate_framebuffer_save(grate, grate->fb, "test.png");
 	}
 }
 
