@@ -151,13 +151,12 @@ int grate_3d_ctx_enable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					    unsigned target);
 int grate_3d_ctx_disable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					     unsigned target);
-int grate_3d_ctx_create_render_target(struct grate_3d_ctx *ctx,
-				      unsigned target,
-				      unsigned pixel_format,
-				      unsigned pitch,
-				      bool tiled,
-				      bool dithered,
-				      struct host1x_bo *target_bo);
+int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
+				    unsigned target,
+				    struct host1x_pixelbuffer *pb);
+int grate_3d_ctx_set_render_target_dither(struct grate_3d_ctx *ctx,
+					  unsigned target,
+					  bool enable);
 int grate_3d_ctx_enable_render_target(struct grate_3d_ctx *ctx,
 				      unsigned target);
 int grate_3d_ctx_disable_render_target(struct grate_3d_ctx *ctx,

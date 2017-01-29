@@ -235,11 +235,7 @@ int main(int argc, char *argv[])
 	/* Setup render target */
 
 	pb = grate_get_actual_framebuffer_pixbuf(fb);
-	grate_3d_ctx_create_render_target(ctx, 1, PIXEL_FORMAT_RGBA8888,
-					  options.width * 4,
-					  true,  // tiled
-					  false, // dither
-					  pb->bo);
+	grate_3d_ctx_bind_render_target(ctx, 1, pb);
 	grate_3d_ctx_enable_render_target(ctx, 1);
 
 	/* Create indices BO */

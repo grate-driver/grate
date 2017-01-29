@@ -190,16 +190,55 @@ static void grate_3d_set_scissor(struct host1x_pushbuf *pb,
 static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 					      unsigned index,
 					      bool enable_dither,
-					      unsigned pixel_format,
-					      unsigned pitch,
-					      bool tiled)
+					      struct host1x_pixelbuffer *pixbuf)
 {
+	unsigned pixel_format;
 	uint32_t value = 0;
+
+	switch (PIX_BUF_FORMAT(pixbuf->format)) {
+	case PIX_BUF_FMT_A8:
+		pixel_format = PIXEL_FORMAT_A8;
+		break;
+	case PIX_BUF_FMT_L8:
+		pixel_format = PIXEL_FORMAT_L8;
+		break;
+	case PIX_BUF_FMT_S8:
+		pixel_format = PIXEL_FORMAT_S8;
+		break;
+	case PIX_BUF_FMT_LA88:
+		pixel_format = PIXEL_FORMAT_LA88;
+		break;
+	case PIX_BUF_FMT_RGB565:
+		pixel_format = PIXEL_FORMAT_RGB565;
+		break;
+	case PIX_BUF_FMT_RGBA5551:
+		pixel_format = PIXEL_FORMAT_RGBA5551;
+		break;
+	case PIX_BUF_FMT_RGBA4444:
+		pixel_format = PIXEL_FORMAT_RGBA4444;
+		break;
+	case PIX_BUF_FMT_D16_LINEAR:
+		pixel_format = PIXEL_FORMAT_D16_LINEAR;
+		break;
+	case PIX_BUF_FMT_D16_NONLINEAR:
+		pixel_format = PIXEL_FORMAT_D16_NONLINEAR;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		pixel_format = PIXEL_FORMAT_RGBA8888;
+		break;
+	case PIX_BUF_FMT_RGBA_FP32:
+		pixel_format = PIXEL_FORMAT_RGBA_FP32;
+		break;
+	default:
+		grate_error("Invalid format %u\n", pixbuf->format);
+		abort();
+	}
 
 	value |= TGR3D_BOOL(RT_PARAMS, DITHER_ENABLE, enable_dither);
 	value |= TGR3D_VAL(RT_PARAMS, FORMAT, pixel_format);
-	value |= TGR3D_VAL(RT_PARAMS, PITCH, pitch);
-	value |= TGR3D_BOOL(RT_PARAMS, TILED, tiled);
+	value |= TGR3D_VAL(RT_PARAMS, PITCH, pixbuf->pitch);
+	value |= TGR3D_BOOL(RT_PARAMS, TILED,
+			    PIX_BUF_FORMAT_TILED(pixbuf->format));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_PARAMS(index), 1));
 	host1x_pushbuf_push(pb, value);
@@ -461,25 +500,23 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 	unsigned i;
 
 	for (i = 0; i < 16; i++) {
-		struct grate_render_target *rt = ctx->render_targets[i];
+		struct grate_render_target *rt = &ctx->render_targets[i];
 
 		if (!(ctx->render_targets_enable_mask & (1u << i)))
 			continue;
 
-		if (!rt)
+		if (!rt->pb)
 			continue;
 
 		enable_mask |= 1u << i;
 
 		grate_3d_relocate_render_target(pb, i,
-						rt->bo,
-						rt->bo->offset);
+						rt->pb->bo,
+						rt->pb->bo->offset);
 
 		grate_3d_set_render_target_params(pb, i,
-						  rt->dither_enable,
-						  rt->pixel_format,
-						  rt->pitch,
-						  rt->tiled);
+						  rt->dither_enabled,
+						  rt->pb);
 	}
 
 	grate_3d_enable_render_targets(pb, enable_mask);

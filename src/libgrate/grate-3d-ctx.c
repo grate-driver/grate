@@ -152,31 +152,25 @@ int grate_3d_ctx_disable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 	return 0;
 }
 
-int grate_3d_ctx_create_render_target(struct grate_3d_ctx *ctx,
-				      unsigned target,
-				      unsigned pixel_format,
-				      unsigned pitch,
-				      bool tiled,
-				      bool dithered,
-				      struct host1x_bo *target_bo)
+int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
+				    unsigned target,
+				    struct host1x_pixelbuffer *pb)
 {
-	struct grate_render_target *rt;
-
-	switch (pixel_format) {
-	case PIXEL_FORMAT_A8:
-	case PIXEL_FORMAT_L8:
-	case PIXEL_FORMAT_S8:
-	case PIXEL_FORMAT_LA88:
-	case PIXEL_FORMAT_RGB565:
-	case PIXEL_FORMAT_RGBA5551:
-	case PIXEL_FORMAT_RGBA4444:
-	case PIXEL_FORMAT_D16_LINEAR:
-	case PIXEL_FORMAT_D16_NONLINEAR:
-	case PIXEL_FORMAT_RGBA8888:
-	case PIXEL_FORMAT_RGBA_FP32:
+	switch (PIX_BUF_FORMAT(pb->format)) {
+	case PIX_BUF_FMT_A8:
+	case PIX_BUF_FMT_L8:
+	case PIX_BUF_FMT_S8:
+	case PIX_BUF_FMT_LA88:
+	case PIX_BUF_FMT_RGB565:
+	case PIX_BUF_FMT_RGBA5551:
+	case PIX_BUF_FMT_RGBA4444:
+	case PIX_BUF_FMT_D16_LINEAR:
+	case PIX_BUF_FMT_D16_NONLINEAR:
+	case PIX_BUF_FMT_RGBA8888:
+	case PIX_BUF_FMT_RGBA_FP32:
 		break;
 	default:
-		grate_error("Invalid format %u\n", pixel_format);
+		grate_error("Invalid format %u\n", pb->format);
 		return -1;
 	}
 
@@ -185,24 +179,21 @@ int grate_3d_ctx_create_render_target(struct grate_3d_ctx *ctx,
 		return -1;
 	}
 
-	if (!target_bo) {
-		grate_error("Invalid target BO ptr\n");
+	ctx->render_targets[target].pb = pb;
+
+	return 0;
+}
+
+int grate_3d_ctx_set_render_target_dither(struct grate_3d_ctx *ctx,
+					  unsigned target,
+					  bool enable)
+{
+	if (target >= 16) {
+		grate_error("Invalid target location %u\n", target);
 		return -1;
 	}
 
-	rt = calloc(1, sizeof(*rt));
-	if (!rt) {
-		grate_error("Allocation failed\n");
-		return -1;
-	}
-
-	rt->bo = target_bo;
-	rt->pitch = pitch;
-	rt->tiled = tiled;
-	rt->dither_enable = dithered;
-	rt->pixel_format = pixel_format;
-
-	ctx->render_targets[target] = rt;
+	ctx->render_targets[target].dither_enabled = enable;
 
 	return 0;
 }

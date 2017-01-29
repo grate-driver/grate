@@ -55,11 +55,8 @@ struct grate_program {
 };
 
 struct grate_render_target {
-	struct host1x_bo *bo;
-	unsigned pixel_format;
-	unsigned pitch;
-	bool dither_enable;
-	bool tiled;
+	struct host1x_pixelbuffer *pb;
+	bool dither_enabled;
 };
 
 struct grate_vtx_attribute {
@@ -88,7 +85,7 @@ struct grate_3d_ctx {
 	struct grate *grate;
 	struct grate_program *program;
 
-	struct grate_render_target *render_targets[16];
+	struct grate_render_target render_targets[16];
 	struct grate_vtx_attribute *vtx_attributes[16];
 	struct grate_texture *textures[16];
 
