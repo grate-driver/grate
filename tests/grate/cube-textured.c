@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 
 	fb = grate_framebuffer_create(grate, options.width, options.height,
 				      PIX_BUF_FMT_RGBA8888_TILED,
-				      GRATE_SINGLE_BUFFERED);
+				      GRATE_DOUBLE_BUFFERED);
 	if (!fb) {
 		fprintf(stderr, "grate_framebuffer_create() failed\n");
 		return 1;
@@ -248,8 +248,6 @@ int main(int argc, char *argv[])
 
 	/* Setup render target */
 
-	pb = grate_get_actual_framebuffer_pixbuf(fb);
-	grate_3d_ctx_bind_render_target(ctx, 1, pb);
 	grate_3d_ctx_enable_render_target(ctx, 1);
 
 	/* Setup texture */
@@ -308,6 +306,8 @@ int main(int argc, char *argv[])
 						(float *) &mvp);
 
 		/* Setup render target */
+		pb = grate_get_actual_framebuffer_pixbuf(fb);
+		grate_3d_ctx_bind_render_target(ctx, 1, pb);
 
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       bo, INDEX_MODE_UINT16,
