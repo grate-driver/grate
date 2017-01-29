@@ -87,8 +87,9 @@ void grate_clear_color(struct grate *grate, float red, float green, float blue,
 void grate_clear(struct grate *grate);
 
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb);
-struct host1x_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb);
-struct host1x_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb);
+
+struct host1x_pixelbuffer * grate_get_actual_framebuffer_pixbuf(
+						struct grate_framebuffer *fb);
 
 void grate_flush(struct grate *grate);
 void grate_swap_buffers(struct grate *grate);

@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
+	struct host1x_pixelbuffer *pb;
 	struct host1x_bo *bo;
 	int location;
 
@@ -150,12 +151,12 @@ int main(int argc, char *argv[])
 
 	/* Setup render target */
 
-	bo = grate_get_front_framebuffer_bo(fb);
+	pb = grate_get_actual_framebuffer_pixbuf(fb);
 	grate_3d_ctx_create_render_target(ctx, 1, PIXEL_FORMAT_RGBA8888,
 					  options.width * 4,
 					  true,  // tiled
 					  false, // dither
-					  bo);
+					  pb->bo);
 	grate_3d_ctx_enable_render_target(ctx, 1);
 
 	/* Create indices BO */
