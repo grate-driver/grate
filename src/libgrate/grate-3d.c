@@ -444,7 +444,7 @@ static void grate_3d_setup_attributes(struct host1x_pushbuf *pb,
 		}
 
 		grate_3d_set_attribute(pb, i,
-				       attr->bo->bo,
+				       attr->bo,
 				       attr->bo->offset,
 				       attr->type,
 				       attr->size,
@@ -472,7 +472,7 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 		enable_mask |= 1u << i;
 
 		grate_3d_relocate_render_target(pb, i,
-						rt->bo->bo,
+						rt->bo,
 						rt->bo->offset);
 
 		grate_3d_set_render_target_params(pb, i,
@@ -546,7 +546,7 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 			continue;
 
 		grate_3d_relocate_texture(pb, i,
-					  tex->bo->bo,
+					  tex->bo,
 					  tex->bo->offset);
 
 		grate_3d_set_texture_desc(pb, i,
@@ -562,16 +562,13 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 }
 
 static void grate_3d_setup_indices(struct host1x_pushbuf *pb,
-				   struct grate_bo *indices_bo,
+				   struct host1x_bo *bo,
 				   unsigned index_mode)
 {
-	struct host1x_bo *bo = indices_bo->bo;
-	unsigned long offset = indices_bo->offset;
-
 	if (index_mode == INDEX_MODE_NONE)
 		return;
 
-	grate_3d_relocate_primitive_indices(pb, bo, offset);
+	grate_3d_relocate_primitive_indices(pb, bo, bo->offset);
 }
 
 static void grate_3d_setup_context(struct host1x_pushbuf *pb,
@@ -611,7 +608,7 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,
-			    struct grate_bo *indices_bo,
+			    struct host1x_bo *indices_bo,
 			    unsigned index_mode,
 			    unsigned vtx_count)
 {

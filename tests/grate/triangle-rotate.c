@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
-	struct grate_bo *bo;
+	struct host1x_bo *bo;
 	int location, modelview_loc;
 	float angle = 0.0f;
 
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 	/* Setup vertices attribute */
 
 	location = grate_get_attribute_location(program, "position");
-	bo = grate_bo_create_from_data(grate, sizeof(vertices), 0, vertices);
+	bo = grate_bo_create_from_data(grate, sizeof(vertices), 4, vertices);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	/* Setup colors attribute */
 
 	location = grate_get_attribute_location(program, "color");
-	bo = grate_bo_create_from_data(grate, sizeof(colors), 0, colors);
+	bo = grate_bo_create_from_data(grate, sizeof(colors), 4, colors);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	bo = grate_bo_create_from_data(grate, sizeof(indices), 0, indices);
+	bo = grate_bo_create_from_data(grate, sizeof(indices), 4, indices);
 
 	profile = grate_profile_start(grate);
 

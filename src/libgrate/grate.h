@@ -38,7 +38,6 @@
 struct grate_framebuffer;
 struct grate_display;
 struct grate_overlay;
-struct grate_bo;
 struct grate;
 
 #define GRATE_SINGLE_BUFFERED (0 << 0)
@@ -68,16 +67,9 @@ void grate_overlay_show(struct grate_overlay *overlay,
 			unsigned int y, unsigned int width,
 			unsigned int height, bool vsync);
 
-struct grate_bo *grate_bo_create(struct grate *grate, size_t size,
-				 unsigned long flags);
-struct grate_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
-					   unsigned long flags,
-					   const void *data);
-struct grate_bo *grate_wrap_bo(struct grate_bo *bo, unsigned long offset);
-void grate_bo_free(struct grate_bo *bo);
-void *grate_bo_map(struct grate_bo *bo);
-void grate_bo_unmap(struct grate_bo *bo, void *ptr);
-void grate_bo_invalidate(struct grate_bo *bo, size_t size);
+struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
+					    unsigned long flags,
+					    const void *data);
 
 struct grate_options {
 	unsigned int x, y, width, height;
@@ -95,8 +87,8 @@ void grate_clear_color(struct grate *grate, float red, float green, float blue,
 void grate_clear(struct grate *grate);
 
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb);
-struct grate_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb);
-struct grate_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb);
+struct host1x_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb);
+struct host1x_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb);
 
 void grate_flush(struct grate *grate);
 void grate_swap_buffers(struct grate *grate);
@@ -153,7 +145,7 @@ struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate);
 int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 				       unsigned location, unsigned size,
 				       unsigned type, unsigned stride,
-				       struct grate_bo *data_bo);
+				       struct host1x_bo *data_bo);
 int grate_3d_ctx_enable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					    unsigned target);
 int grate_3d_ctx_disable_vertex_attrib_array(struct grate_3d_ctx *ctx,
@@ -164,7 +156,7 @@ int grate_3d_ctx_create_render_target(struct grate_3d_ctx *ctx,
 				      unsigned pitch,
 				      bool tiled,
 				      bool dithered,
-				      struct grate_bo *target_bo);
+				      struct host1x_bo *target_bo);
 int grate_3d_ctx_enable_render_target(struct grate_3d_ctx *ctx,
 				      unsigned target);
 int grate_3d_ctx_disable_render_target(struct grate_3d_ctx *ctx,
@@ -214,14 +206,14 @@ struct grate_texture * grate_3d_ctx_create_texture(struct grate_3d_ctx *ctx,
 						   bool mip_filter,
 						   bool mag_filter,
 						   bool min_filter,
-						   struct grate_bo *tex_bo);
+						   struct host1x_bo *tex_bo);
 int grate_3d_ctx_activate_texture(struct grate_3d_ctx *ctx, unsigned location);
 void grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
 			       struct grate_texture *tex);
 
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,
-			    struct grate_bo *indices_bo,
+			    struct host1x_bo *indices_bo,
 			    unsigned index_mode,
 			    unsigned vtx_count);
 

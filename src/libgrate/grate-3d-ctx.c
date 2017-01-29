@@ -74,7 +74,7 @@ struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate)
 int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 				       unsigned location, unsigned size,
 				       unsigned type, unsigned stride,
-				       struct grate_bo *data_bo)
+				       struct host1x_bo *data_bo)
 {
 	struct grate_vtx_attribute *attr;
 
@@ -158,7 +158,7 @@ int grate_3d_ctx_create_render_target(struct grate_3d_ctx *ctx,
 				      unsigned pitch,
 				      bool tiled,
 				      bool dithered,
-				      struct grate_bo *target_bo)
+				      struct host1x_bo *target_bo)
 {
 	struct grate_render_target *rt;
 
@@ -441,7 +441,7 @@ struct grate_texture * grate_3d_ctx_create_texture(struct grate_3d_ctx *ctx,
 						   bool mip_filter,
 						   bool mag_filter,
 						   bool min_filter,
-						   struct grate_bo *tex_bo)
+						   struct host1x_bo *tex_bo)
 {
 	struct grate_texture *tex;
 

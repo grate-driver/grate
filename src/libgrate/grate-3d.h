@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-struct grate_bo;
+struct host1x_bo;
 struct cgc_shader;
 
 struct grate_attribute {
@@ -55,7 +55,7 @@ struct grate_program {
 };
 
 struct grate_render_target {
-	struct grate_bo *bo;
+	struct host1x_bo *bo;
 	unsigned pixel_format;
 	unsigned pitch;
 	bool dither_enable;
@@ -63,14 +63,14 @@ struct grate_render_target {
 };
 
 struct grate_vtx_attribute {
-	struct grate_bo *bo;
+	struct host1x_bo *bo;
 	unsigned long stride;
 	unsigned size;
 	unsigned type;
 };
 
 struct grate_texture {
-	struct grate_bo *bo;
+	struct host1x_bo *bo;
 	unsigned width;
 	unsigned height;
 	unsigned wrap_mode;

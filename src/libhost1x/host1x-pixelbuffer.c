@@ -34,7 +34,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				unsigned pitch, enum pixel_format format)
 {
 	struct host1x_pixelbuffer *pb;
-	unsigned long flags = 0;
+	unsigned long flags = 1;
 
 	switch ( PIX_BUF_FORMAT(format) ) {
 	case PIX_BUF_FMT_A8:

@@ -68,6 +68,7 @@ struct host1x;
 struct host1x_bo {
 	struct host1x_bo_priv *priv;
 	uint32_t handle;
+	unsigned long offset;
 	size_t size;
 	void *ptr;
 };

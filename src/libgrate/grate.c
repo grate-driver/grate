@@ -39,103 +39,29 @@
 #include "grate.h"
 #include "host1x.h"
 
-struct grate_bo *grate_bo_create(struct grate *grate, size_t size,
-				 unsigned long flags)
-{
-	struct grate_bo *bo;
-
-	bo = calloc(1, sizeof(*bo));
-	if (!bo)
-		return NULL;
-
-	bo->bo = host1x_bo_create(grate->host1x, size, 2);
-	if (!bo->bo) {
-		free(bo);
-		return NULL;
-	}
-
-	bo->size = size;
-
-	return bo;
-}
-
-struct grate_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
+struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					   unsigned long flags,
 					   const void *data)
 {
-	struct grate_bo *bo;
+	struct host1x_bo *bo;
 	void *map;
+	int err;
 
-	bo = calloc(1, sizeof(*bo));
+	bo = host1x_bo_create(grate->host1x, size, flags);
 	if (!bo)
 		return NULL;
 
-	bo->bo = host1x_bo_create(grate->host1x, size, 2);
-	if (!bo->bo) {
-		free(bo);
-		return NULL;
-	}
-
-	bo->size = size;
-
-	map = grate_bo_map(bo);
-	if (!map) {
-		grate_bo_free(bo);
+	err = host1x_bo_mmap(bo, &map);
+	if (err != 0) {
+		host1x_bo_free(bo);
 		return NULL;
 	}
 
 	memcpy(map, data, size);
 
-	grate_bo_invalidate(bo, size);
+	host1x_bo_invalidate(bo, bo->offset, size);
 
 	return bo;
-}
-
-struct grate_bo *grate_wrap_bo(struct grate_bo *bo, unsigned long offset)
-{
-	struct grate_bo *wrap;
-
-	if (offset >= bo->size)
-		return NULL;
-
-	wrap = calloc(1, sizeof(*wrap));
-	if (!wrap)
-		return NULL;
-
-	wrap->bo = bo->bo;
-	wrap->size = bo->size - offset;
-	wrap->offset = bo->offset + offset;
-
-	return wrap;
-}
-
-void grate_bo_free(struct grate_bo *bo)
-{
-	host1x_bo_free(bo->bo);
-	free(bo);
-}
-
-void *grate_bo_map(struct grate_bo *bo)
-{
-	void *ptr = NULL;
-	int err;
-
-	err = host1x_bo_mmap(bo->bo, &ptr);
-	if (err < 0) {
-		grate_error("Failed to mmap BO: %s\n", strerror(err));
-		return NULL;
-	}
-
-	return ptr + bo->offset;
-}
-
-void grate_bo_unmap(struct grate_bo *bo, void *ptr)
-{
-}
-
-void grate_bo_invalidate(struct grate_bo *bo, size_t size)
-{
-	host1x_bo_invalidate(bo->bo, bo->offset, size);
 }
 
 bool grate_parse_command_line(struct grate_options *options, int argc,
@@ -226,18 +152,14 @@ void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 	grate->fb = fb;
 }
 
-struct grate_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb)
+struct host1x_bo * grate_get_front_framebuffer_bo(struct grate_framebuffer *fb)
 {
-	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
-	bo->bo = fb->front->pb->bo;
-	return bo;
+	return fb->front->pb->bo;
 }
 
-struct grate_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb)
+struct host1x_bo * grate_get_back_framebuffer_bo(struct grate_framebuffer *fb)
 {
-	struct grate_bo *bo = calloc(1, sizeof(struct grate_bo));
-	bo->bo = fb->back->pb->bo;
-	return bo;
+	return fb->back->pb->bo;
 }
 
 void grate_flush(struct grate *grate)
