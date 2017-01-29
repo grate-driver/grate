@@ -129,8 +129,12 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				unsigned width, unsigned height,
 				unsigned pitch, enum pixel_format format);
 void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pb);
-int host1x_pixelbuffer_load_data(struct host1x_pixelbuffer *pb,
-				 void *data, unsigned long size);
+int host1x_pixelbuffer_load_data(struct host1x *host1x,
+				 struct host1x_pixelbuffer *pb,
+				 void *data,
+				 unsigned pitch,
+				 unsigned long size,
+				 enum pixel_format format);
 
 struct host1x *host1x_open(void);
 void host1x_close(struct host1x *host1x);

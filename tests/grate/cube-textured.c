@@ -34,12 +34,8 @@
 #include "matrix.h"
 #include "tgr_3d.xml.h"
 
-#define roundup(x, y) (				\
-{						\
-	const typeof(y) __y = y;		\
-	(((x) + (__y - 1)) / __y) * __y;	\
-}						\
-)
+#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
 static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
@@ -258,20 +254,22 @@ int main(int argc, char *argv[])
 	ilBindImage(ImageTex);
 	ilLoadImage("data/tegra.png");
 	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-	/* Pitch needs to be aligned to 64 bytes, resize it for simplicity */
-	iluScale(roundup(ilGetInteger(IL_IMAGE_WIDTH), 64 / 4),
+	iluScale(ilGetInteger(IL_IMAGE_WIDTH),
 		 ilGetInteger(IL_IMAGE_HEIGHT),
 		 0);
 
+	/* Pitch needs to be aligned to 64 bytes */
 	pb = host1x_pixelbuffer_create(grate_get_host1x(grate),
 				       ilGetInteger(IL_IMAGE_WIDTH),
 				       ilGetInteger(IL_IMAGE_HEIGHT),
-				       ilGetInteger(IL_IMAGE_WIDTH) * 4,
+				       ALIGN(ilGetInteger(IL_IMAGE_WIDTH) * 4, 64),
 				       PIX_BUF_FMT_RGBA8888);
 
-	host1x_pixelbuffer_load_data(pb,
+	host1x_pixelbuffer_load_data(grate_get_host1x(grate), pb,
 				     ilGetData(),
-				     ilGetInteger(IL_IMAGE_SIZE_OF_DATA));
+				     ilGetInteger(IL_IMAGE_WIDTH) * 4,
+				     ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
+				     PIX_BUF_FMT_RGBA8888);
 
 	grate_3d_ctx_activate_texture(ctx, 0);
 	grate_3d_ctx_bind_texture(ctx, pb);
