@@ -252,7 +252,11 @@ int main(int argc, char *argv[])
 	ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
 	ilGenImages(1, &ImageTex);
 	ilBindImage(ImageTex);
-	ilLoadImage("data/tegra.png");
+
+	if (!ilLoadImage("data/tegra.png")) {
+		fprintf(stderr, "texture load failed\n");
+	}
+
 	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 	iluScale(ilGetInteger(IL_IMAGE_WIDTH),
 		 ilGetInteger(IL_IMAGE_HEIGHT),
