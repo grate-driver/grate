@@ -166,7 +166,6 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
-	struct grate_texture *tex;
 	struct host1x_pixelbuffer *pb;
 	struct host1x_bo *bo;
 	ILuint ImageTex;
@@ -264,18 +263,18 @@ int main(int argc, char *argv[])
 		 ilGetInteger(IL_IMAGE_HEIGHT),
 		 0);
 
-	bo = grate_bo_create_from_data(grate,
-				       ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
-				       0, ilGetData());
+	pb = host1x_pixelbuffer_create(grate_get_host1x(grate),
+				       ilGetInteger(IL_IMAGE_WIDTH),
+				       ilGetInteger(IL_IMAGE_HEIGHT),
+				       ilGetInteger(IL_IMAGE_WIDTH) * 4,
+				       PIX_BUF_FMT_RGBA8888);
 
-	tex = grate_3d_ctx_create_texture(ctx,
-					  ilGetInteger(IL_IMAGE_WIDTH),
-					  ilGetInteger(IL_IMAGE_HEIGHT),
-					  3, 0, PIXEL_FORMAT_RGBA8888,
-					  false, true, true, bo);
+	host1x_pixelbuffer_load_data(pb,
+				     ilGetData(),
+				     ilGetInteger(IL_IMAGE_SIZE_OF_DATA));
 
 	grate_3d_ctx_activate_texture(ctx, 0);
-	grate_3d_ctx_bind_texture(ctx, tex);
+	grate_3d_ctx_bind_texture(ctx, pb);
 
 	/* Create indices BO */
 

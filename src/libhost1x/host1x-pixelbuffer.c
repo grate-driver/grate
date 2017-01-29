@@ -23,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <string.h>
 #include "host1x-private.h"
 
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
@@ -83,4 +84,21 @@ void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pb)
 {
 	host1x_bo_free(pb->bo);
 	free(pb);
+}
+
+int host1x_pixelbuffer_load_data(struct host1x_pixelbuffer *pb,
+				 void *data, unsigned long size)
+{
+	void *map;
+	int err;
+
+	err = host1x_bo_mmap(pb->bo, &map);
+	if (err != 0)
+		return err;
+
+	memcpy(map, data, size);
+
+	host1x_bo_invalidate(pb->bo, pb->bo->offset, size);
+
+	return 0;
 }

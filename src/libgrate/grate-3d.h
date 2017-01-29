@@ -67,12 +67,9 @@ struct grate_vtx_attribute {
 };
 
 struct grate_texture {
-	struct host1x_bo *bo;
-	unsigned width;
-	unsigned height;
+	struct host1x_pixelbuffer *pb;
 	unsigned wrap_mode;
 	unsigned max_lod;
-	unsigned format;
 	bool mip_filter;
 	bool mag_filter;
 	bool min_filter;
@@ -87,7 +84,7 @@ struct grate_3d_ctx {
 
 	struct grate_render_target render_targets[16];
 	struct grate_vtx_attribute *vtx_attributes[16];
-	struct grate_texture *textures[16];
+	struct grate_texture textures[16];
 
 	unsigned active_texture;
 

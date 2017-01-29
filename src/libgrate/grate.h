@@ -96,6 +96,8 @@ void grate_swap_buffers(struct grate *grate);
 void grate_wait_for_key(struct grate *grate);
 bool grate_key_pressed(struct grate *grate);
 
+struct host1x *grate_get_host1x(struct grate *grate);
+
 enum grate_shader_type {
 	GRATE_SHADER_VERTEX,
 	GRATE_SHADER_FRAGMENT,
@@ -197,19 +199,24 @@ void grate_3d_ctx_set_point_coord_range(struct grate_3d_ctx *ctx,
 void grate_3d_ctx_set_polygon_offset(struct grate_3d_ctx *ctx,
 				     float units, float factor);
 void grate_3d_ctx_set_provoking_vtx_last(struct grate_3d_ctx *ctx, bool last);
-struct grate_texture * grate_3d_ctx_create_texture(struct grate_3d_ctx *ctx,
-						   unsigned width,
-						   unsigned height,
-						   unsigned wrap_mode,
-						   unsigned max_lod,
-						   unsigned format,
-						   bool mip_filter,
-						   bool mag_filter,
-						   bool min_filter,
-						   struct host1x_bo *tex_bo);
 int grate_3d_ctx_activate_texture(struct grate_3d_ctx *ctx, unsigned location);
 void grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
-			       struct grate_texture *tex);
+			       struct host1x_pixelbuffer *pb);
+int grate_3d_ctx_set_texture_max_lod(struct grate_3d_ctx *ctx,
+				     unsigned location,
+				     unsigned max_lod);
+int grate_3d_ctx_set_texture_wrap_mode(struct grate_3d_ctx *ctx,
+				       unsigned location,
+				       unsigned wrap_mode);
+int grate_3d_ctx_set_texture_mip_filter(struct grate_3d_ctx *ctx,
+					unsigned location,
+					bool enable);
+int grate_3d_ctx_set_texture_mag_filter(struct grate_3d_ctx *ctx,
+					unsigned location,
+					bool enable);
+int grate_3d_ctx_set_texture_min_filter(struct grate_3d_ctx *ctx,
+					unsigned location,
+					bool enable);
 
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,

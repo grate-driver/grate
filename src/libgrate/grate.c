@@ -309,3 +309,8 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 
 	return ret;
 }
+
+struct host1x *grate_get_host1x(struct grate *grate)
+{
+	return grate->host1x;
+}
