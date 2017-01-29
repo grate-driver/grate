@@ -281,6 +281,12 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	uint32_t fence;
 	int err;
 
+	if (PIX_BUF_FORMAT_BYTES(src->pb->format) !=
+		PIX_BUF_FORMAT_BYTES(dst->pb->format))
+	{
+		return -EINVAL;
+	}
+
 	job = host1x_job_create(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
@@ -303,7 +309,9 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	 * [20:20] source color depth (0: mono, 1: same)
 	 * [17:16] destination color depth (0: 8 bpp, 1: 16 bpp, 2: 32 bpp)
 	 */
-	host1x_pushbuf_push(pb, 0x00120000); /* controlmain */
+	host1x_pushbuf_push(pb, /* controlmain */
+			1 << 20 |
+			(PIX_BUF_FORMAT_BYTES(dst->pb->format) >> 1) << 16);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
