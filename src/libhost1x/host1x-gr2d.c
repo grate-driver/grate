@@ -189,7 +189,8 @@ void host1x_gr2d_exit(struct host1x_gr2d *gr2d)
 	host1x_bo_free(gr2d->scratch);
 }
 
-int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
+int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
+		      struct host1x_pixelbuffer *pixbuf,
 		      float red, float green, float blue, float alpha)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
@@ -199,17 +200,17 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	uint32_t pitch;
 	int err;
 
-	if (PIX_BUF_FORMAT_BITS(fb->pb->format) == 16) {
+	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16) {
 		color = ((uint32_t)(red   * 31) << 11) |
 			((uint32_t)(green * 63) <<  5) |
 			((uint32_t)(blue  * 31) <<  0);
-		pitch = fb->pb->width * 2;
+		pitch = pixbuf->width * 2;
 	} else {
 		color = ((uint32_t)(alpha * 255) << 24) |
 			((uint32_t)(blue  * 255) << 16) |
 			((uint32_t)(green * 255) <<  8) |
 			((uint32_t)(red   * 255) <<  0);
-		pitch = fb->pb->width * 4;
+		pitch = pixbuf->width * 4;
 	}
 
 	job = host1x_job_create(syncpt->id, 1);
@@ -230,14 +231,14 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x1e, 7));
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	if (PIX_BUF_FORMAT_BITS(fb->pb->format) == 16)
+	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16)
 		host1x_pushbuf_push(pb, 0x00010044); /* 16-bit depth */
 	else
 		host1x_pushbuf_push(pb, 0x00020044); /* 32-bit depth */
 
 	host1x_pushbuf_push(pb, 0x000000cc);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
-	host1x_pushbuf_relocate(pb, fb->pb->bo, 0, 0);
+	host1x_pushbuf_relocate(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, pitch);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x35, 1));
@@ -245,7 +246,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x46, 1));
 	host1x_pushbuf_push(pb, 0x00100000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x38, 5));
-	host1x_pushbuf_push(pb, fb->pb->height << 16 | fb->pb->width);
+	host1x_pushbuf_push(pb, pixbuf->height << 16 | pixbuf->width);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(1, 1));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 1));
@@ -270,8 +271,8 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_framebuffer *fb,
 	return 0;
 }
 
-int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
-		     struct host1x_framebuffer *dst, unsigned int sx,
+int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *src,
+		     struct host1x_pixelbuffer *dst, unsigned int sx,
 		     unsigned int sy, unsigned int dx, unsigned int dy,
 		     unsigned int width, unsigned int height)
 {
@@ -281,8 +282,8 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	uint32_t fence;
 	int err;
 
-	if (PIX_BUF_FORMAT_BYTES(src->pb->format) !=
-		PIX_BUF_FORMAT_BYTES(dst->pb->format))
+	if (PIX_BUF_FORMAT_BYTES(src->format) !=
+		PIX_BUF_FORMAT_BYTES(dst->format))
 	{
 		return -EINVAL;
 	}
@@ -311,7 +312,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	 */
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 20 |
-			(PIX_BUF_FORMAT_BYTES(dst->pb->format) >> 1) << 16);
+			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
@@ -320,16 +321,16 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_framebuffer *src,
 	 * [ 0: 0] tile mode Y/RGB (0: linear, 1: tiled)
 	 */
 	host1x_pushbuf_push(pb, /* tilemode */
-			    PIX_BUF_FORMAT_TILED(dst->pb->format) << 20 |
-			    PIX_BUF_FORMAT_TILED(src->pb->format));
+			    PIX_BUF_FORMAT_TILED(dst->format) << 20 |
+			    PIX_BUF_FORMAT_TILED(src->format));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
-	host1x_pushbuf_relocate(pb, dst->pb->bo, 0, 0);
+	host1x_pushbuf_relocate(pb, dst->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
-	host1x_pushbuf_push(pb, dst->pb->pitch); /* dstst */
-	host1x_pushbuf_relocate(pb, src->pb->bo, 0, 0);
+	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
+	host1x_pushbuf_relocate(pb, src->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
-	host1x_pushbuf_push(pb, src->pb->pitch); /* srcst */
+	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb, height << 16 | width); /* dstsize */
 	host1x_pushbuf_push(pb, sy << 16 | sx); /* srcps */
 	host1x_pushbuf_push(pb, dy << 16 | dx); /* dstps */

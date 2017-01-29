@@ -784,7 +784,7 @@ void host1x_gr3d_exit(struct host1x_gr3d *gr3d)
 }
 
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
-			 struct host1x_framebuffer *fb)
+			 struct host1x_pixelbuffer *pixbuf)
 {
 	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
 	float *attr = gr3d->attributes->ptr;
@@ -883,10 +883,10 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x1b));
 
-	host1x_pushbuf_push_float(pb, (float)fb->pb->width * 8.0f);
-	host1x_pushbuf_push_float(pb, (float)fb->pb->height * 8.0f);
-	host1x_pushbuf_push_float(pb, (float)fb->pb->width * 8.0f);
-	host1x_pushbuf_push_float(pb, (float)fb->pb->height * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)pixbuf->width * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)pixbuf->height * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)pixbuf->width * 8.0f);
+	host1x_pushbuf_push_float(pb, (float)pixbuf->height * 8.0f);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x03));
 	host1x_pushbuf_push(pb, 0x4376f000);
@@ -895,16 +895,16 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x01));
 	host1x_pushbuf_push(pb, 0xb8e00000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x350, 0x02));
-	host1x_pushbuf_push(pb, fb->pb->width  & 0xffff);
-	host1x_pushbuf_push(pb, fb->pb->height & 0xffff);
+	host1x_pushbuf_push(pb, pixbuf->width  & 0xffff);
+	host1x_pushbuf_push(pb, pixbuf->height & 0xffff);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe11, 0x01));
 
 	if (depth == 16) {
 		format = HOST1X_GR3D_FORMAT_RGB565;
-		pitch = fb->pb->width * 2;
+		pitch = pixbuf->width * 2;
 	} else {
 		format = HOST1X_GR3D_FORMAT_RGBA8888;
-		pitch = fb->pb->width * 4;
+		pitch = pixbuf->width * 4;
 	}
 
 	host1x_pushbuf_push(pb, 0x04000000 | (pitch << 8) | format << 2 | 0x1);
@@ -1079,7 +1079,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
 	/* relocate color render target */
-	host1x_pushbuf_relocate(pb, fb->pb->bo, 0, 0);
+	host1x_pushbuf_relocate(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	/* vertex position attribute */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x01));

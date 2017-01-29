@@ -39,6 +39,8 @@ void grate_clear_color(struct grate *grate, float red, float green,
 void grate_clear(struct grate *grate)
 {
 	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
+	struct host1x_framebuffer *front = grate->fb->front;
+	struct host1x_framebuffer *back = grate->fb->back;
 	struct grate_color *clear = &grate->clear;
 	int err;
 
@@ -47,7 +49,7 @@ void grate_clear(struct grate *grate)
 		return;
 	}
 
-	err = host1x_gr2d_clear(gr2d, grate->fb->back ?: grate->fb->front,
+	err = host1x_gr2d_clear(gr2d, back ? back->pb : front->pb,
 				clear->r, clear->g, clear->b, clear->a);
 	if (err < 0)
 		grate_error("host1x_gr2d_clear() failed: %d\n", err);
