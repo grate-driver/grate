@@ -396,19 +396,14 @@ static void grate_3d_init(struct host1x_pushbuf *pb)
 	/* reset upload counters ? */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x00));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x545, 0x00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe22, 0x00));
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_IMM(TGR3D_VP_UPLOAD_INST_ID, 0));
 	host1x_pushbuf_push(pb,
-			    HOST1X_OPCODE_IMM(TGR3D_FP_PSEQ_UPLOAD_INST_ID, 0));
+			    HOST1X_OPCODE_IMM(TGR3D_FP_UPLOAD_INST_ID_COMMON, 0));
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_IMM(TGR3D_FP_UPLOAD_MFU_INST_ID, 0));
 	host1x_pushbuf_push(pb,
-			    HOST1X_OPCODE_IMM(TGR3D_FP_UPLOAD_TEX_INST_ID, 0));
-	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_IMM(TGR3D_FP_UPLOAD_ALU_INST_ID, 0));
-	host1x_pushbuf_push(pb,
-			    HOST1X_OPCODE_IMM(TGR3D_FP_UPLOAD_DW_INST_ID, 0));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x740, 0x035));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x01));
