@@ -8,7 +8,7 @@ http://github.com/envytools/envytools/
 git clone https://github.com/envytools/envytools.git
 
 The rules-ng-ng source files this header was generated from are:
-- /envytools/rnndb/tgr_3d.xml          (  11896 bytes, from 2017-01-26 19:12:46)
+- /envytools/rnndb/tgr_3d.xml          (  11967 bytes, from 2017-01-30 23:18:22)
 - /envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-01-23 10:01:40)
 
 Copyright (C) 2012-2017 by the following authors:
@@ -381,6 +381,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TGR3D_TRAM_SETUP_DIV64__SHIFT				0
 #define TGR3D_TRAM_SETUP_USED_TRAM_ROWS_NB__MASK		0x00007f00
 #define TGR3D_TRAM_SETUP_USED_TRAM_ROWS_NB__SHIFT		8
+
+#define TGR3D_FP_UPLOAD_INST_ID_COMMON				0x00000e22
 
 #define TGR3D_DITHER						0x00000e26
 
