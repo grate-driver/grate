@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 	grate_3d_ctx_use_guardband(ctx, true);
 	grate_3d_ctx_set_front_direction_is_cw(ctx, false);
 	grate_3d_ctx_set_cull_ccw(ctx, false);
-	grate_3d_ctx_set_cull_cw(ctx, false);
+	grate_3d_ctx_set_cull_cw(ctx, true);
 	grate_3d_ctx_set_scissor(ctx, 0, options.width, 0, options.height);
 	grate_3d_ctx_set_point_coord_range(ctx, 0.0f, 1.0f, 0.0f, 1.0f);
 	grate_3d_ctx_set_polygon_offset(ctx, 0.0f, 0.0f);
