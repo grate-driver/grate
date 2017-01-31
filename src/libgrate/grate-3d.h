@@ -105,8 +105,7 @@ struct grate_3d_ctx {
 	bool guarband_enabled;
 	bool provoking_vtx_last;
 	bool tri_face_front_cw;
-	bool cull_ccw;
-	bool cull_cw;
+	enum grate_cull_face cull_face;
 	uint32_t dither_unk;
 	uint32_t point_params;
 	uint32_t line_params;

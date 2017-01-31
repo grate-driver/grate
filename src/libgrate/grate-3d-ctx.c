@@ -381,14 +381,10 @@ void grate_3d_ctx_set_front_direction_is_cw(struct grate_3d_ctx *ctx,
 	ctx->tri_face_front_cw = front_cw;
 }
 
-void grate_3d_ctx_set_cull_ccw(struct grate_3d_ctx *ctx, bool cull_ccw)
+void grate_3d_ctx_set_cull_face(struct grate_3d_ctx *ctx,
+                                enum grate_cull_face cull_face)
 {
-	ctx->cull_ccw = cull_ccw;
-}
-
-void grate_3d_ctx_set_cull_cw(struct grate_3d_ctx *ctx, bool cull_cw)
-{
-	ctx->cull_cw = cull_cw;
+	ctx->cull_face = cull_face;
 }
 
 void grate_3d_ctx_set_scissor(struct grate_3d_ctx *ctx,
