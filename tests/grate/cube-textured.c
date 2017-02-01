@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 						(float *) &mvp);
 
 		/* Setup render target */
-		pb = grate_get_actual_framebuffer_pixbuf(fb);
+		pb = grate_get_draw_pixbuf(fb);
 		grate_3d_ctx_bind_render_target(ctx, 1, pb);
 
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,

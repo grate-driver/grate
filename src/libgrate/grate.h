@@ -89,8 +89,7 @@ void grate_clear(struct grate *grate);
 
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb);
 
-struct host1x_pixelbuffer * grate_get_actual_framebuffer_pixbuf(
-						struct grate_framebuffer *fb);
+struct host1x_pixelbuffer * grate_get_draw_pixbuf(struct grate_framebuffer *fb);
 
 void grate_flush(struct grate *grate);
 void grate_swap_buffers(struct grate *grate);

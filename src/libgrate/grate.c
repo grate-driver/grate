@@ -152,8 +152,7 @@ void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 	grate->fb = fb;
 }
 
-struct host1x_pixelbuffer * grate_get_actual_framebuffer_pixbuf(
-						struct grate_framebuffer *fb)
+struct host1x_pixelbuffer * grate_get_draw_pixbuf(struct grate_framebuffer *fb)
 {
 	return fb->back ? fb->back->pb : fb->front->pb;
 }
