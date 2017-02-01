@@ -57,13 +57,22 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned int width,
 						     unsigned int height,
 						     enum pixel_format format,
+						     enum layout_format layout,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;
 	unsigned pitch;
 	int err;
 
-	switch ( PIX_BUF_FORMAT(format) ) {
+	switch (layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		return NULL;
+	}
+
+	switch (format) {
 	case PIX_BUF_FMT_RGB565:
 		pitch = width * 2;
 		break;
@@ -79,7 +88,8 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 		return NULL;
 
 	fb->pb = host1x_pixelbuffer_create(host1x,
-					    width, height, pitch, format);
+					    width, height, pitch,
+					    format, layout);
 	if (!fb->pb) {
 		free(fb);
 		return NULL;
@@ -157,16 +167,13 @@ int host1x_framebuffer_save(struct host1x *host1x,
 		return -EIO;
 	}
 
-	if (PIX_BUF_FORMAT_TILED(tiled_pb->format)) {
-		uint32_t non_tiled_fmt = tiled_pb->format;
-
-		non_tiled_fmt &= ~(1 << PIX_BUF_FORMAT_TILED_BIT_SHIFT);
-
+	if (tiled_pb->layout == PIX_BUF_LAYOUT_TILED_16x16) {
 		detiled_pb = host1x_pixelbuffer_create(host1x,
 						       tiled_pb->width,
 						       tiled_pb->height,
 						       tiled_pb->width * 4,
-						       non_tiled_fmt);
+						       tiled_pb->format,
+						       PIX_BUF_LAYOUT_LINEAR);
 		if (!detiled_pb)
 			return -ENOMEM;
 

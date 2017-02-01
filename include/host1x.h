@@ -73,13 +73,8 @@ struct host1x_bo {
 	void *ptr;
 };
 
-#define PIX_BUF_FORMAT_TILED_BIT_SHIFT	16
-
-#define PIX_BUF_FMT(id, bpp, tiled) \
-	((tiled) << PIX_BUF_FORMAT_TILED_BIT_SHIFT | (id) << 8 | (bpp))
-
-#define PIX_BUF_FORMAT(f) \
-	((f) & 0xffff)
+#define PIX_BUF_FMT(id, bpp) \
+	((id) << 8 | (bpp))
 
 #define PIX_BUF_FORMAT_BITS(f) \
 	((f) & 0xff)
@@ -87,38 +82,29 @@ struct host1x_bo {
 #define PIX_BUF_FORMAT_BYTES(f) \
 	(PIX_BUF_FORMAT_BITS(f) >> 3)
 
-#define PIX_BUF_FORMAT_TILED(f) \
-	(((f) >> PIX_BUF_FORMAT_TILED_BIT_SHIFT) & 1)
-
 enum pixel_format {
-    PIX_BUF_FMT_A8            = PIX_BUF_FMT(0, 8, 0),
-    PIX_BUF_FMT_L8            = PIX_BUF_FMT(1, 8, 0),
-    PIX_BUF_FMT_S8            = PIX_BUF_FMT(2, 8, 0),
-    PIX_BUF_FMT_LA88          = PIX_BUF_FMT(3, 16, 0),
-    PIX_BUF_FMT_RGB565        = PIX_BUF_FMT(4, 16, 0),
-    PIX_BUF_FMT_RGBA5551      = PIX_BUF_FMT(5, 16, 0),
-    PIX_BUF_FMT_RGBA4444      = PIX_BUF_FMT(6, 16, 0),
-    PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16, 0),
-    PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16, 0),
-    PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32, 0),
-    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(10, 32, 0),
+    PIX_BUF_FMT_A8            = PIX_BUF_FMT(0, 8),
+    PIX_BUF_FMT_L8            = PIX_BUF_FMT(1, 8),
+    PIX_BUF_FMT_S8            = PIX_BUF_FMT(2, 8),
+    PIX_BUF_FMT_LA88          = PIX_BUF_FMT(3, 16),
+    PIX_BUF_FMT_RGB565        = PIX_BUF_FMT(4, 16),
+    PIX_BUF_FMT_RGBA5551      = PIX_BUF_FMT(5, 16),
+    PIX_BUF_FMT_RGBA4444      = PIX_BUF_FMT(6, 16),
+    PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16),
+    PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16),
+    PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32),
+    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(10, 32),
+};
 
-    PIX_BUF_FMT_A8_TILED            = PIX_BUF_FMT(0, 8, 1),
-    PIX_BUF_FMT_L8_TILED            = PIX_BUF_FMT(1, 8, 1),
-    PIX_BUF_FMT_S8_TILED            = PIX_BUF_FMT(2, 8, 1),
-    PIX_BUF_FMT_LA88_TILED          = PIX_BUF_FMT(3, 16, 1),
-    PIX_BUF_FMT_RGB565_TILED        = PIX_BUF_FMT(4, 16, 1),
-    PIX_BUF_FMT_RGBA5551_TILED      = PIX_BUF_FMT(5, 16, 1),
-    PIX_BUF_FMT_RGBA4444_TILED      = PIX_BUF_FMT(6, 16, 1),
-    PIX_BUF_FMT_D16_LINEAR_TILED    = PIX_BUF_FMT(7, 16, 1),
-    PIX_BUF_FMT_D16_NONLINEAR_TILED = PIX_BUF_FMT(8, 16, 1),
-    PIX_BUF_FMT_RGBA8888_TILED      = PIX_BUF_FMT(9, 32, 1),
-    PIX_BUF_FMT_RGBA_FP32_TILED     = PIX_BUF_FMT(10, 32, 1),
+enum layout_format {
+	PIX_BUF_LAYOUT_LINEAR,
+	PIX_BUF_LAYOUT_TILED_16x16,
 };
 
 struct host1x_pixelbuffer {
 	struct host1x_bo *bo;
 	enum pixel_format format;
+	enum layout_format layout;
 	unsigned width;
 	unsigned height;
 	unsigned pitch;
@@ -127,14 +113,17 @@ struct host1x_pixelbuffer {
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				struct host1x *host1x,
 				unsigned width, unsigned height,
-				unsigned pitch, enum pixel_format format);
+				unsigned pitch,
+				enum pixel_format format,
+				enum layout_format layout);
 void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pb);
 int host1x_pixelbuffer_load_data(struct host1x *host1x,
 				 struct host1x_pixelbuffer *pb,
 				 void *data,
-				 unsigned pitch,
-				 unsigned long size,
-				 enum pixel_format format);
+				 unsigned data_pitch,
+				 unsigned long data_size,
+				 enum pixel_format data_format,
+				 enum layout_format data_layout);
 
 struct host1x *host1x_open(void);
 void host1x_close(struct host1x *host1x);
@@ -239,6 +228,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned int width,
 						     unsigned int height,
 						     enum pixel_format format,
+						     enum layout_format layout,
 						     unsigned long flags);
 void host1x_framebuffer_free(struct host1x_framebuffer *fb);
 int host1x_framebuffer_save(struct host1x *host1x,

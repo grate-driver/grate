@@ -47,6 +47,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned int width,
 						   unsigned int height,
 						   enum pixel_format format,
+						   enum layout_format layout,
 						   unsigned long flags);
 void grate_framebuffer_free(struct grate_framebuffer *fb);
 void grate_framebuffer_save(struct grate *grate, struct grate_framebuffer *fb,

@@ -156,7 +156,7 @@ int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 				    unsigned target,
 				    struct host1x_pixelbuffer *pb)
 {
-	switch (PIX_BUF_FORMAT(pb->format)) {
+	switch (pb->format) {
 	case PIX_BUF_FMT_A8:
 	case PIX_BUF_FMT_L8:
 	case PIX_BUF_FMT_S8:

@@ -507,7 +507,7 @@ static int drm_framebuffer_init(struct host1x *host1x,
 	int err;
 
 	/* XXX: support other formats */
-	switch ( PIX_BUF_FORMAT(pb->format))
+	switch (pb->format)
 	{
 	case PIX_BUF_FMT_RGB565:
 		format = DRM_FORMAT_RGB565;

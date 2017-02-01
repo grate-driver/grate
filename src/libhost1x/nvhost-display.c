@@ -56,7 +56,7 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	unsigned pixformat;
 	int err;
 
-	switch ( PIX_BUF_FORMAT(fb->pb->format) ) {
+	switch (fb->pb->format) {
 	case PIX_BUF_FMT_RGB565:
 		pixformat = TEGRA_DC_EXT_FMT_B5G6R5;
 		break;
@@ -84,7 +84,7 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	flip.win[2].pre_syncpt_id = (uint32_t)-1;
 	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
 
-	if ( PIX_BUF_FORMAT_TILED(fb->pb->format) )
+	if (fb->pb->layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flip.win[2].flags |= TEGRA_DC_EXT_FLIP_FLAG_TILED;
 
 	if (vsync) {

@@ -166,6 +166,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 						   unsigned int width,
 						   unsigned int height,
 						   enum pixel_format format,
+						   enum layout_format layout,
 						   unsigned long flags)
 {
 	struct grate_framebuffer *fb;
@@ -175,7 +176,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 		return NULL;
 
 	fb->front = host1x_framebuffer_create(grate->host1x, width, height,
-					      format, 0);
+					      format, layout, 0);
 	if (!fb->front) {
 		free(fb);
 		return NULL;
@@ -183,7 +184,7 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 
 	if (flags & GRATE_DOUBLE_BUFFERED) {
 		fb->back = host1x_framebuffer_create(grate->host1x, width,
-						     height, format, 0);
+						     height, format, layout, 0);
 		if (!fb->back) {
 			host1x_framebuffer_free(fb->front);
 			free(fb);

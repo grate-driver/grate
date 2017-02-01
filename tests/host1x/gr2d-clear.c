@@ -78,7 +78,8 @@ int main(int argc, char *argv[])
 	}
 
 	fb = host1x_framebuffer_create(host1x, width, height,
-				       PIX_BUF_FMT_RGBA8888_TILED, 0);
+				       PIX_BUF_FMT_RGBA8888,
+				       PIX_BUF_LAYOUT_TILED_16x16, 0);
 	if (!fb) {
 		fprintf(stderr, "host1x_framebuffer_create() failed\n");
 		return 1;

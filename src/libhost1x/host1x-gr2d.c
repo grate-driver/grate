@@ -279,12 +279,32 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *src,
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
+	unsigned src_tiled = 0;
+	unsigned dst_tiled = 0;
 	uint32_t fence;
 	int err;
 
 	if (PIX_BUF_FORMAT_BYTES(src->format) !=
 		PIX_BUF_FORMAT_BYTES(dst->format))
 	{
+		return -EINVAL;
+	}
+
+	switch (src->layout) {
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		src_tiled = 1;
+	case PIX_BUF_LAYOUT_LINEAR:
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	switch (dst->layout) {
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		dst_tiled = 1;
+	case PIX_BUF_LAYOUT_LINEAR:
+		break;
+	default:
 		return -EINVAL;
 	}
 
@@ -320,9 +340,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *src,
 	 * [20:20] destination write tile mode (0: linear, 1: tiled)
 	 * [ 0: 0] tile mode Y/RGB (0: linear, 1: tiled)
 	 */
-	host1x_pushbuf_push(pb, /* tilemode */
-			    PIX_BUF_FORMAT_TILED(dst->format) << 20 |
-			    PIX_BUF_FORMAT_TILED(src->format));
+	host1x_pushbuf_push(pb, dst_tiled << 20 | src_tiled); /* tilemode */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
 	host1x_pushbuf_relocate(pb, dst->bo, 0, 0);

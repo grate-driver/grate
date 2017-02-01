@@ -183,7 +183,8 @@ int main(int argc, char *argv[])
 		return 1;
 
 	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      PIX_BUF_FMT_RGBA8888_TILED,
+				      PIX_BUF_FMT_RGBA8888,
+				      PIX_BUF_LAYOUT_TILED_16x16,
 				      GRATE_DOUBLE_BUFFERED);
 	if (!fb) {
 		fprintf(stderr, "grate_framebuffer_create() failed\n");
@@ -274,13 +275,15 @@ int main(int argc, char *argv[])
 				       ilGetInteger(IL_IMAGE_WIDTH),
 				       ilGetInteger(IL_IMAGE_HEIGHT),
 				       ALIGN(ilGetInteger(IL_IMAGE_WIDTH) * 4, 64),
-				       PIX_BUF_FMT_RGBA8888);
+				       PIX_BUF_FMT_RGBA8888,
+				       PIX_BUF_LAYOUT_LINEAR);
 
 	host1x_pixelbuffer_load_data(grate_get_host1x(grate), pb,
 				     ilGetData(),
 				     ilGetInteger(IL_IMAGE_WIDTH) * 4,
 				     ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
-				     PIX_BUF_FMT_RGBA8888);
+				     PIX_BUF_FMT_RGBA8888,
+				     PIX_BUF_LAYOUT_LINEAR);
 
 	grate_3d_ctx_activate_texture(ctx, 0);
 	grate_3d_ctx_bind_texture(ctx, pb);

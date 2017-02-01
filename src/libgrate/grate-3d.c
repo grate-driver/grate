@@ -195,7 +195,7 @@ static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 	unsigned pixel_format;
 	uint32_t value = 0;
 
-	switch (PIX_BUF_FORMAT(pixbuf->format)) {
+	switch (pixbuf->format) {
 	case PIX_BUF_FMT_A8:
 		pixel_format = PIXEL_FORMAT_A8;
 		break;
@@ -231,14 +231,23 @@ static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
-		abort();
+		return;
+	}
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		grate_error("Invalid layout %u\n", pixbuf->layout);
+		return;
 	}
 
 	value |= TGR3D_BOOL(RT_PARAMS, DITHER_ENABLE, enable_dither);
 	value |= TGR3D_VAL(RT_PARAMS, FORMAT, pixel_format);
 	value |= TGR3D_VAL(RT_PARAMS, PITCH, pixbuf->pitch);
 	value |= TGR3D_BOOL(RT_PARAMS, TILED,
-			    PIX_BUF_FORMAT_TILED(pixbuf->format));
+			    pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_PARAMS(index), 1));
 	host1x_pushbuf_push(pb, value);
@@ -540,7 +549,7 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	unsigned pixel_format;
 	uint32_t value = 0;
 
-	switch (PIX_BUF_FORMAT(pixbuf->format)) {
+	switch (pixbuf->format) {
 	case PIX_BUF_FMT_A8:
 		pixel_format = PIXEL_FORMAT_A8;
 		break;
