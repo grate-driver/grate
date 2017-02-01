@@ -11,6 +11,7 @@ libgrate_la_SOURCES = \
 	grate.c \
 	grate.h \
 	grate-asm.c \
+	grate-texture.c \
 	grate-2d.c \
 	grate-3d.c \
 	grate-3d-ctx.c \
@@ -23,6 +24,7 @@ libgrate_la_SOURCES = \
 libgrate_la_LIBADD = \
 	../libcgc/libcgc.la \
 	../libhost1x/libhost1x.la \
+	$(DevIL_LIBS) \
 	$(PNG_LIBS) \
 	-lm \
 	-lrt

@@ -423,90 +423,16 @@ void grate_3d_ctx_set_provoking_vtx_last(struct grate_3d_ctx *ctx, bool last)
 	ctx->provoking_vtx_last = last;
 }
 
-int grate_3d_ctx_activate_texture(struct grate_3d_ctx *ctx, unsigned location)
+int grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
+			      unsigned location,
+			      struct grate_texture *tex)
 {
 	if (location >= 16) {
 		grate_error("Invalid location %u\n", location);
 		return -1;
 	}
 
-	ctx->active_texture = location;
-
-	return 0;
-}
-
-void grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
-			       struct host1x_pixelbuffer *pb)
-{
-	ctx->textures[ctx->active_texture].pb = pb;
-}
-
-int grate_3d_ctx_set_texture_max_lod(struct grate_3d_ctx *ctx,
-				     unsigned location,
-				     unsigned max_lod)
-{
-	if (location >= 16) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->textures[ctx->active_texture].max_lod = max_lod;
-
-	return 0;
-}
-
-int grate_3d_ctx_set_texture_wrap_mode(struct grate_3d_ctx *ctx,
-				       unsigned location,
-				       unsigned wrap_mode)
-{
-	if (location >= 16) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->textures[ctx->active_texture].wrap_mode = wrap_mode;
-
-	return 0;
-}
-
-int grate_3d_ctx_set_texture_mip_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable)
-{
-	if (location >= 16) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->textures[ctx->active_texture].mip_filter = enable;
-
-	return 0;
-}
-
-int grate_3d_ctx_set_texture_mag_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable)
-{
-	if (location >= 16) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->textures[ctx->active_texture].mag_filter = enable;
-
-	return 0;
-}
-
-int grate_3d_ctx_set_texture_min_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable)
-{
-	if (location >= 16) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->textures[ctx->active_texture].min_filter = enable;
+	ctx->textures[location] = tex;
 
 	return 0;
 }

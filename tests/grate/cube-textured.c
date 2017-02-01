@@ -28,15 +28,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <IL/il.h>
-#include <IL/ilu.h>
-
 #include "grate.h"
 #include "matrix.h"
 #include "tgr_3d.xml.h"
-
-#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
 static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
@@ -163,9 +157,9 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
+	struct grate_texture *texture;
 	struct host1x_pixelbuffer *pb;
 	struct host1x_bo *bo;
-	ILuint ImageTex;
 	int location, mvp_loc;
 	float aspect;
 
@@ -255,38 +249,17 @@ int main(int argc, char *argv[])
 
 	/* Setup texture */
 
-	ilInit();
-	ilEnable(IL_ORIGIN_SET);
-	ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
-	ilGenImages(1, &ImageTex);
-	ilBindImage(ImageTex);
-
-	if (!ilLoadImage("data/tegra.png")) {
-		fprintf(stderr, "texture load failed\n");
-	}
-
-	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-	iluScale(ilGetInteger(IL_IMAGE_WIDTH),
-		 ilGetInteger(IL_IMAGE_HEIGHT),
-		 0);
-
-	/* Pitch needs to be aligned to 64 bytes */
-	pb = host1x_pixelbuffer_create(grate_get_host1x(grate),
-				       ilGetInteger(IL_IMAGE_WIDTH),
-				       ilGetInteger(IL_IMAGE_HEIGHT),
-				       ALIGN(ilGetInteger(IL_IMAGE_WIDTH) * 4, 64),
+	texture = grate_create_texture(grate, 300, 300,
 				       PIX_BUF_FMT_RGBA8888,
 				       PIX_BUF_LAYOUT_LINEAR);
+	grate_texture_load(grate, texture, "data/tegra.png");
+	grate_texture_set_max_lod(texture, 0);
+	grate_texture_set_wrap_mode(texture, 0);
+	grate_texture_set_mip_filter(texture, false);
+	grate_texture_set_mag_filter(texture, false);
+	grate_texture_set_min_filter(texture, false);
 
-	host1x_pixelbuffer_load_data(grate_get_host1x(grate), pb,
-				     ilGetData(),
-				     ilGetInteger(IL_IMAGE_WIDTH) * 4,
-				     ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
-				     PIX_BUF_FMT_RGBA8888,
-				     PIX_BUF_LAYOUT_LINEAR);
-
-	grate_3d_ctx_activate_texture(ctx, 0);
-	grate_3d_ctx_bind_texture(ctx, pb);
+	grate_3d_ctx_bind_texture(ctx, 0, texture);
 
 	/* Create indices BO */
 

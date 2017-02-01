@@ -84,9 +84,7 @@ struct grate_3d_ctx {
 
 	struct grate_render_target render_targets[16];
 	struct grate_vtx_attribute *vtx_attributes[16];
-	struct grate_texture textures[16];
-
-	unsigned active_texture;
+	struct grate_texture *textures[16];
 
 	float depth_range_near;
 	float depth_range_far;

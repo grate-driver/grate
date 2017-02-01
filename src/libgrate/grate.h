@@ -143,6 +143,7 @@ void grate_profile_sample(struct grate_profile *profile);
 void grate_profile_finish(struct grate_profile *profile);
 
 struct grate_3d_ctx;
+struct grate_texture;
 
 struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate);
 int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
@@ -199,29 +200,28 @@ void grate_3d_ctx_set_point_coord_range(struct grate_3d_ctx *ctx,
 void grate_3d_ctx_set_polygon_offset(struct grate_3d_ctx *ctx,
 				     float units, float factor);
 void grate_3d_ctx_set_provoking_vtx_last(struct grate_3d_ctx *ctx, bool last);
-int grate_3d_ctx_activate_texture(struct grate_3d_ctx *ctx, unsigned location);
-void grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
-			       struct host1x_pixelbuffer *pb);
-int grate_3d_ctx_set_texture_max_lod(struct grate_3d_ctx *ctx,
-				     unsigned location,
-				     unsigned max_lod);
-int grate_3d_ctx_set_texture_wrap_mode(struct grate_3d_ctx *ctx,
-				       unsigned location,
-				       unsigned wrap_mode);
-int grate_3d_ctx_set_texture_mip_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable);
-int grate_3d_ctx_set_texture_mag_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable);
-int grate_3d_ctx_set_texture_min_filter(struct grate_3d_ctx *ctx,
-					unsigned location,
-					bool enable);
+int grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
+			      unsigned location,
+			      struct grate_texture *tex);
 
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,
 			    struct host1x_bo *indices_bo,
 			    unsigned index_mode,
 			    unsigned vtx_count);
+
+struct grate_texture *grate_create_texture(struct grate *grate,
+					   unsigned width, unsigned height,
+					   enum pixel_format format,
+					   enum layout_format layout);
+int grate_texture_load(struct grate *grate, struct grate_texture *tex,
+		       const char *path);
+struct host1x_pixelbuffer *grate_texture_pixbuf(struct grate_texture *tex);
+void grate_texture_free(struct grate_texture *tex);
+void grate_texture_set_max_lod(struct grate_texture *tex, unsigned max_lod);
+void grate_texture_set_wrap_mode(struct grate_texture *tex, unsigned wrap_mode);
+void grate_texture_set_mip_filter(struct grate_texture *tex, bool enable);
+void grate_texture_set_mag_filter(struct grate_texture *tex, bool enable);
+void grate_texture_set_min_filter(struct grate_texture *tex, bool enable);
 
 #endif

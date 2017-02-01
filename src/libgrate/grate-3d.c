@@ -619,9 +619,9 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 	unsigned i;
 
 	for (i = 0; i < 16; i++) {
-		struct grate_texture *tex = &ctx->textures[i];
+		struct grate_texture *tex = ctx->textures[i];
 
-		if (!tex->pb)
+		if (!tex)
 			continue;
 
 		grate_3d_relocate_texture(pb, i,
