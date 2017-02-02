@@ -29,7 +29,7 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 
-#include "nvhost-display.h"
+#include "nvhost.h"
 #include "tegra_dc_ext.h"
 
 static inline struct nvhost_display *to_nvhost_display(

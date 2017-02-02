@@ -22,10 +22,6 @@
  */
 
 #include "host1x-private.h"
-
-#include "nvhost-display.h"
-#include "nvhost-gr2d.h"
-#include "nvhost-gr3d.h"
 #include "nvhost.h"
 
 static int nvhost_bo_mmap(struct host1x_bo *bo)

@@ -28,8 +28,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
-#include "nvhost-gr3d.h"
 #include "host1x.h"
+#include "nvhost.h"
 
 #define HOST1X_GR3D_TEST 0
 
