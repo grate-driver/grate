@@ -266,7 +266,7 @@ static void grate_3d_relocate_render_target(struct host1x_pushbuf *pb,
 					    unsigned offset)
 {
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_PTR(index), 1));
-	host1x_pushbuf_relocate(pb, bo, offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, bo, offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 }
 
@@ -364,7 +364,7 @@ static void grate_3d_relocate_primitive_indices(struct host1x_pushbuf *pb,
 						unsigned offset)
 {
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_INDEX_PTR, 1));
-	host1x_pushbuf_relocate(pb, indices, offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, indices, offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 }
 
@@ -460,7 +460,7 @@ static void grate_3d_set_attribute(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_INCR(TGR3D_ATTRIB_PTR(index), 2));
 
-	host1x_pushbuf_relocate(pb, bo, offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, bo, offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, value);
 }
@@ -533,7 +533,7 @@ static void grate_3d_relocate_texture(struct host1x_pushbuf *pb,
 {
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_POINTER(index), 1));
-	host1x_pushbuf_relocate(pb, bo, offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, bo, offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 }
 
@@ -731,11 +731,11 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 		return;
 	}
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return;
 
-	pb = host1x_job_append(job, gr3d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return;
@@ -749,7 +749,7 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr3d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr3d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return;
@@ -757,11 +757,11 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr3d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr3d->client, &fence);
 	if (err < 0)
 		return;
 
-	err = host1x_client_wait(gr3d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return;
 }

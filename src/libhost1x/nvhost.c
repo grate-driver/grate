@@ -195,8 +195,8 @@ static int nvhost_client_syncpt_init(struct nvhost_client *client)
 
 			err = nvhost_ctrl_read_syncpt(ctrl, i, &syncpt->value);
 			if (err < 0) {
-				fprintf(stderr, "failed to read syncpt: %d\n",
-					err);
+				host1x_error("Failed to read syncpt: %d\n",
+					     err);
 				continue;
 			}
 
@@ -259,8 +259,7 @@ static int nvhost_client_submit(struct host1x_client *client,
 
 	err = ioctl(nvhost->fd, NVHOST_IOCTL_CHANNEL_SUBMIT_EXT, &args);
 	if (err < 0) {
-		fprintf(stderr, "NVHOST_IOCTL_CHANNEL_SUBMIT_EXT: %d\n",
-			errno);
+		host1x_error("NVHOST_IOCTL_CHANNEL_SUBMIT_EXT: %d\n", errno);
 		return -errno;
 	}
 
@@ -351,8 +350,8 @@ static int nvhost_client_wait(struct host1x_client *client, uint32_t fence,
 		return -errno;
 
 	if (args.value != args.thresh)
-		fprintf(stderr, "syncpt %u: value:%u != thresh:%u\n",
-			args.id, args.value, args.thresh);
+		host1x_error("Syncpt %u: value:%u != thresh:%u\n",
+			     args.id, args.value, args.thresh);
 
 	return 0;
 }

@@ -49,11 +49,11 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 	uint32_t fence;
 	int err = 0;
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr3d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -63,7 +63,7 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr3d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr3d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -71,11 +71,11 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr3d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr3d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -119,7 +119,7 @@ static void host1x_gr3d_reset_hw(void)
 
 	err = map_mem(&CAR_io_mem_virt, 0x60006000, 0x1000);
 	if (err < 0) {
-		fprintf(stderr, "host1x_gr3d_reset_hw() failed\n");
+		host1x_error("host1x_gr3d_reset_hw() failed\n");
 		return;
 	}
 
@@ -144,11 +144,11 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 
 	host1x_gr3d_reset_hw();
 
-	job = host1x_job_create(syncpt->id, 2);
+	job = HOST1X_JOB_CREATE(syncpt->id, 2);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr3d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
 	if (!pb)
 		return -ENOMEM;
 
@@ -690,15 +690,15 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr3d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr3d->client, job);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_flush(gr3d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr3d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -737,7 +737,7 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 	if (!gr3d->commands)
 		return -ENOMEM;
 
-	err = host1x_bo_mmap(gr3d->commands, NULL);
+	err = HOST1X_BO_MMAP(gr3d->commands, NULL);
 	if (err < 0) {
 		host1x_bo_free(gr3d->commands);
 		return err;
@@ -749,7 +749,7 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 		return -ENOMEM;
 	}
 
-	err = host1x_bo_mmap(gr3d->attributes, NULL);
+	err = HOST1X_BO_MMAP(gr3d->attributes, NULL);
 	if (err < 0) {
 		host1x_bo_free(gr3d->attributes);
 		host1x_bo_free(gr3d->commands);
@@ -759,8 +759,7 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 	if (HOST1X_GR3D_TEST) {
 		err = host1x_gr3d_test(gr3d);
 		if (err < 0) {
-			fprintf(stderr, "host1x_gr3d_test() failed: %d\n",
-				err);
+			host1x_error("host1x_gr3d_test() failed: %d\n", err);
 			host1x_bo_free(gr3d->attributes);
 			host1x_bo_free(gr3d->commands);
 			return err;
@@ -797,7 +796,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	int err, i;
 
 	/* XXX: count syncpoint increments in command stream */
-	job = host1x_job_create(syncpt->id, 9);
+	job = HOST1X_JOB_CREATE(syncpt->id, 9);
 	if (!job)
 		return -ENOMEM;
 
@@ -844,7 +843,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	*indices++ = 0x0001;
 	*indices++ = 0x0002;
 
-	err = host1x_bo_invalidate(gr3d->attributes, 0, 112);
+	err = HOST1X_BO_INVALIDATE(gr3d->attributes, 0, 112);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -856,7 +855,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	    commands: 103
 	*/
 
-	pb = host1x_job_append(job, gr3d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -1079,19 +1078,19 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
 	/* relocate color render target */
-	host1x_pushbuf_relocate(pb, pixbuf->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	/* vertex position attribute */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x01));
-	host1x_pushbuf_relocate(pb, gr3d->attributes, 0x30, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0x30, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	/* vertex color attribute */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x102, 0x01));
-	host1x_pushbuf_relocate(pb, gr3d->attributes, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	/* primitive indices */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x121, 0x03));
-	host1x_pushbuf_relocate(pb, gr3d->attributes, 0x60, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0x60, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, 0xec000000);
 	host1x_pushbuf_push(pb, 0x00200000);
@@ -1103,7 +1102,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr3d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr3d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -1111,11 +1110,11 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr3d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr3d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr3d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 

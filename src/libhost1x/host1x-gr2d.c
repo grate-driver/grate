@@ -36,11 +36,11 @@ static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
 	uint32_t fence;
 	int err = 0;
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr2d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr2d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -50,7 +50,7 @@ static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr2d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr2d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -58,11 +58,11 @@ static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr2d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr2d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -77,11 +77,11 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	uint32_t fence;
 	int err;
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr2d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr2d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -97,18 +97,18 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	host1x_pushbuf_push(pb, 0x00700000);
 	host1x_pushbuf_push(pb, 0x18010000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x0009));
-	host1x_pushbuf_relocate(pb, gr2d->scratch, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr2d->scratch, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, 0x00000020);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x031, 0x0005));
-	host1x_pushbuf_relocate(pb, gr2d->scratch, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr2d->scratch, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, 0x00000020);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x046, 0x000d));
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_relocate(pb, gr2d->scratch, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr2d->scratch, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
-	host1x_pushbuf_relocate(pb, gr2d->scratch, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, gr2d->scratch, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x011, 0x0003));
 	host1x_pushbuf_push(pb, 0x00001000);
@@ -127,7 +127,7 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr2d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr2d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -135,11 +135,11 @@ static int host1x_gr2d_reset(struct host1x_gr2d *gr2d)
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr2d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr2d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -150,15 +150,15 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 {
 	int err;
 
-	gr2d->commands = host1x_bo_create(host1x, 8 * 4096, 2);
+	gr2d->commands = HOST1X_BO_CREATE(host1x, 8 * 4096, 2);
 	if (!gr2d->commands)
 		return -ENOMEM;
 
-	err = host1x_bo_mmap(gr2d->commands, NULL);
+	err = HOST1X_BO_MMAP(gr2d->commands, NULL);
 	if (err < 0)
 		return err;
 
-	gr2d->scratch = host1x_bo_create(host1x, 64, 3);
+	gr2d->scratch = HOST1X_BO_CREATE(host1x, 64, 3);
 	if (!gr2d->scratch) {
 		host1x_bo_free(gr2d->commands);
 		return -ENOMEM;
@@ -167,8 +167,7 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 	if (HOST1X_GR2D_TEST) {
 		err = host1x_gr2d_test(gr2d);
 		if (err < 0) {
-			fprintf(stderr, "host1x_gr2d_test() failed: %d\n",
-				err);
+			host1x_error("host1x_gr2d_test() failed: %d\n", err);
 			return err;
 		}
 	}
@@ -213,11 +212,11 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		pitch = pixbuf->width * 4;
 	}
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr2d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr2d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -238,7 +237,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 
 	host1x_pushbuf_push(pb, 0x000000cc);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
-	host1x_pushbuf_relocate(pb, pixbuf->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, pitch);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x35, 1));
@@ -252,7 +251,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr2d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr2d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -260,11 +259,11 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr2d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr2d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -289,6 +288,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	if (PIX_BUF_FORMAT_BYTES(src->format) !=
 		PIX_BUF_FORMAT_BYTES(dst->format))
 	{
+		host1x_error("Unequal bytes size\n");
 		return -EINVAL;
 	}
 
@@ -298,6 +298,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	case PIX_BUF_LAYOUT_LINEAR:
 		break;
 	default:
+		host1x_error("Invalid src layout %u\n", src->layout);
 		return -EINVAL;
 	}
 
@@ -307,14 +308,15 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	case PIX_BUF_LAYOUT_LINEAR:
 		break;
 	default:
+		host1x_error("Invalid dst layout %u\n", dst->layout);
 		return -EINVAL;
 	}
 
-	job = host1x_job_create(syncpt->id, 1);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
-	pb = host1x_job_append(job, gr2d->commands, 0);
+	pb = HOST1X_JOB_APPEND(job, gr2d->commands, 0);
 	if (!pb) {
 		host1x_job_free(job);
 		return -ENOMEM;
@@ -345,10 +347,10 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, dst_tiled << 20 | src_tiled); /* tilemode */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
-	host1x_pushbuf_relocate(pb, dst->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
-	host1x_pushbuf_relocate(pb, src->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb, height << 16 | width); /* dstsize */
@@ -358,7 +360,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
-	err = host1x_client_submit(gr2d->client, job);
+	err = HOST1X_CLIENT_SUBMIT(gr2d->client, job);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;
@@ -366,11 +368,11 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 
 	host1x_job_free(job);
 
-	err = host1x_client_flush(gr2d->client, &fence);
+	err = HOST1X_CLIENT_FLUSH(gr2d->client, &fence);
 	if (err < 0)
 		return err;
 
-	err = host1x_client_wait(gr2d->client, fence, ~0u);
+	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 

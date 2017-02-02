@@ -186,7 +186,7 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 
 		err = drmWaitVBlank(drm->fd, &vblank);
 		if (err < 0) {
-			fprintf(stderr, "drmWaitVBlank() failed: %m\n");
+			host1x_error("drmWaitVBlank() failed: %m\n");
 			return -errno;
 		}
 	}
@@ -259,7 +259,7 @@ static int drm_display_set(struct host1x_display *display,
 		}
 
 		if (err < 0) {
-			fprintf(stderr, "drmModePageFlip() failed: %m\n");
+			host1x_error("drmModePageFlip() failed: %m\n");
 			return -errno;
 		}
 
@@ -452,7 +452,7 @@ static void drm_bo_free(struct host1x_bo *bo)
 
 	err = ioctl(drm_bo->drm->fd, DRM_IOCTL_GEM_CLOSE, &args);
 	if (err < 0)
-		fprintf(stderr, "failed to delete buffer object: %m\n");
+		host1x_error("failed to delete buffer object: %m\n");
 
 	free(drm_bo);
 }
@@ -517,7 +517,7 @@ static int drm_framebuffer_init(struct host1x *host1x,
 		format = DRM_FORMAT_XBGR8888;
 		break;
 	default:
-		fprintf(stderr, "ERROR: unsupported framebuffer format\n");
+		host1x_error("Unsupported framebuffer format\n");
 		return -EINVAL;
 	}
 
@@ -620,8 +620,8 @@ static int drm_channel_submit(struct host1x_client *client,
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SUBMIT, &args);
 	if (err < 0) {
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_SUBMIT) failed: %d\n",
-			errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_SUBMIT) failed: %d\n",
+			     errno);
 		err = -errno;
 	} else {
 		channel->fence = args.fence;
@@ -660,8 +660,8 @@ static int drm_channel_wait(struct host1x_client *client, uint32_t fence,
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SYNCPT_WAIT, &args);
 	if (err < 0) {
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
-			errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
+			     errno);
 		return -errno;
 	}
 
@@ -722,8 +722,8 @@ static void drm_channel_exit(struct drm_channel *channel)
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CLOSE_CHANNEL, &args);
 	if (err < 0)
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
-			-errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
+			     -errno);
 
 	free(channel->client.syncpts);
 }
@@ -839,7 +839,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_gr2d_create(&drm->gr2d, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_gr2d_create() failed: %d\n", err);
+		host1x_error("drm_gr2d_create() failed: %d\n", err);
 		free(drm);
 		close(fd);
 		return NULL;
@@ -847,7 +847,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_gr3d_create(&drm->gr3d, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_gr3d_create() failed: %d\n", err);
+		host1x_error("drm_gr3d_create() failed: %d\n", err);
 		free(drm);
 		close(fd);
 		return NULL;
@@ -855,7 +855,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_display_create(&drm->display, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_display_create() failed: %d\n", err);
+		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {
 		drm->base.display = &drm->display->base;
 	}

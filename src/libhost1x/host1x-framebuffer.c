@@ -69,6 +69,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 	case PIX_BUF_LAYOUT_TILED_16x16:
 		break;
 	default:
+		host1x_error("Invalid layout %u\n", layout);
 		return NULL;
 	}
 
@@ -80,6 +81,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 		pitch = width * 4;
 		break;
 	default:
+		host1x_error("Invalid format %u\n", format);
 		return NULL;
 	}
 
@@ -129,14 +131,14 @@ int host1x_framebuffer_save(struct host1x *host1x,
 	int err;
 
 	if (PIX_BUF_FORMAT_BITS(tiled_pixbuf->format) != 32) {
-		fprintf(stderr, "ERROR: %u bits per pixel not supported\n",
-			PIX_BUF_FORMAT_BITS(tiled_pixbuf->format));
+		host1x_error("%u bits per pixel not supported\n",
+			     PIX_BUF_FORMAT_BITS(tiled_pixbuf->format));
 		return -EINVAL;
 	}
 
 	fp = fopen(path, "wb");
 	if (!fp) {
-		fprintf(stderr, "failed to write `%s'\n", path);
+		host1x_error("Failed to write `%s'\n", path);
 		return -errno;
 	}
 
@@ -163,7 +165,7 @@ int host1x_framebuffer_save(struct host1x *host1x,
 	png_write_info(png, info);
 
 	if (setjmp(png_jmpbuf(png))) {
-		fprintf(stderr, "failed to write IHDR\n");
+		host1x_error("Failed to write IHDR\n");
 		return -EIO;
 	}
 
@@ -189,18 +191,18 @@ int host1x_framebuffer_save(struct host1x *host1x,
 		detiled_pixbuf = tiled_pixbuf;
 	}
 
-	err = host1x_bo_mmap(detiled_pixbuf->bo, &buffer);
+	err = HOST1X_BO_MMAP(detiled_pixbuf->bo, &buffer);
 	if (err < 0)
 		return -EFAULT;
 
-	err = host1x_bo_invalidate(detiled_pixbuf->bo, 0,
+	err = HOST1X_BO_INVALIDATE(detiled_pixbuf->bo, 0,
 				   detiled_pixbuf->bo->size);
 	if (err < 0)
 		return -EFAULT;
 
 	rows = malloc(detiled_pixbuf->height * sizeof(png_bytep));
 	if (!rows) {
-		fprintf(stderr, "out-of-memory\n");
+		host1x_error("Out-of-memory\n");
 		return -ENOMEM;
 	}
 

@@ -47,11 +47,11 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 	void *map;
 	int err;
 
-	bo = host1x_bo_create(grate->host1x, size, flags);
+	bo = HOST1X_BO_CREATE(grate->host1x, size, flags);
 	if (!bo)
 		return NULL;
 
-	err = host1x_bo_mmap(bo, &map);
+	err = HOST1X_BO_MMAP(bo, &map);
 	if (err != 0) {
 		host1x_bo_free(bo);
 		return NULL;
@@ -59,7 +59,7 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 
 	memcpy(map, data, size);
 
-	host1x_bo_invalidate(bo, bo->offset, size);
+	HOST1X_BO_INVALIDATE(bo, bo->offset, size);
 
 	return bo;
 }
@@ -301,11 +301,9 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 		return NULL;
 	}
 
-	err = host1x_bo_mmap(fb_bo, &ret);
-	if (err < 0) {
-		grate_error("failed to mmap framebuffer's bo\n");
+	err = HOST1X_BO_MMAP(fb_bo, &ret);
+	if (err < 0)
 		return NULL;
-	}
 
 	return ret;
 }

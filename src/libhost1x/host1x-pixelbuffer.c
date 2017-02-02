@@ -57,7 +57,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 
 	flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
-	pixbuf->bo = host1x_bo_create(host1x, pixbuf->pitch * height, flags);
+	pixbuf->bo = HOST1X_BO_CREATE(host1x, pixbuf->pitch * height, flags);
 	if (!pixbuf->bo) {
 		free(pixbuf);
 		return NULL;
@@ -105,13 +105,13 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 		tmp = pixbuf;
 	}
 
-	err = host1x_bo_mmap(tmp->bo, &map);
-	if (err != 0)
+	err = HOST1X_BO_MMAP(tmp->bo, &map);
+	if (err)
 		return err;
 
 	memcpy(map, data, data_size);
 
-	host1x_bo_invalidate(tmp->bo, tmp->bo->offset, data_size);
+	HOST1X_BO_INVALIDATE(tmp->bo, tmp->bo->offset, data_size);
 
 	if (blit) {
 		err = host1x_gr2d_blit(host1x->gr2d, tmp, pixbuf,

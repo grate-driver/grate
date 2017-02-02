@@ -183,7 +183,7 @@ struct host1x *host1x_nvhost_open(void)
 
 	nvhost->display = nvhost_display_create(nvhost);
 	if (!nvhost->display) {
-		fprintf(stderr, "nvhost_display_create() failed\n");
+		host1x_error("nvhost_display_create() failed\n");
 	} else {
 		nvhost->base.display = &nvhost->display->base;
 	}
