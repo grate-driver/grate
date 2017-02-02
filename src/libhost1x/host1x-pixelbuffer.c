@@ -111,7 +111,7 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 
 	memcpy(map, data, data_size);
 
-	HOST1X_BO_INVALIDATE(tmp->bo, tmp->bo->offset, data_size);
+	HOST1X_BO_FLUSH(tmp->bo, tmp->bo->offset, data_size);
 
 	if (blit) {
 		err = host1x_gr2d_blit(host1x->gr2d, tmp, pixbuf,

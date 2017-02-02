@@ -178,6 +178,19 @@ void host1x_bo_free(struct host1x_bo *bo);
 int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 			 size_t length);
 
+#define HOST1X_BO_FLUSH(bo, offset, length) 				\
+({									\
+	int err = host1x_bo_flush(bo, offset, length);			\
+	if (err)							\
+		fprintf(stderr,						\
+			"ERROR: %s:%d: host1x_bo_flush() failed %d\n",	\
+			__FILE__, __LINE__, err);			\
+	err;								\
+})
+
+int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
+		    size_t length);
+
 #define HOST1X_BO_MMAP(bo, ptr) 					\
 ({									\
 	int err = host1x_bo_mmap(bo, ptr);				\
