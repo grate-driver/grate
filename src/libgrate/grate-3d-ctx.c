@@ -154,9 +154,9 @@ int grate_3d_ctx_disable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 
 int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 				    unsigned target,
-				    struct host1x_pixelbuffer *pb)
+				    struct host1x_pixelbuffer *pixbuf)
 {
-	switch (pb->format) {
+	switch (pixbuf->format) {
 	case PIX_BUF_FMT_A8:
 	case PIX_BUF_FMT_L8:
 	case PIX_BUF_FMT_S8:
@@ -170,7 +170,7 @@ int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 	case PIX_BUF_FMT_RGBA_FP32:
 		break;
 	default:
-		grate_error("Invalid format %u\n", pb->format);
+		grate_error("Invalid format %u\n", pixbuf->format);
 		return -1;
 	}
 
@@ -179,7 +179,7 @@ int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 		return -1;
 	}
 
-	ctx->render_targets[target].pb = pb;
+	ctx->render_targets[target].pixbuf = pixbuf;
 
 	return 0;
 }

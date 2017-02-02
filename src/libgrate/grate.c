@@ -154,7 +154,7 @@ void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 
 struct host1x_pixelbuffer * grate_get_draw_pixbuf(struct grate_framebuffer *fb)
 {
-	return fb->back ? fb->back->pb : fb->front->pb;
+	return fb->back ? fb->back->pixbuf : fb->front->pixbuf;
 }
 
 void grate_flush(struct grate *grate)
@@ -292,7 +292,7 @@ bool grate_key_pressed(struct grate *grate)
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 {
 	struct host1x_framebuffer *host1x_fb = front ? fb->front : fb->back;
-	struct host1x_bo *fb_bo = host1x_fb->pb->bo;
+	struct host1x_bo *fb_bo = host1x_fb->pixbuf->bo;
 	void *ret;
 	int err;
 

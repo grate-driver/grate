@@ -193,7 +193,8 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
-			      fb->pb->width << 16, fb->pb->height << 16);
+			      fb->pixbuf->width << 16,
+			      fb->pixbuf->height << 16);
 	if (err < 0)
 		return -errno;
 
@@ -502,12 +503,12 @@ static int drm_framebuffer_init(struct host1x *host1x,
 				struct host1x_framebuffer *fb)
 {
 	uint32_t handles[1], pitches[1], offsets[1], format;
-	struct host1x_pixelbuffer *pb = fb->pb;
+	struct host1x_pixelbuffer *pixbuf = fb->pixbuf;
 	struct drm *drm = to_drm(host1x);
 	int err;
 
 	/* XXX: support other formats */
-	switch (pb->format)
+	switch (pixbuf->format)
 	{
 	case PIX_BUF_FMT_RGB565:
 		format = DRM_FORMAT_RGB565;
@@ -520,12 +521,12 @@ static int drm_framebuffer_init(struct host1x *host1x,
 		return -EINVAL;
 	}
 
-	handles[0] = pb->bo->handle;
-	pitches[0] = pb->pitch;
+	handles[0] = pixbuf->bo->handle;
+	pitches[0] = pixbuf->pitch;
 	offsets[0] = 0;
 
-	err = drmModeAddFB2(drm->fd, pb->width, pb->height, format, handles,
-			    pitches, offsets, &fb->handle, 0);
+	err = drmModeAddFB2(drm->fd, pixbuf->width, pixbuf->height, format,
+			    handles, pitches, offsets, &fb->handle, 0);
 	if (err < 0)
 		return -errno;
 

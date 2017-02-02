@@ -49,7 +49,7 @@ void grate_clear(struct grate *grate)
 		return;
 	}
 
-	err = host1x_gr2d_clear(gr2d, back ? back->pb : front->pb,
+	err = host1x_gr2d_clear(gr2d, back ? back->pixbuf : front->pixbuf,
 				clear->r, clear->g, clear->b, clear->a);
 	if (err < 0)
 		grate_error("host1x_gr2d_clear() failed: %d\n", err);

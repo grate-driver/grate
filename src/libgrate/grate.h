@@ -156,7 +156,7 @@ int grate_3d_ctx_disable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					     unsigned target);
 int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 				    unsigned target,
-				    struct host1x_pixelbuffer *pb);
+				    struct host1x_pixelbuffer *pixbuf);
 int grate_3d_ctx_set_render_target_dither(struct grate_3d_ctx *ctx,
 					  unsigned target,
 					  bool enable);

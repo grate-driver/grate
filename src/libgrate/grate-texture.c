@@ -63,9 +63,9 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	/* Pitch needs to be aligned to 64 bytes */
 	pitch = ALIGN(width * PIX_BUF_FORMAT_BYTES(format), 64);
 
-	tex->pb = host1x_pixelbuffer_create(grate->host1x, width, height, pitch,
-					    format, layout);
-	if (!tex->pb) {
+	tex->pixbuf = host1x_pixelbuffer_create(grate->host1x, width, height,
+						pitch, format, layout);
+	if (!tex->pixbuf) {
 		free(tex);
 		return NULL;
 	}
@@ -86,7 +86,7 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 	ilBindImage(ImageTex);
 	ilLoadImage(path);
 	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-	iluScale(tex->pb->width, tex->pb->height, 0);
+	iluScale(tex->pixbuf->width, tex->pixbuf->height, 0);
 
 	err = ilGetError();
 	if (err != IL_NO_ERROR) {
@@ -94,7 +94,7 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 		goto out;
 	}
 
-	err = host1x_pixelbuffer_load_data(grate->host1x, tex->pb,
+	err = host1x_pixelbuffer_load_data(grate->host1x, tex->pixbuf,
 					   ilGetData(),
 					   ilGetInteger(IL_IMAGE_WIDTH) * 4,
 					   ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
@@ -108,12 +108,12 @@ out:
 
 struct host1x_pixelbuffer *grate_texture_pixbuf(struct grate_texture *tex)
 {
-	return tex->pb;
+	return tex->pixbuf;
 }
 
 void grate_texture_free(struct grate_texture *tex)
 {
-	host1x_pixelbuffer_free(tex->pb);
+	host1x_pixelbuffer_free(tex->pixbuf);
 	free(tex);
 }
 

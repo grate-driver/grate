@@ -116,9 +116,9 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				unsigned pitch,
 				enum pixel_format format,
 				enum layout_format layout);
-void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pb);
+void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pixbuf);
 int host1x_pixelbuffer_load_data(struct host1x *host1x,
-				 struct host1x_pixelbuffer *pb,
+				 struct host1x_pixelbuffer *pixbuf,
 				 void *data,
 				 unsigned data_pitch,
 				 unsigned long data_size,
@@ -133,7 +133,7 @@ struct host1x_gr2d *host1x_get_gr2d(struct host1x *host1x);
 struct host1x_gr3d *host1x_get_gr3d(struct host1x *host1x);
 
 struct host1x_framebuffer {
-	struct host1x_pixelbuffer *pb;
+	struct host1x_pixelbuffer *pixbuf;
 	unsigned long flags;
 	uint32_t handle;
 };
@@ -238,16 +238,19 @@ int host1x_framebuffer_save(struct host1x *host1x,
 struct host1x_gr2d;
 struct host1x_gr3d;
 
-int host1x_gr2d_clear(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *pb,
+int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
+		      struct host1x_pixelbuffer *pixbuf,
 		      float red, float green, float blue, float alpha);
-int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *src,
-		     struct host1x_pixelbuffer *dst, unsigned int sx,
-		     unsigned int sy, unsigned int dx, unsigned int dy,
+int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
+		     struct host1x_pixelbuffer *src,
+		     struct host1x_pixelbuffer *dst,
+		     unsigned int sx, unsigned int sy,
+		     unsigned int dx, unsigned int dy,
 		     unsigned int width, unsigned int height);
 void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
 			  float width, float height);
 void host1x_gr3d_line_width(struct host1x_pushbuf *pb, float width);
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
-			 struct host1x_pixelbuffer *pb);
+			 struct host1x_pixelbuffer *pixbuf);
 
 #endif

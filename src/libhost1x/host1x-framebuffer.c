@@ -87,10 +87,10 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 	if (!fb)
 		return NULL;
 
-	fb->pb = host1x_pixelbuffer_create(host1x,
-					    width, height, pitch,
-					    format, layout);
-	if (!fb->pb) {
+	fb->pixbuf = host1x_pixelbuffer_create(host1x,
+					       width, height, pitch,
+					       format, layout);
+	if (!fb->pixbuf) {
 		free(fb);
 		return NULL;
 	}
@@ -110,7 +110,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 
 void host1x_framebuffer_free(struct host1x_framebuffer *fb)
 {
-	host1x_pixelbuffer_free(fb->pb);
+	host1x_pixelbuffer_free(fb->pixbuf);
 	free(fb);
 }
 
@@ -118,8 +118,8 @@ int host1x_framebuffer_save(struct host1x *host1x,
 			    struct host1x_framebuffer *fb,
 			    const char *path)
 {
-	struct host1x_pixelbuffer *tiled_pb = fb->pb;
-	struct host1x_pixelbuffer *detiled_pb;
+	struct host1x_pixelbuffer *tiled_pixbuf = fb->pixbuf;
+	struct host1x_pixelbuffer *detiled_pixbuf;
 	png_structp png;
 	png_bytep *rows;
 	png_infop info;
@@ -128,9 +128,9 @@ int host1x_framebuffer_save(struct host1x *host1x,
 	FILE *fp;
 	int err;
 
-	if (PIX_BUF_FORMAT_BITS(tiled_pb->format) != 32) {
+	if (PIX_BUF_FORMAT_BITS(tiled_pixbuf->format) != 32) {
 		fprintf(stderr, "ERROR: %u bits per pixel not supported\n",
-			PIX_BUF_FORMAT_BITS(tiled_pb->format));
+			PIX_BUF_FORMAT_BITS(tiled_pixbuf->format));
 		return -EINVAL;
 	}
 
@@ -156,7 +156,7 @@ int host1x_framebuffer_save(struct host1x *host1x,
 	if (setjmp(png_jmpbuf(png)))
 		return -EIO;
 
-	png_set_IHDR(png, info, tiled_pb->width, tiled_pb->height,
+	png_set_IHDR(png, info, tiled_pixbuf->width, tiled_pixbuf->height,
 		     8, PNG_COLOR_TYPE_RGBA,
 		     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 		     PNG_FILTER_TYPE_BASE);
@@ -167,41 +167,46 @@ int host1x_framebuffer_save(struct host1x *host1x,
 		return -EIO;
 	}
 
-	if (tiled_pb->layout == PIX_BUF_LAYOUT_TILED_16x16) {
-		detiled_pb = host1x_pixelbuffer_create(host1x,
-						       tiled_pb->width,
-						       tiled_pb->height,
-						       tiled_pb->width * 4,
-						       tiled_pb->format,
-						       PIX_BUF_LAYOUT_LINEAR);
-		if (!detiled_pb)
+	if (tiled_pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16) {
+		detiled_pixbuf = host1x_pixelbuffer_create(host1x,
+							tiled_pixbuf->width,
+							tiled_pixbuf->height,
+							tiled_pixbuf->width * 4,
+							tiled_pixbuf->format,
+							PIX_BUF_LAYOUT_LINEAR);
+		if (!detiled_pixbuf)
 			return -ENOMEM;
 
-		err = host1x_gr2d_blit(host1x->gr2d, tiled_pb, detiled_pb,
+		err = host1x_gr2d_blit(host1x->gr2d,
+				       tiled_pixbuf,
+				       detiled_pixbuf,
 				       0, 0, 0, 0,
-				       tiled_pb->width, tiled_pb->height);
+				       tiled_pixbuf->width,
+				       tiled_pixbuf->height);
 		if (err < 0)
 			return -EFAULT;
 	} else {
-		detiled_pb = tiled_pb;
+		detiled_pixbuf = tiled_pixbuf;
 	}
 
-	err = host1x_bo_mmap(detiled_pb->bo, &buffer);
+	err = host1x_bo_mmap(detiled_pixbuf->bo, &buffer);
 	if (err < 0)
 		return -EFAULT;
 
-	err = host1x_bo_invalidate(detiled_pb->bo, 0, detiled_pb->bo->size);
+	err = host1x_bo_invalidate(detiled_pixbuf->bo, 0,
+				   detiled_pixbuf->bo->size);
 	if (err < 0)
 		return -EFAULT;
 
-	rows = malloc(detiled_pb->height * sizeof(png_bytep));
+	rows = malloc(detiled_pixbuf->height * sizeof(png_bytep));
 	if (!rows) {
 		fprintf(stderr, "out-of-memory\n");
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < detiled_pb->height; i++)
-		rows[detiled_pb->height - i - 1] = buffer + i * detiled_pb->pitch;
+	for (i = 0; i < detiled_pixbuf->height; i++)
+		rows[detiled_pixbuf->height - i - 1] =
+					buffer + i * detiled_pixbuf->pitch;
 
 	png_write_image(png, rows);
 
@@ -210,8 +215,8 @@ int host1x_framebuffer_save(struct host1x *host1x,
 
 	png_write_end(png, NULL);
 
-	if (detiled_pb != tiled_pb)
-		host1x_pixelbuffer_free(detiled_pb);
+	if (detiled_pixbuf != tiled_pixbuf)
+		host1x_pixelbuffer_free(detiled_pixbuf);
 
 	fclose(fp);
 

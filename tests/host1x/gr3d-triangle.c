@@ -100,19 +100,19 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	err = host1x_gr2d_clear(gr2d, fb->pb, 0.0f, 0.0f, 0.0f, 1.0f);
+	err = host1x_gr2d_clear(gr2d, fb->pixbuf, 0.0f, 0.0f, 0.0f, 1.0f);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr2d_clear() failed: %d\n", err);
 		return 1;
 	}
 
-	err = host1x_gr3d_triangle(gr3d, fb->pb);
+	err = host1x_gr3d_triangle(gr3d, fb->pixbuf);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr3d_triangle() failed: %d\n", err);
 		return 1;
 	}
 
-	err = host1x_gr2d_clear(gr2d, copy->pb, 1.0f, 1.0f, 0.0f, 1.0f);
+	err = host1x_gr2d_clear(gr2d, copy->pixbuf, 1.0f, 1.0f, 0.0f, 1.0f);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr2d_clear() failed: %d\n", err);
 		return 1;
@@ -132,7 +132,8 @@ int main(int argc, char *argv[])
 			else
 				sleep(1);
 
-			err = host1x_gr2d_blit(gr2d, fb->pb, copy->pb, 0, 0, 0, 0, width, height);
+			err = host1x_gr2d_blit(gr2d, fb->pixbuf, copy->pixbuf,
+					       0, 0, 0, 0, width, height);
 			if (err < 0)
 				fprintf(stderr, "host1x_gr2d_blit() failed: %d\n", err);
 			else
@@ -152,7 +153,8 @@ int main(int argc, char *argv[])
 			else
 				sleep(1);
 
-			err = host1x_gr2d_blit(gr2d, fb->pb, copy->pb, 0, 0, 0, 0, width, height);
+			err = host1x_gr2d_blit(gr2d, fb->pixbuf, copy->pixbuf,
+					       0, 0, 0, 0, width, height);
 			if (err < 0)
 				fprintf(stderr, "host1x_gr2d_blit() failed: %d\n", err);
 			else

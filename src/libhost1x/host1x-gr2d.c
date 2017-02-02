@@ -271,9 +271,11 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 	return 0;
 }
 
-int host1x_gr2d_blit(struct host1x_gr2d *gr2d, struct host1x_pixelbuffer *src,
-		     struct host1x_pixelbuffer *dst, unsigned int sx,
-		     unsigned int sy, unsigned int dx, unsigned int dy,
+int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
+		     struct host1x_pixelbuffer *src,
+		     struct host1x_pixelbuffer *dst,
+		     unsigned int sx, unsigned int sy,
+		     unsigned int dx, unsigned int dy,
 		     unsigned int width, unsigned int height)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];

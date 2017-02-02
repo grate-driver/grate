@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
-	struct host1x_pixelbuffer *pb;
+	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_bo *bo;
 	int location, mvp_loc;
 	float aspect;
@@ -266,8 +266,8 @@ int main(int argc, char *argv[])
 						(float *) &mvp);
 
 		/* Setup render target */
-		pb = grate_get_draw_pixbuf(fb);
-		grate_3d_ctx_bind_render_target(ctx, 1, pb);
+		pixbuf = grate_get_draw_pixbuf(fb);
+		grate_3d_ctx_bind_render_target(ctx, 1, pixbuf);
 
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       bo, INDEX_MODE_UINT16,

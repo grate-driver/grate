@@ -36,44 +36,44 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				enum pixel_format format,
 				enum layout_format layout)
 {
-	struct host1x_pixelbuffer *pb;
+	struct host1x_pixelbuffer *pixbuf;
 	unsigned long flags = 1;
 
-	pb = calloc(1, sizeof(*pb));
-	if (!pb)
+	pixbuf = calloc(1, sizeof(*pixbuf));
+	if (!pixbuf)
 		return NULL;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		pitch = ALIGN(pitch, 16);
 
-	pb->pitch = pitch;
-	pb->width = width;
-	pb->height = height;
-	pb->format = format;
-	pb->layout = layout;
+	pixbuf->pitch = pitch;
+	pixbuf->width = width;
+	pixbuf->height = height;
+	pixbuf->format = format;
+	pixbuf->layout = layout;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flags |= HOST1X_BO_CREATE_FLAG_TILED;
 
 	flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
-	pb->bo = host1x_bo_create(host1x, pb->pitch * height, flags);
-	if (!pb->bo) {
-		free(pb);
+	pixbuf->bo = host1x_bo_create(host1x, pixbuf->pitch * height, flags);
+	if (!pixbuf->bo) {
+		free(pixbuf);
 		return NULL;
 	}
 
-	return pb;
+	return pixbuf;
 }
 
-void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pb)
+void host1x_pixelbuffer_free(struct host1x_pixelbuffer *pixbuf)
 {
-	host1x_bo_free(pb->bo);
-	free(pb);
+	host1x_bo_free(pixbuf->bo);
+	free(pixbuf);
 }
 
 int host1x_pixelbuffer_load_data(struct host1x *host1x,
-				 struct host1x_pixelbuffer *pb,
+				 struct host1x_pixelbuffer *pixbuf,
 				 void *data,
 				 unsigned data_pitch,
 				 unsigned long data_size,
@@ -85,23 +85,24 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	void *map;
 	int err;
 
-	if (pb->format != data_format)
+	if (pixbuf->format != data_format)
 		return -1;
 
-	if (pb->layout != data_layout)
+	if (pixbuf->layout != data_layout)
 		blit = true;
 
-	if (pb->pitch != data_pitch)
+	if (pixbuf->pitch != data_pitch)
 		blit = true;
 
 	if (blit) {
-		tmp = host1x_pixelbuffer_create(host1x, pb->width, pb->height,
+		tmp = host1x_pixelbuffer_create(host1x,
+						pixbuf->width, pixbuf->height,
 						data_pitch, data_format,
 						data_layout);
 		if (!tmp)
 			return -1;
 	} else {
-		tmp = pb;
+		tmp = pixbuf;
 	}
 
 	err = host1x_bo_mmap(tmp->bo, &map);
@@ -113,8 +114,9 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	host1x_bo_invalidate(tmp->bo, tmp->bo->offset, data_size);
 
 	if (blit) {
-		err = host1x_gr2d_blit(host1x->gr2d, tmp, pb,
-				       0, 0, 0, 0, pb->width, pb->height);
+		err = host1x_gr2d_blit(host1x->gr2d, tmp, pixbuf,
+				       0, 0, 0, 0,
+				       pixbuf->width, pixbuf->height);
 		host1x_pixelbuffer_free(tmp);
 	}
 

@@ -509,18 +509,18 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 		if (!(ctx->render_targets_enable_mask & (1u << i)))
 			continue;
 
-		if (!rt->pb)
+		if (!rt->pixbuf)
 			continue;
 
 		enable_mask |= 1u << i;
 
 		grate_3d_relocate_render_target(pb, i,
-						rt->pb->bo,
-						rt->pb->bo->offset);
+						rt->pixbuf->bo,
+						rt->pixbuf->bo->offset);
 
 		grate_3d_set_render_target_params(pb, i,
 						  rt->dither_enabled,
-						  rt->pb);
+						  rt->pixbuf);
 	}
 
 	grate_3d_enable_render_targets(pb, enable_mask);
@@ -625,11 +625,11 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 			continue;
 
 		grate_3d_relocate_texture(pb, i,
-					  tex->pb->bo,
-					  tex->pb->bo->offset);
+					  tex->pixbuf->bo,
+					  tex->pixbuf->bo->offset);
 
 		grate_3d_set_texture_desc(pb, i,
-					  tex->pb,
+					  tex->pixbuf,
 					  tex->max_lod,
 					  tex->wrap_mode,
 					  tex->mip_filter,

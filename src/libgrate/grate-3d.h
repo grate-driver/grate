@@ -55,7 +55,7 @@ struct grate_program {
 };
 
 struct grate_render_target {
-	struct host1x_pixelbuffer *pb;
+	struct host1x_pixelbuffer *pixbuf;
 	bool dither_enabled;
 };
 
@@ -67,7 +67,7 @@ struct grate_vtx_attribute {
 };
 
 struct grate_texture {
-	struct host1x_pixelbuffer *pb;
+	struct host1x_pixelbuffer *pixbuf;
 	unsigned wrap_mode;
 	unsigned max_lod;
 	bool mip_filter;
