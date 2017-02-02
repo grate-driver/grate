@@ -54,20 +54,6 @@ void grate_framebuffer_save(struct grate *grate, struct grate_framebuffer *fb,
 			    const char *path);
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front);
 
-struct grate_display *grate_display_open(struct grate *grate);
-void grate_display_close(struct grate_display *display);
-void grate_display_get_resolution(struct grate_display *display,
-				  unsigned int *width, unsigned int *height);
-void grate_display_show(struct grate_display *display,
-			struct grate_framebuffer *fb, bool vsync);
-
-struct grate_overlay *grate_overlay_create(struct grate_display *display);
-void grate_overlay_free(struct grate_overlay *overlay);
-void grate_overlay_show(struct grate_overlay *overlay,
-			struct grate_framebuffer *fb, unsigned int x,
-			unsigned int y, unsigned int width,
-			unsigned int height, bool vsync);
-
 struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					    unsigned long flags,
 					    const void *data);

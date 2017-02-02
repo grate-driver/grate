@@ -147,9 +147,30 @@ void grate_exit(struct grate *grate)
 	free(grate);
 }
 
+static void grate_display_framebuffer(struct grate *grate,
+				      struct grate_framebuffer *fb,
+				      bool flip)
+{
+	struct grate_options *options = grate->options;
+
+	if (!grate->display && !grate->overlay)
+		return;
+
+	if (!flip && !options->vsync && !fb->back)
+		return;
+
+	if (grate->overlay)
+		grate_overlay_show(grate->overlay, fb, 0, 0,
+				   options->width, options->height,
+				   options->vsync);
+	else
+		grate_display_show(grate->display, fb, options->vsync);
+}
+
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)
 {
 	grate->fb = fb;
+	grate_display_framebuffer(grate, fb, true);
 }
 
 struct host1x_pixelbuffer * grate_get_draw_pixbuf(struct grate_framebuffer *fb)
@@ -204,7 +225,7 @@ void grate_framebuffer_free(struct grate_framebuffer *fb)
 	free(fb);
 }
 
-void grate_framebuffer_swap(struct grate_framebuffer *fb)
+static void grate_framebuffer_swap(struct grate_framebuffer *fb)
 {
 	struct host1x_framebuffer *tmp = fb->front;
 
@@ -226,16 +247,10 @@ void grate_framebuffer_save(struct grate *grate,
 
 void grate_swap_buffers(struct grate *grate)
 {
-	if (grate->display || grate->overlay) {
-		struct grate_options *options = grate->options;
+	grate_framebuffer_swap(grate->fb);
 
-		if (grate->overlay)
-			grate_overlay_show(grate->overlay, grate->fb, 0, 0,
-					   options->width, options->height,
-					   options->vsync);
-		else
-			grate_display_show(grate->display, grate->fb,
-					   options->vsync);
+	if (grate->display || grate->overlay) {
+		grate_display_framebuffer(grate, grate->fb, false);
 	} else {
 		grate_framebuffer_save(grate, grate->fb, "test.png");
 	}
