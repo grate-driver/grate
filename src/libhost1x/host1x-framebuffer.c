@@ -29,12 +29,13 @@
 
 #include "host1x-private.h"
 
-static void detile(void *target, struct host1x_framebuffer *fb,
+#if 0
+static void detile(void *target, struct host1x_pixelbuffer *pb,
 		   unsigned int tx, unsigned int ty)
 {
-	const unsigned int nx = fb->pitch / tx, ny = fb->height / ty;
+	const unsigned int nx = pb->pitch / tx, ny = pb->height / ty;
 	const unsigned int size = tx * ty, pitch = tx * nx;
-	const void *source = fb->bo->ptr;
+	const void *source = pb->bo->ptr;
 	unsigned int i, j, k;
 
 	for (j = 0; j < ny; j++) {
@@ -50,33 +51,53 @@ static void detile(void *target, struct host1x_framebuffer *fb,
 		}
 	}
 }
+#endif
 
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
-						     unsigned short width,
-						     unsigned short height,
-						     unsigned short depth,
+						     unsigned int width,
+						     unsigned int height,
+						     enum pixel_format format,
+						     enum layout_format layout,
 						     unsigned long flags)
 {
 	struct host1x_framebuffer *fb;
+	unsigned pitch;
 	int err;
+
+	switch (layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		host1x_error("Invalid layout %u\n", layout);
+		return NULL;
+	}
+
+	switch (format) {
+	case PIX_BUF_FMT_RGB565:
+		pitch = width * 2;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		pitch = width * 4;
+		break;
+	default:
+		host1x_error("Invalid format %u\n", format);
+		return NULL;
+	}
 
 	fb = calloc(1, sizeof(*fb));
 	if (!fb)
 		return NULL;
 
-	/* XXX: depth buffer */
-	//depth += 16;
-
-	fb->pitch = width * (depth / 8);
-	fb->width = width;
-	fb->height = height;
-	fb->depth = depth;
-
-	fb->bo = host1x_bo_create(host1x, fb->pitch * height, 1);
-	if (!fb->bo) {
+	fb->pixbuf = host1x_pixelbuffer_create(host1x,
+					       width, height, pitch,
+					       format, layout);
+	if (!fb->pixbuf) {
 		free(fb);
 		return NULL;
 	}
+
+	fb->flags = flags;
 
 	if (host1x->framebuffer_init) {
 		err = host1x->framebuffer_init(host1x, fb);
@@ -91,12 +112,16 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 
 void host1x_framebuffer_free(struct host1x_framebuffer *fb)
 {
-	host1x_bo_free(fb->bo);
+	host1x_pixelbuffer_free(fb->pixbuf);
 	free(fb);
 }
 
-int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
+int host1x_framebuffer_save(struct host1x *host1x,
+			    struct host1x_framebuffer *fb,
+			    const char *path)
 {
+	struct host1x_pixelbuffer *tiled_pixbuf = fb->pixbuf;
+	struct host1x_pixelbuffer *detiled_pixbuf;
 	png_structp png;
 	png_bytep *rows;
 	png_infop info;
@@ -105,23 +130,15 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 	FILE *fp;
 	int err;
 
-	if (fb->depth != 32) {
-		fprintf(stderr, "ERROR: %u bits per pixel not supported\n",
-			fb->depth);
+	if (PIX_BUF_FORMAT_BITS(tiled_pixbuf->format) != 32) {
+		host1x_error("%u bits per pixel not supported\n",
+			     PIX_BUF_FORMAT_BITS(tiled_pixbuf->format));
 		return -EINVAL;
 	}
 
-	err = host1x_bo_mmap(fb->bo, NULL);
-	if (err < 0)
-		return -EFAULT;
-
-	err = host1x_bo_invalidate(fb->bo, 0, fb->bo->size);
-	if (err < 0)
-		return -EFAULT;
-
 	fp = fopen(path, "wb");
 	if (!fp) {
-		fprintf(stderr, "failed to write `%s'\n", path);
+		host1x_error("Failed to write `%s'\n", path);
 		return -errno;
 	}
 
@@ -141,41 +158,67 @@ int host1x_framebuffer_save(struct host1x_framebuffer *fb, const char *path)
 	if (setjmp(png_jmpbuf(png)))
 		return -EIO;
 
-	png_set_IHDR(png, info, fb->width, fb->height, 8, PNG_COLOR_TYPE_RGBA,
+	png_set_IHDR(png, info, tiled_pixbuf->width, tiled_pixbuf->height,
+		     8, PNG_COLOR_TYPE_RGBA,
 		     PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 		     PNG_FILTER_TYPE_BASE);
 	png_write_info(png, info);
 
 	if (setjmp(png_jmpbuf(png))) {
-		fprintf(stderr, "failed to write IHDR\n");
+		host1x_error("Failed to write IHDR\n");
 		return -EIO;
 	}
 
-	buffer = malloc(fb->pitch * fb->height);
-	if (!buffer)
-		return ENOMEM;
+	if (tiled_pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16) {
+		detiled_pixbuf = host1x_pixelbuffer_create(host1x,
+							tiled_pixbuf->width,
+							tiled_pixbuf->height,
+							tiled_pixbuf->width * 4,
+							tiled_pixbuf->format,
+							PIX_BUF_LAYOUT_LINEAR);
+		if (!detiled_pixbuf)
+			return -ENOMEM;
 
-	detile(buffer, fb, 16, 16);
+		err = host1x_gr2d_blit(host1x->gr2d,
+				       tiled_pixbuf,
+				       detiled_pixbuf,
+				       0, 0, 0, 0,
+				       tiled_pixbuf->width,
+				       tiled_pixbuf->height);
+		if (err < 0)
+			return -EFAULT;
+	} else {
+		detiled_pixbuf = tiled_pixbuf;
+	}
 
-	rows = malloc(fb->height * sizeof(png_bytep));
+	err = HOST1X_BO_MMAP(detiled_pixbuf->bo, &buffer);
+	if (err < 0)
+		return -EFAULT;
+
+	err = HOST1X_BO_INVALIDATE(detiled_pixbuf->bo, 0,
+				   detiled_pixbuf->bo->size);
+	if (err < 0)
+		return -EFAULT;
+
+	rows = malloc(detiled_pixbuf->height * sizeof(png_bytep));
 	if (!rows) {
-		fprintf(stderr, "out-of-memory\n");
-		free(buffer);
+		host1x_error("Out-of-memory\n");
 		return -ENOMEM;
 	}
 
-	for (i = 0; i < fb->height; i++)
-		rows[fb->height - i - 1] = buffer + i * fb->pitch;
+	for (i = 0; i < detiled_pixbuf->height; i++)
+		rows[detiled_pixbuf->height - i - 1] =
+					buffer + i * detiled_pixbuf->pitch;
 
 	png_write_image(png, rows);
-
-	free(rows);
-	free(buffer);
 
 	if (setjmp(png_jmpbuf(png)))
 		return -EIO;
 
 	png_write_end(png, NULL);
+
+	if (detiled_pixbuf != tiled_pixbuf)
+		host1x_pixelbuffer_free(detiled_pixbuf);
 
 	fclose(fp);
 

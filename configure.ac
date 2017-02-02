@@ -25,6 +25,7 @@ if [test "$HAVE_GLES1" -eq 1] || [test "$HAVE_GLES2" -eq 1]; then
 	PKG_CHECK_MODULES(X11, x11)
 fi
 
+PKG_CHECK_MODULES(DevIL, ILU)
 PKG_CHECK_MODULES(PNG, libpng)
 PKG_CHECK_MODULES(DRM, libdrm)
 

@@ -33,6 +33,7 @@
 
 #include <png.h>
 
+#include "host1x-private.h"
 #include "nvhost-nvmap.h"
 
 struct nvmap_create_handle {
@@ -163,7 +164,7 @@ void nvmap_handle_free(struct nvmap *nvmap, struct nvmap_handle *handle)
 
 	err = ioctl(nvmap->fd, NVMAP_IOCTL_FREE, handle->id);
 	if (err < 0) {
-		fprintf(stderr, "failed to free nvmap handle\n");
+		host1x_error("Failed to free nvmap handle\n");
 	}
 
 	free(handle);

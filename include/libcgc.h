@@ -36,7 +36,7 @@ enum cgc_shader_type {
 
 struct cgc_header_symbol {
 	uint32_t datatype;
-	uint32_t unknown01;
+	int32_t unknown01;
 	/*
 	 * type? seen:
 	 * - 0x1005 for attributes and output variables
@@ -44,7 +44,7 @@ struct cgc_header_symbol {
 	 * - 0x1007 for constants
 	 */
 	uint32_t type;
-	uint32_t location;
+	int32_t location;
 	uint32_t name_offset;
 	uint32_t values_offset;
 	uint32_t unknown06;

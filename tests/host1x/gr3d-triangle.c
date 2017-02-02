@@ -84,31 +84,35 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	fb = host1x_framebuffer_create(host1x, width, height, 32, 0);
+	fb = host1x_framebuffer_create(host1x, width, height,
+				       PIX_BUF_FMT_RGBA8888,
+				       PIX_BUF_LAYOUT_TILED_16x16, 0);
 	if (!fb) {
 		fprintf(stderr, "host1x_framebuffer_create() failed\n");
 		return 1;
 	}
 
-	copy = host1x_framebuffer_create(host1x, width, height, 32, 0);
+	copy = host1x_framebuffer_create(host1x, width, height,
+					 PIX_BUF_FMT_RGBA8888,
+					 PIX_BUF_LAYOUT_TILED_16x16, 0);
 	if (!copy) {
 		fprintf(stderr, "host1x_framebuffer_create() failed\n");
 		return 1;
 	}
 
-	err = host1x_gr2d_clear(gr2d, fb, 0.0f, 0.0f, 0.0f, 1.0f);
+	err = host1x_gr2d_clear(gr2d, fb->pixbuf, 0.0f, 0.0f, 0.0f, 1.0f);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr2d_clear() failed: %d\n", err);
 		return 1;
 	}
 
-	err = host1x_gr3d_triangle(gr3d, fb);
+	err = host1x_gr3d_triangle(gr3d, fb->pixbuf);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr3d_triangle() failed: %d\n", err);
 		return 1;
 	}
 
-	err = host1x_gr2d_clear(gr2d, copy, 1.0f, 1.0f, 0.0f, 1.0f);
+	err = host1x_gr2d_clear(gr2d, copy->pixbuf, 1.0f, 1.0f, 0.0f, 1.0f);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr2d_clear() failed: %d\n", err);
 		return 1;
@@ -128,7 +132,8 @@ int main(int argc, char *argv[])
 			else
 				sleep(1);
 
-			err = host1x_gr2d_blit(gr2d, fb, copy, 0, 0, 0, 0, width, height);
+			err = host1x_gr2d_blit(gr2d, fb->pixbuf, copy->pixbuf,
+					       0, 0, 0, 0, width, height);
 			if (err < 0)
 				fprintf(stderr, "host1x_gr2d_blit() failed: %d\n", err);
 			else
@@ -148,14 +153,15 @@ int main(int argc, char *argv[])
 			else
 				sleep(1);
 
-			err = host1x_gr2d_blit(gr2d, fb, copy, 0, 0, 0, 0, width, height);
+			err = host1x_gr2d_blit(gr2d, fb->pixbuf, copy->pixbuf,
+					       0, 0, 0, 0, width, height);
 			if (err < 0)
 				fprintf(stderr, "host1x_gr2d_blit() failed: %d\n", err);
 			else
 				sleep(1);
 		}
 	} else {
-		host1x_framebuffer_save(fb, "test.png");
+		host1x_framebuffer_save(host1x, fb, "test.png");
 	}
 
 	host1x_framebuffer_free(fb);

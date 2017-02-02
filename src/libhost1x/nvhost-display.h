@@ -33,8 +33,8 @@ struct nvhost_display {
 	struct host1x_overlay overlay;
 	struct nvhost *nvhost;
 	uint32_t vblank_syncpt;
-	uint32_t plane;
-	uint32_t fd;
+	int plane;
+	int fd;
 };
 
 struct nvhost_display * nvhost_display_create(struct nvhost *nvhost);

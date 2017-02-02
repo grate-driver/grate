@@ -22,35 +22,35 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "../libhost1x/host1x-private.h"
+#include "libgrate-private.h"
+
 #include "grate.h"
 
-int main(int argc, char *argv[])
+void grate_clear_color(struct grate *grate, float red, float green,
+		       float blue, float alpha)
 {
-	struct grate_framebuffer *fb;
-	struct grate_options options;
-	struct grate *grate;
+	grate->clear.r = red;
+	grate->clear.g = green;
+	grate->clear.b = blue;
+	grate->clear.a = alpha;
+}
 
-	if (!grate_parse_command_line(&options, argc, argv))
-		return 1;
+void grate_clear(struct grate *grate)
+{
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
+	struct host1x_framebuffer *front = grate->fb->front;
+	struct host1x_framebuffer *back = grate->fb->back;
+	struct grate_color *clear = &grate->clear;
+	int err;
 
-	grate = grate_init(&options);
-	if (!grate)
-		return 1;
+	if (!grate->fb) {
+		grate_error("no framebuffer bound to state\n");
+		return;
+	}
 
-	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      PIX_BUF_FMT_RGBA8888,
-				      PIX_BUF_LAYOUT_TILED_16x16,
-				      GRATE_DOUBLE_BUFFERED);
-	if (!fb)
-		return 1;
-
-	grate_clear_color(grate, 1.0f, 0.0f, 1.0f, 1.0f);
-	grate_bind_framebuffer(grate, fb);
-	grate_clear(grate);
-
-	grate_swap_buffers(grate);
-	grate_wait_for_key(grate);
-
-	grate_exit(grate);
-	return 0;
+	err = host1x_gr2d_clear(gr2d, back ? back->pixbuf : front->pixbuf,
+				clear->r, clear->g, clear->b, clear->a);
+	if (err < 0)
+		grate_error("host1x_gr2d_clear() failed: %d\n", err);
 }

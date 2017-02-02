@@ -24,34 +24,24 @@
 
 #include <stdio.h>
 
-#include "libcgc.h"
+#include "libcgc-private.h"
 
-struct cgc_shader *cgc_compile(enum cgc_shader_type type, const char *code,
-			       size_t size)
+struct CgDrv *CgDrv_Create(void)
 {
 	fprintf(stderr, "%s: BLOB compiler is unavailable\n", __func__);
 	return NULL;
 }
 
-void cgc_shader_free(struct cgc_shader *shader)
+void CgDrv_Delete(struct CgDrv *cgdrv)
 {
 }
 
-void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
+void CgDrv_CleanUp(struct CgDrv *cgdrv)
 {
 }
 
-struct cgc_symbol *cgc_shader_get_symbol_by_kind(struct cgc_shader *shader,
-						 enum glsl_kind kind,
-						 unsigned int index)
+int CgDrv_Compile(struct CgDrv *cgdrv, int unknown, int type,
+		  const char *code, size_t length, int unknown2, int unknown3)
 {
-	return NULL;
-}
-
-struct cgc_symbol *
-cgc_shader_find_symbol_by_kind(struct cgc_shader *shader,
-			       enum glsl_kind kind, const char *name,
-			       unsigned int *index)
-{
-	return NULL;
+	return -1;
 }

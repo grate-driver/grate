@@ -53,24 +53,39 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	struct nvhost *nvhost = display->nvhost;
 	struct tegra_dc_ext_flip flip;
 	uint32_t vblank_cnt;
+	unsigned pixformat;
 	int err;
+
+	switch (fb->pixbuf->format) {
+	case PIX_BUF_FMT_RGB565:
+		pixformat = TEGRA_DC_EXT_FMT_B5G6R5;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		pixformat = TEGRA_DC_EXT_FMT_R8G8B8A8;
+		break;
+	default:
+		return -1;
+	}
 
 	memset(&flip, 0, sizeof(flip));
 
 	flip.win[0].index = -1;
 	flip.win[1].index = -1;
 	flip.win[2].index = display->plane;
-	flip.win[2].stride = fb->pitch;
-	flip.win[2].buff_id = fb->bo->handle;
-	flip.win[2].pixformat = TEGRA_DC_EXT_FMT_R8G8B8A8;
-	flip.win[2].w = fb->width << 12;
-	flip.win[2].h = fb->height << 12;
+	flip.win[2].stride = fb->pixbuf->pitch;
+	flip.win[2].buff_id = fb->pixbuf->bo->handle;
+	flip.win[2].pixformat = pixformat;
+	flip.win[2].w = fb->pixbuf->width << 12;
+	flip.win[2].h = fb->pixbuf->height << 12;
 	flip.win[2].out_x = x;
 	flip.win[2].out_y = y;
 	flip.win[2].out_w = width;
 	flip.win[2].out_h = height;
 	flip.win[2].pre_syncpt_id = (uint32_t)-1;
-	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_TILED;
+	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
+
+	if (fb->pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16)
+		flip.win[2].flags |= TEGRA_DC_EXT_FLIP_FLAG_TILED;
 
 	if (vsync) {
 		err = nvhost_ctrl_read_syncpt(nvhost->ctrl,
@@ -156,7 +171,7 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 	struct nvhost_display *display;
 	uint32_t num_outputs = 0;
 	uint32_t syncpt;
-	int output;
+	uint32_t output;
 	int err;
 	int fd;
 

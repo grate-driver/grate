@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,6 +161,12 @@ static void window_draw(struct window *window)
 int main(int argc, char *argv[])
 {
 	struct window *window;
+
+	if (chdir( dirname(argv[0]) ) == -1)
+		fprintf(stderr, "chdir failed\n");
+
+	if (chdir("../../") == -1)
+		fprintf(stderr, "chdir failed\n");
 
 	window = window_create(0, 0, 640, 480);
 	if (!window) {

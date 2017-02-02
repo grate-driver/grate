@@ -155,8 +155,9 @@ int ioctl(int fd, unsigned long request, ...)
 {
 	static typeof(ioctl) *orig = NULL;
 	const struct ioctl *ioc = NULL;
-	int size = _IOC_SIZE(request);
 	struct file *file;
+	va_list ap;
+	void *arg;
 	int ret;
 
 	if (!orig)
@@ -174,34 +175,19 @@ int ioctl(int fd, unsigned long request, ...)
 		}
 	}
 
-	if (size) {
-		va_list ap;
-		void *arg;
+	va_start(ap, request);
+	arg = va_arg(ap, void *);
+	va_end(ap);
 
-		va_start(ap, request);
-		arg = va_arg(ap, void *);
-		va_end(ap);
+	printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
 
-		printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
+	if (file && file->ops && file->ops->enter_ioctl)
+		file->ops->enter_ioctl(file, request, arg);
 
-		if (file && file->ops && file->ops->enter_ioctl)
-			file->ops->enter_ioctl(file, request, arg);
+	ret = orig(fd, request, arg);
 
-		ret = orig(fd, request, arg);
-
-		if (file && file->ops && file->ops->leave_ioctl)
-			file->ops->leave_ioctl(file, request, arg);
-	} else {
-		printf("%s(fd=%d, request=%#lx)\n", __func__, fd, request);
-
-		if (file && file->ops && file->ops->enter_ioctl)
-			file->ops->enter_ioctl(file, request, NULL);
-
-		ret = orig(fd, request);
-
-		if (file && file->ops && file->ops->leave_ioctl)
-			file->ops->leave_ioctl(file, request, NULL);
-	}
+	if (file && file->ops && file->ops->leave_ioctl)
+		file->ops->leave_ioctl(file, request, arg);
 
 	if (!ioc) {
 		printf("  dir:%lx type:'%c' nr:%lx size:%lu\n",

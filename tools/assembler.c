@@ -30,6 +30,7 @@
 #include <sys/mman.h>
 
 #include "grate.h"
+#include "tgr_3d.xml.h"
 
 struct vs_asm_test {
 	char *vs_path;
@@ -175,13 +176,13 @@ int main(int argc, char *argv[])
 	struct grate_framebuffer *fb;
 	struct grate_shader *vs, *fs, *linker;
 	struct grate_options options;
-	unsigned long offset = 0;
 	struct grate *grate;
-	struct grate_bo *bo;
+	struct grate_3d_ctx *ctx;
+	struct host1x_pixelbuffer *pixbuf;
+	struct host1x_bo *bo;
 	void *vertex_shader;
 	void *fragment_shader;
 	void *linker_code;
-	void *buffer;
 	uint32_t *fb_data;
 	uint32_t result;
 	int ret = 0;
@@ -198,26 +199,22 @@ int main(int argc, char *argv[])
 	if (!grate)
 		return 1;
 
-	bo = grate_bo_create(grate, 4096, 0);
-	if (!bo)
-		return 1;
-
-	buffer = grate_bo_map(bo);
-	if (!buffer)
-		return 1;
-
 	fb = grate_framebuffer_create(grate, options.width, options.height,
-				      GRATE_RGBA8888, GRATE_DOUBLE_BUFFERED);
+				      PIX_BUF_FMT_RGBA8888,
+				      PIX_BUF_LAYOUT_TILED_16x16,
+				      GRATE_SINGLE_BUFFERED);
 	if (!fb)
 		return 1;
 
-	fb_data = grate_framebuffer_data(fb, false);
+	fb_data = grate_framebuffer_data(fb, true);
 	if (!fb_data)
 		return 1;
 
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
 	grate_clear(grate);
+
+	/* Prepare shaders */
 
 	vertex_shader = open_file(test.vs_path, "vertex shader");
 	if (vertex_shader == NULL)
@@ -255,38 +252,63 @@ int main(int argc, char *argv[])
 	program = grate_program_new(grate, vs, fs, linker);
 	grate_program_link(program);
 
-	grate_viewport(grate, 0.0f, 0.0f, options.width, options.height);
-	grate_use_program(grate, program);
+	/* Setup context */
 
-	location = grate_get_attribute_location(grate, "position");
-	if (location < 0) {
-		fprintf(stderr, "\"position\": attribute not found\n");
-		return 1;
-	}
+	ctx = grate_3d_alloc_ctx(grate);
 
-	memcpy(buffer + offset, vertices, sizeof(vertices));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
-				bo, offset);
-	offset += sizeof(vertices);
+	grate_3d_ctx_bind_program(ctx, program);
+	grate_3d_ctx_set_depth_range(ctx, 0.0f, 1.0f);
+	grate_3d_ctx_set_dither(ctx, 0x779);
+	grate_3d_ctx_set_point_params(ctx, 0x1401);
+	grate_3d_ctx_set_point_size(ctx, 1.0f);
+	grate_3d_ctx_set_line_params(ctx, 0x2);
+	grate_3d_ctx_set_line_width(ctx, 1.0f);
+	grate_3d_ctx_set_viewport_bias(ctx, 0.0f, 0.0f, 0.5f);
+	grate_3d_ctx_set_viewport_scale(ctx, options.width, options.height, 0.5f);
+	grate_3d_ctx_use_guardband(ctx, true);
+	grate_3d_ctx_set_front_direction_is_cw(ctx, false);
+	grate_3d_ctx_set_cull_ccw(ctx, false);
+	grate_3d_ctx_set_cull_cw(ctx, false);
+	grate_3d_ctx_set_scissor(ctx, 0, options.width, 0, options.height);
+	grate_3d_ctx_set_point_coord_range(ctx, 0.0f, 1.0f, 0.0f, 1.0f);
+	grate_3d_ctx_set_polygon_offset(ctx, 0.0f, 0.0f);
+	grate_3d_ctx_set_provoking_vtx_last(ctx, true);
 
-	location = grate_get_attribute_location(grate, "color");
-	if (location < 0) {
-		fprintf(stderr, "\"color\": attribute not found\n");
-		return 1;
-	}
+	/* Setup vertices attribute */
 
-	memcpy(buffer + offset, colors, sizeof(colors));
-	grate_attribute_pointer(grate, location, sizeof(float), 4, 4,
-				bo, offset);
-	offset += sizeof(colors);
+	location = grate_get_attribute_location(program, "position");
+	bo = grate_bo_create_from_data(grate, sizeof(vertices), 4, vertices);
+	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
+					   ATTRIB_TYPE_FLOAT32,
+				           4 * sizeof(float), bo);
+	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
-	memcpy(buffer + offset, indices, sizeof(indices));
+	/* Setup colors attribute */
+
+	location = grate_get_attribute_location(program, "color");
+	bo = grate_bo_create_from_data(grate, sizeof(colors), 4, colors);
+	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
+					   ATTRIB_TYPE_FLOAT32,
+				           4 * sizeof(float), bo);
+	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
+
+	/* Setup render target */
+
+	pixbuf = grate_get_draw_pixbuf(fb);
+	grate_3d_ctx_bind_render_target(ctx, 1, pixbuf);
+	grate_3d_ctx_enable_render_target(ctx, 1);
+
+	/* Create indices BO */
+
+	bo = grate_bo_create_from_data(grate, sizeof(indices), 4, indices);
 
 	if (!test.test_only) {
 		dump_asm(vs, fs, linker);
 	}
 
-	grate_draw_elements(grate, GRATE_TRIANGLES, 2, 6, bo, offset);
+	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
+			       bo, INDEX_MODE_UINT16,
+			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
 	result = fb_data[0];

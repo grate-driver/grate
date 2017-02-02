@@ -2,6 +2,7 @@
  * Copyright (c) 2012, 2013 Erik Faye-Lund
  * Copyright (c) 2013 Avionic Design GmbH
  * Copyright (c) 2013 Thierry Reding
+ * Copyright (c) 2017 Dmitry Osipenko
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -22,6 +23,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <libgen.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
@@ -32,49 +34,122 @@
 
 static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
-	"uniform mat4 modelview;\n",
-	"attribute vec4 color;\n",
-	"varying vec4 vcolor;\n",
+	"attribute vec2 texcoord;\n",
+	"varying vec2 vtexcoord;\n",
+	"uniform mat4 mvp;\n",
 	"\n",
 	"void main()\n",
 	"{\n",
-	"    gl_Position = position * modelview;\n",
-	"    vcolor = color;\n",
-	"}"
+	"  gl_Position = position * mvp;\n",
+	"  vtexcoord = texcoord;\n",
+	"}\n"
 };
 
 static const char *fragment_shader[] = {
 	"precision mediump float;\n",
-	"varying vec4 vcolor;\n",
+	"varying vec2 vtexcoord;\n",
+	"uniform sampler2D tex;\n",
 	"\n",
 	"void main()\n",
 	"{\n",
-	"    gl_FragColor = vcolor;\n",
-	"}"
+	"  gl_FragColor = texture2D(tex, vtexcoord);\n",
+	"}\n"
 };
 
 static const char *shader_linker =
-	"LINK fp20, fp20, fp20, fp20, tram0.yxzw, export1"
+	"LINK fp20, fp20, NOP, NOP, tram0.zwxx, export1"
 ;
 
 static const float vertices[] = {
-	 0.0f,  0.5f, 0.0f, 1.0f,
-	-0.5f, -0.5f, 0.0f, 1.0f,
-	 0.5f, -0.5f, 0.0f, 1.0f,
+	/* front */
+	-0.5f, -0.5f,  0.5f, 1.0f,
+	 0.5f, -0.5f,  0.5f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 1.0f,
+	-0.5f,  0.5f,  0.5f, 1.0f,
+	/* back */
+	-0.5f, -0.5f, -0.5f, 1.0f,
+	 0.5f, -0.5f, -0.5f, 1.0f,
+	 0.5f,  0.5f, -0.5f, 1.0f,
+	-0.5f,  0.5f, -0.5f, 1.0f,
+	/* left */
+	-0.5f, -0.5f,  0.5f, 1.0f,
+	-0.5f,  0.5f,  0.5f, 1.0f,
+	-0.5f,  0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
+	/* right */
+	 0.5f, -0.5f,  0.5f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 1.0f,
+	 0.5f,  0.5f, -0.5f, 1.0f,
+	 0.5f, -0.5f, -0.5f, 1.0f,
+	/* top */
+	-0.5f,  0.5f,  0.5f, 1.0f,
+	 0.5f,  0.5f,  0.5f, 1.0f,
+	 0.5f,  0.5f, -0.5f, 1.0f,
+	-0.5f,  0.5f, -0.5f, 1.0f,
+	/* bottom */
+	-0.5f, -0.5f,  0.5f, 1.0f,
+	 0.5f, -0.5f,  0.5f, 1.0f,
+	 0.5f, -0.5f, -0.5f, 1.0f,
+	-0.5f, -0.5f, -0.5f, 1.0f,
 };
 
-static const float colors[] = {
-	1.0f, 0.0f, 0.0f, 1.0f,
-	0.0f, 1.0f, 0.0f, 1.0f,
-	0.0f, 0.0f, 1.0f, 1.0f,
+static const float uv[] = {
+	/* front */
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 1.0f,
+	/* back */
+	1.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	/* left */
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 1.0f,
+	/* right */
+	1.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	/* top */
+	0.0f, 0.0f,
+	1.0f, 0.0f,
+	1.0f, 1.0f,
+	0.0f, 1.0f,
+	/* bottom */
+	1.0f, 0.0f,
+	0.0f, 0.0f,
+	0.0f, 1.0f,
+	1.0f, 1.0f,
 };
 
 static const unsigned short indices[] = {
-	0, 1, 2,
+	/* front */
+	 0,  1,  2,
+	 0,  2,  3,
+	/* back */
+	 6,  5,  4,
+	 7,  6,  4,
+	/* left */
+	 8,  9, 10,
+	 8, 10, 11,
+	/* right */
+	14, 13, 12,
+	15, 14, 12,
+	/* top */
+	16, 17, 18,
+	16, 18, 19,
+	/* bottom */
+	22, 21, 20,
+	23, 22, 20,
 };
 
 int main(int argc, char *argv[])
 {
+	float x = 0.0f, y = 0.0f, z = 0.0f;
 	struct grate_program *program;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
@@ -82,10 +157,17 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
+	struct grate_texture *texture;
 	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_bo *bo;
-	int location, modelview_loc;
-	float angle = 0.0f;
+	int location, mvp_loc;
+	float aspect;
+
+	if (chdir( dirname(argv[0]) ) == -1)
+		fprintf(stderr, "chdir failed\n");
+
+	if (chdir("../../") == -1)
+		fprintf(stderr, "chdir failed\n");
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
@@ -103,7 +185,9 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
+	aspect = options.width / (float)options.height;
+
+	grate_clear_color(grate, 0.0f, 0.0f, 1.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
 
 	/* Prepare shaders */
@@ -117,7 +201,7 @@ int main(int argc, char *argv[])
 	program = grate_program_new(grate, vs, fs, linker);
 	grate_program_link(program);
 
-	modelview_loc = grate_get_vertex_uniform_location(program, "modelview");
+	mvp_loc = grate_get_vertex_uniform_location(program, "mvp");
 
 	/* Setup context */
 
@@ -135,7 +219,7 @@ int main(int argc, char *argv[])
 	grate_3d_ctx_use_guardband(ctx, true);
 	grate_3d_ctx_set_front_direction_is_cw(ctx, false);
 	grate_3d_ctx_set_cull_ccw(ctx, false);
-	grate_3d_ctx_set_cull_cw(ctx, false);
+	grate_3d_ctx_set_cull_cw(ctx, true);
 	grate_3d_ctx_set_scissor(ctx, 0, options.width, 0, options.height);
 	grate_3d_ctx_set_point_coord_range(ctx, 0.0f, 1.0f, 0.0f, 1.0f);
 	grate_3d_ctx_set_polygon_offset(ctx, 0.0f, 0.0f);
@@ -150,17 +234,32 @@ int main(int argc, char *argv[])
 				           4 * sizeof(float), bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
-	/* Setup colors attribute */
+	/* Setup texcoords attribute */
 
-	location = grate_get_attribute_location(program, "color");
-	bo = grate_bo_create_from_data(grate, sizeof(colors), 4, colors);
-	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
+	location = grate_get_attribute_location(program, "texcoord");
+	bo = grate_bo_create_from_data(grate, sizeof(uv), 4, uv);
+	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 2,
 					   ATTRIB_TYPE_FLOAT32,
-				           4 * sizeof(float), bo);
+				           2 * sizeof(float), bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
 	/* Setup render target */
+
 	grate_3d_ctx_enable_render_target(ctx, 1);
+
+	/* Setup texture */
+
+	texture = grate_create_texture(grate, 300, 300,
+				       PIX_BUF_FMT_RGBA8888,
+				       PIX_BUF_LAYOUT_LINEAR);
+	grate_texture_load(grate, texture, "data/tegra.png");
+	grate_texture_set_max_lod(texture, 0);
+	grate_texture_set_wrap_mode(texture, 0);
+	grate_texture_set_mip_filter(texture, false);
+	grate_texture_set_mag_filter(texture, false);
+	grate_texture_set_min_filter(texture, false);
+
+	grate_3d_ctx_bind_texture(ctx, 0, texture);
 
 	/* Create indices BO */
 
@@ -169,15 +268,26 @@ int main(int argc, char *argv[])
 	profile = grate_profile_start(grate);
 
 	while (true) {
-		struct mat4 rotation, scale, modelview;
+		struct mat4 mvp, modelview, projection, transform, result;
+
 		grate_clear(grate);
 
-		mat4_rotate_z(&rotation, angle);
-		mat4_scale(&scale, (float)options.height / options.width, 1, 1);
-		mat4_multiply(&modelview, &scale, &rotation);
+		mat4_perspective(&projection, 60.0f, aspect, 1.0f, 1024.0f);
+		mat4_identity(&modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, modelview_loc, 16,
-						(float *) &modelview);
+		mat4_rotate_x(&transform, x);
+		mat4_multiply(&result, &modelview, &transform);
+		mat4_rotate_y(&transform, y);
+		mat4_multiply(&modelview, &result, &transform);
+		mat4_rotate_z(&transform, z);
+		mat4_multiply(&result, &modelview, &transform);
+		mat4_translate(&transform, 0.0f, 0.0f, -2.0f);
+		mat4_multiply(&modelview, &transform, &result);
+
+		mat4_multiply(&mvp, &projection, &modelview);
+
+		grate_3d_ctx_set_vertex_uniform(ctx, mvp_loc, 16,
+						(float *) &mvp);
 
 		/* Setup render target */
 		pixbuf = grate_get_draw_pixbuf(fb);
@@ -193,7 +303,10 @@ int main(int argc, char *argv[])
 			break;
 
 		grate_profile_sample(profile);
-		angle += 1.0f;
+
+		x += 0.3f;
+		y += 0.2f;
+		z += 0.4f;
 	}
 
 	grate_profile_finish(profile);

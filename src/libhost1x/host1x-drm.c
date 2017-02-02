@@ -133,7 +133,7 @@ static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
 			continue;
 		}
 
-		if (!p->crtc_id && (p->possible_crtcs & (1 << display->pipe)))
+		if (!p->crtc_id && (p->possible_crtcs & (1u << display->pipe)))
 			id = p->plane_id;
 
 		drmModeFreePlane(p);
@@ -181,16 +181,20 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 			},
 		};
 
+		vblank.request.type |=
+				display->pipe << DRM_VBLANK_HIGH_CRTC_SHIFT;
+
 		err = drmWaitVBlank(drm->fd, &vblank);
 		if (err < 0) {
-			fprintf(stderr, "drmWaitVBlank() failed: %m\n");
+			host1x_error("drmWaitVBlank() failed: %m\n");
 			return -errno;
 		}
 	}
 
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
-			      fb->width << 16, fb->height << 16);
+			      fb->pixbuf->width << 16,
+			      fb->pixbuf->height << 16);
 	if (err < 0)
 		return -errno;
 
@@ -249,7 +253,13 @@ static int drm_display_set(struct host1x_display *display,
 		err = drmModePageFlip(drm->drm->fd, drm->crtc, fb->handle,
 				      DRM_MODE_PAGE_FLIP_EVENT, drm);
 		if (err < 0) {
-			fprintf(stderr, "drmModePageFlip() failed: %m\n");
+			err = drmModeSetCrtc(drm->drm->fd, drm->crtc,
+					     fb->handle, 0, 0, &drm->connector,
+					     1, &drm->mode);
+		}
+
+		if (err < 0) {
+			host1x_error("drmModePageFlip() failed: %m\n");
 			return -errno;
 		}
 
@@ -258,13 +268,13 @@ static int drm_display_set(struct host1x_display *display,
 		timeout.tv_usec = 0;
 
 		FD_ZERO(&fds);
-		FD_SET(drm->drm->fd, &fds);
+		FD_SET((unsigned)drm->drm->fd, &fds);
 
 		err = select(drm->drm->fd + 1, &fds, NULL, NULL, &timeout);
 		if (err <= 0) {
 		}
 
-		if (FD_ISSET(drm->drm->fd, &fds)) {
+		if (FD_ISSET((unsigned)drm->drm->fd, &fds)) {
 			drmEventContext context;
 
 			memset(&context, 0, sizeof(context));
@@ -410,7 +420,7 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 		return -errno;
 
 	ptr = mmap(NULL, bo->size, PROT_READ | PROT_WRITE, MAP_SHARED,
-		   drm->drm->fd, args.offset);
+		   drm->drm->fd, (__off_t)args.offset);
 	if (ptr == MAP_FAILED)
 		return -errno;
 
@@ -419,35 +429,37 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 	return 0;
 }
 
-static int drm_bo_invalidate(struct host1x_bo *bo, loff_t offset,
+static int drm_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 			     size_t length)
 {
 	return 0;
 }
 
-static int drm_bo_flush(struct host1x_bo *bo, loff_t offset, size_t length)
+static int drm_bo_flush(struct host1x_bo *bo, unsigned long offset,
+			size_t length)
 {
 	return 0;
 }
 
 static void drm_bo_free(struct host1x_bo *bo)
 {
-	struct drm_bo *drm = to_drm_bo(bo);
+	struct drm_bo *drm_bo = to_drm_bo(bo);
 	struct drm_gem_close args;
 	int err;
 
 	memset(&args, 0, sizeof(args));
 	args.handle = bo->handle;
 
-	err = ioctl(drm->drm->fd, DRM_IOCTL_GEM_CLOSE, &args);
+	err = ioctl(drm_bo->drm->fd, DRM_IOCTL_GEM_CLOSE, &args);
 	if (err < 0)
-		fprintf(stderr, "failed to delete buffer object: %m\n");
+		host1x_error("failed to delete buffer object: %m\n");
 
-	free(drm);
+	free(drm_bo);
 }
 
-static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
-				       unsigned long flags)
+static struct host1x_bo *drm_bo_create(struct host1x *host1x,
+				       struct host1x_bo_priv *priv,
+				       size_t size, unsigned long flags)
 {
 	struct drm_tegra_gem_create args;
 	struct drm *drm = to_drm(host1x);
@@ -459,11 +471,16 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 
 	bo->drm = drm;
+	bo->base.priv = priv;
 
 	memset(&args, 0, sizeof(args));
-	args.flags = DRM_TEGRA_GEM_CREATE_BOTTOM_UP |
-		     DRM_TEGRA_GEM_CREATE_TILED;
 	args.size = size;
+
+	if (flags & HOST1X_BO_CREATE_FLAG_BOTTOM_UP)
+		args.flags |= DRM_TEGRA_GEM_CREATE_BOTTOM_UP;
+
+	if (flags & HOST1X_BO_CREATE_FLAG_TILED)
+		args.flags |= DRM_TEGRA_GEM_CREATE_TILED;
 
 	err = ioctl(drm->fd, DRM_IOCTL_TEGRA_GEM_CREATE, &args);
 	if (err < 0) {
@@ -474,10 +491,10 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x, size_t size,
 	bo->base.handle = args.handle;
 	bo->base.size = size;
 
-	bo->base.mmap = drm_bo_mmap;
-	bo->base.invalidate = drm_bo_invalidate;
-	bo->base.flush = drm_bo_flush;
-	bo->base.free = drm_bo_free;
+	bo->base.priv->mmap = drm_bo_mmap;
+	bo->base.priv->invalidate = drm_bo_invalidate;
+	bo->base.priv->flush = drm_bo_flush;
+	bo->base.priv->free = drm_bo_free;
 
 	return &bo->base;
 }
@@ -486,22 +503,30 @@ static int drm_framebuffer_init(struct host1x *host1x,
 				struct host1x_framebuffer *fb)
 {
 	uint32_t handles[1], pitches[1], offsets[1], format;
+	struct host1x_pixelbuffer *pixbuf = fb->pixbuf;
 	struct drm *drm = to_drm(host1x);
 	int err;
 
 	/* XXX: support other formats */
-	if (fb->depth != 32) {
-		fprintf(stderr, "ERROR: only 32-bit (XBGR8888) supported\n");
+	switch (pixbuf->format)
+	{
+	case PIX_BUF_FMT_RGB565:
+		format = DRM_FORMAT_RGB565;
+		break;
+	case PIX_BUF_FMT_RGBA8888:
+		format = DRM_FORMAT_XBGR8888;
+		break;
+	default:
+		host1x_error("Unsupported framebuffer format\n");
 		return -EINVAL;
 	}
 
-	format = DRM_FORMAT_XBGR8888;
-	handles[0] = fb->bo->handle;
-	pitches[0] = fb->pitch;
+	handles[0] = pixbuf->bo->handle;
+	pitches[0] = pixbuf->pitch;
 	offsets[0] = 0;
 
-	err = drmModeAddFB2(drm->fd, fb->width, fb->height, format,  handles,
-			    pitches, offsets, &fb->handle, 0);
+	err = drmModeAddFB2(drm->fd, pixbuf->width, pixbuf->height, format,
+			    handles, pitches, offsets, &fb->handle, 0);
 	if (err < 0)
 		return -errno;
 
@@ -595,8 +620,8 @@ static int drm_channel_submit(struct host1x_client *client,
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SUBMIT, &args);
 	if (err < 0) {
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_SUBMIT) failed: %d\n",
-			errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_SUBMIT) failed: %d\n",
+			     errno);
 		err = -errno;
 	} else {
 		channel->fence = args.fence;
@@ -635,8 +660,8 @@ static int drm_channel_wait(struct host1x_client *client, uint32_t fence,
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SYNCPT_WAIT, &args);
 	if (err < 0) {
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
-			errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
+			     errno);
 		return -errno;
 	}
 
@@ -697,8 +722,8 @@ static void drm_channel_exit(struct drm_channel *channel)
 
 	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CLOSE_CHANNEL, &args);
 	if (err < 0)
-		fprintf(stderr, "ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
-			-errno);
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
+			     -errno);
 
 	free(channel->client.syncpts);
 }
@@ -814,7 +839,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_gr2d_create(&drm->gr2d, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_gr2d_create() failed: %d\n", err);
+		host1x_error("drm_gr2d_create() failed: %d\n", err);
 		free(drm);
 		close(fd);
 		return NULL;
@@ -822,7 +847,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_gr3d_create(&drm->gr3d, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_gr3d_create() failed: %d\n", err);
+		host1x_error("drm_gr3d_create() failed: %d\n", err);
 		free(drm);
 		close(fd);
 		return NULL;
@@ -830,7 +855,7 @@ struct host1x *host1x_drm_open(void)
 
 	err = drm_display_create(&drm->display, drm);
 	if (err < 0) {
-		fprintf(stderr, "drm_display_create() failed: %d\n", err);
+		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {
 		drm->base.display = &drm->display->base;
 	}

@@ -42,7 +42,7 @@ static int nvhost_bo_mmap(struct host1x_bo *bo)
 	return 0;
 }
 
-static int nvhost_bo_invalidate(struct host1x_bo *bo, loff_t offset,
+static int nvhost_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 				size_t length)
 {
 	struct nvhost_bo *nbo = to_nvhost_bo(bo);
@@ -51,7 +51,8 @@ static int nvhost_bo_invalidate(struct host1x_bo *bo, loff_t offset,
 				       length);
 }
 
-static int nvhost_bo_flush(struct host1x_bo *bo, loff_t offset, size_t length)
+static int nvhost_bo_flush(struct host1x_bo *bo, unsigned long offset,
+			   size_t length)
 {
 	struct nvhost_bo *nbo = to_nvhost_bo(bo);
 
@@ -68,8 +69,9 @@ static void nvhost_bo_free(struct host1x_bo *bo)
 	free(nbo);
 }
 
-static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
-					  unsigned long flags)
+static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
+					  struct host1x_bo_priv *priv,
+					  size_t size, unsigned long flags)
 {
 	struct nvhost *nvhost = to_nvhost(host1x);
 	unsigned long heap_mask, align;
@@ -81,6 +83,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 
 	bo->nvmap = nvhost->nvmap;
+	bo->base.priv = priv;
 
 	bo->handle = nvmap_handle_create(nvhost->nvmap, size);
 	if (!bo->handle) {
@@ -88,7 +91,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 	}
 
-	switch (flags) {
+	switch (flags & ~HOST1X_BO_CREATE_DRM_FLAGS_MASK) {
 	case 1: /* framebuffer */
 		heap_mask = 1 << 0;
 		flags = 1 << 0;
@@ -132,10 +135,10 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x, size_t size,
 	bo->base.handle = bo->handle->id;
 	bo->base.size = bo->handle->size;
 
-	bo->base.mmap = nvhost_bo_mmap;
-	bo->base.invalidate = nvhost_bo_invalidate;
-	bo->base.flush = nvhost_bo_flush;
-	bo->base.free = nvhost_bo_free;
+	bo->base.priv->mmap = nvhost_bo_mmap;
+	bo->base.priv->invalidate = nvhost_bo_invalidate;
+	bo->base.priv->flush = nvhost_bo_flush;
+	bo->base.priv->free = nvhost_bo_free;
 
 	return &bo->base;
 }
@@ -180,7 +183,7 @@ struct host1x *host1x_nvhost_open(void)
 
 	nvhost->display = nvhost_display_create(nvhost);
 	if (!nvhost->display) {
-		fprintf(stderr, "nvhost_display_create() failed\n");
+		host1x_error("nvhost_display_create() failed\n");
 	} else {
 		nvhost->base.display = &nvhost->display->base;
 	}

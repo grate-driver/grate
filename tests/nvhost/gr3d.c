@@ -761,7 +761,7 @@ static int nvhost_gr3d_init(struct nvhost_gr3d *gr3d)
 
 	printf("fence: %u\n", fence);
 
-	err = nvhost_client_wait(&gr3d->client, fence, -1);
+	err = nvhost_client_wait(&gr3d->client, fence, ~0u);
 	if (err < 0)
 		return err;
 
@@ -1274,7 +1274,7 @@ int nvhost_gr3d_triangle(struct nvhost_gr3d *gr3d,
 
 	printf("fence: %u\n", fence);
 
-	err = nvhost_client_wait(&gr3d->client, fence, -1);
+	err = nvhost_client_wait(&gr3d->client, fence, ~0u);
 	if (err < 0) {
 		return err;
 	}

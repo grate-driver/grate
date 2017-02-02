@@ -179,7 +179,7 @@ static int nvhost_client_syncpt_init(struct nvhost_client *client)
 		return -errno;
 
 	for (i = 0; i < 32; i++)
-		if (args.value & (1 << i))
+		if (args.value & (1u << i))
 			base->num_syncpts++;
 
 	base->syncpts = calloc(base->num_syncpts, sizeof(*syncpt));
@@ -189,14 +189,14 @@ static int nvhost_client_syncpt_init(struct nvhost_client *client)
 	//printf("%u syncpoints: %08x\n", base->num_syncpts, args.value);
 
 	for (i = 0, j = 0; i < 32; i++) {
-		if (args.value & (1 << i)) {
+		if (args.value & (1u << i)) {
 			syncpt = &base->syncpts[j++];
 			syncpt->id = i;
 
 			err = nvhost_ctrl_read_syncpt(ctrl, i, &syncpt->value);
 			if (err < 0) {
-				fprintf(stderr, "failed to read syncpt: %d\n",
-					err);
+				host1x_error("Failed to read syncpt: %d\n",
+					     err);
 				continue;
 			}
 
@@ -259,8 +259,7 @@ static int nvhost_client_submit(struct host1x_client *client,
 
 	err = ioctl(nvhost->fd, NVHOST_IOCTL_CHANNEL_SUBMIT_EXT, &args);
 	if (err < 0) {
-		fprintf(stderr, "NVHOST_IOCTL_CHANNEL_SUBMIT_EXT: %d\n",
-			errno);
+		host1x_error("NVHOST_IOCTL_CHANNEL_SUBMIT_EXT: %d\n", errno);
 		return -errno;
 	}
 
@@ -351,8 +350,8 @@ static int nvhost_client_wait(struct host1x_client *client, uint32_t fence,
 		return -errno;
 
 	if (args.value != args.thresh)
-		fprintf(stderr, "syncpt %u: value:%u != thresh:%u\n",
-			args.id, args.value, args.thresh);
+		host1x_error("Syncpt %u: value:%u != thresh:%u\n",
+			     args.id, args.value, args.thresh);
 
 	return 0;
 }
@@ -369,7 +368,7 @@ int nvhost_client_init(struct nvhost_client *client, struct nvmap *nvmap,
 	client->fd = fd;
 
 	memset(&args, 0, sizeof(args));
-	args.fd = nvmap->fd;
+	args.fd = (unsigned)nvmap->fd;
 
 	err = ioctl(fd, NVHOST_IOCTL_CHANNEL_SET_NVMAP_FD, &args);
 	if (err < 0)
