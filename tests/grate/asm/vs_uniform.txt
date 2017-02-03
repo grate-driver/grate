@@ -1,0 +1,27 @@
+.attributes
+	[0] = "position";
+	[1] = "color";
+
+.exports
+	[0] = "gl_Position";
+	[7] = "vcolor";
+
+.uniforms
+	[100] = "uniform_100";
+	[135] = "uniform_135";
+
+.asm
+EXEC(export[0]=vector)
+	MOVv r0.xyzw, a[0].xyzw
+	NOPs
+;
+
+EXEC(export[7]=vector)
+	MOVv r0.xy**, c[100].xyzw
+	NOPs
+;
+
+EXEC(export[7]=vector)
+	MOVv r0.**zw, c[135].xyzw
+	NOPs
+;
