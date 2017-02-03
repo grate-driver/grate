@@ -24,6 +24,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
+#include <locale.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/stat.h>
@@ -32,6 +33,11 @@
 #include "grate.h"
 #include "tgr_3d.xml.h"
 
+struct vs_uniform {
+	char name[256];
+	float values[4];
+};
+
 struct vs_asm_test {
 	char *vs_path;
 	char *fs_path;
@@ -39,6 +45,9 @@ struct vs_asm_test {
 	uint32_t expected_result;
 	bool has_expected;
 	bool test_only;
+
+	struct vs_uniform vs_uniforms[256];
+	unsigned vs_uniforms_nb;
 };
 
 static const float vertices[] = {
@@ -90,6 +99,7 @@ static void * open_file(const char *path, const char *desc)
 
 static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 {
+	int ret;
 	int c;
 
 	memset(test, 0, sizeof(*test));
@@ -102,6 +112,7 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 			{"fs",		required_argument, NULL, 0},
 			{"lnk",		required_argument, NULL, 0},
 			{"testonly",	no_argument, NULL, 0},
+			{"vs_uniform",	required_argument, NULL, 0},
 			{ /* Sentinel */ }
 		};
 		int option_index = 0;
@@ -112,9 +123,8 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 		case 0:
 			switch (option_index) {
 			case 0:
-				errno = 0;
-				sscanf(optarg, "0x%X", &test->expected_result);
-				if (errno != 0) {
+				ret = sscanf(optarg, "0x%X", &test->expected_result);
+				if (ret != 1) {
 					fprintf(stderr, "failed to parse \"expected\" argument\n");
 					return 0;
 				}
@@ -131,6 +141,20 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 				break;
 			case 4:
 				test->test_only = true;
+				break;
+			case 5:
+				ret = sscanf(optarg, "[\"%[^\"]\"]=(%f,%f,%f,%f)",
+					     test->vs_uniforms[test->vs_uniforms_nb].name,
+					     &test->vs_uniforms[test->vs_uniforms_nb].values[0],
+					     &test->vs_uniforms[test->vs_uniforms_nb].values[1],
+					     &test->vs_uniforms[test->vs_uniforms_nb].values[2],
+					     &test->vs_uniforms[test->vs_uniforms_nb].values[3]);
+				if (ret != 5) {
+					fprintf(stderr, "failed to parse argument %s %d\n",
+						optarg, ret);
+					return 0;
+				}
+				test->vs_uniforms_nb++;
 				break;
 			default:
 				return 0;
@@ -188,6 +212,9 @@ int main(int argc, char *argv[])
 	int ret = 0;
 	int location;
 	int i;
+
+	/* float decimal point is locale-dependent */
+	setlocale(LC_ALL, "C");
 
 	if (!parse_command_line(&test, argc, argv))
 		return 1;
@@ -303,6 +330,16 @@ int main(int argc, char *argv[])
 
 	if (!test.test_only) {
 		dump_asm(vs, fs, linker);
+	}
+
+	/* Setup uniforms */
+
+	for (i = 0; i < test.vs_uniforms_nb; i++) {
+		int loc = grate_get_vertex_uniform_location(
+					program, test.vs_uniforms[i].name);
+
+		grate_3d_ctx_set_vertex_uniform(ctx, loc, 4,
+						test.vs_uniforms[i].values);
 	}
 
 	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
