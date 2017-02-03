@@ -53,6 +53,7 @@ extern vpe_instr128 asm_vs_instructions[256];
 extern asm_const asm_vs_constants[256];
 extern asm_in_out asm_vs_attributes[16];
 extern asm_in_out asm_vs_exports[16];
+extern asm_in_out asm_vs_uniforms[256];
 extern int asm_vs_instructions_nb;
 
 const char * vpe_vliw_disassemble(const vpe_instr128 *ins);

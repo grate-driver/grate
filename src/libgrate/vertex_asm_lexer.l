@@ -45,6 +45,7 @@ int yywrap(void)
 ".exports"		return T_EXPORTS;
 ".constants"		return T_CONSTANTS;
 ".attributes"		return T_ATTRIBUTES;
+".uniforms"		return T_UNIFORMS;
 [-]{0,1}[0-9]+"."[0-9]+ {
 				vertex_asmlval.f = atof(yytext);
 				return T_FLOAT;

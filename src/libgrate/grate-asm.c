@@ -181,6 +181,32 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->num_symbols++;
 	}
 
+	for (i = 0; i < 256; i++) {
+		if (!asm_vs_uniforms[i].used)
+			continue;
+
+		symbols = realloc(cgc->symbols,
+			(cgc->num_symbols + 1) * sizeof(struct cgc_symbol));
+
+		if (!symbols) {
+			free(cgc->symbols);
+			free(shader->cgc);
+			free(shader);
+			return NULL;
+		}
+
+		cgc->symbols = symbols;
+
+		cgc->symbols[cgc->num_symbols].location = i;
+		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
+		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_VEC4;
+		cgc->symbols[cgc->num_symbols].name = asm_vs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].input = true;
+		cgc->symbols[cgc->num_symbols].used = true;
+
+		cgc->num_symbols++;
+	}
+
 	return shader;
 }
 
