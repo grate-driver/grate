@@ -263,61 +263,74 @@ int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 	return 0;
 }
 
-int grate_3d_ctx_set_fragment_uniform_fp20(struct grate_3d_ctx *ctx,
-					   unsigned location, float value)
+int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
+				      unsigned location, unsigned nb,
+				      float *value)
 {
+	bool lowp = !!(location & 0x8000);
+	unsigned components_mask = (location >> 8) & 0xF;
+	unsigned components_nb = 0;
+	unsigned i;
+
 	if (!ctx->program) {
 		grate_error("No program bound\n");
 		return -1;
-
 	}
 
-	if (location >= 32) {
+	if (components_mask == 0) {
+		grate_error("Empty components mask\n");
+		return -1;
+	}
+
+	if (BIT(0) & components_mask)
+		components_nb = 1;
+
+	if (BIT(1) & components_mask)
+		components_nb = 2;
+
+	if (BIT(2) & components_mask)
+		components_nb = 3;
+
+	if (BIT(3) & components_mask)
+		components_nb = 4;
+
+	location &= 0xFF;
+
+	if (components_nb > nb || nb > 4) {
+		grate_error("Invalid components number %u - should be at "
+			    "least %u, 4 maximum\n",
+			    nb, components_nb);
+		return -1;
+	}
+
+	if (location >= 64) {
 		grate_error("Invalid location %u\n", location);
 		return -1;
 	}
 
-	ctx->fs_uniforms[location] = float_to_fp20(value);
+	for (i = 0; i < 4; i++) {
+		unsigned position = location >> 1;
+		bool fx10_high = !!(location & 1);
 
-	return 0;
-}
+		if (!(components_mask & BIT(i)))
+			continue;
 
-int grate_3d_ctx_set_fragment_uniform_fx10_low(struct grate_3d_ctx *ctx,
-					       unsigned location, float value)
-{
-	if (!ctx->program) {
-		grate_error("No program bound\n");
-		return -1;
+		if (lowp) {
+			uint32_t fx10_val = float_to_fx10(value[i]);
 
+			if (fx10_high) {
+				ctx->fs_uniforms[position] &= 0x3ff;
+				ctx->fs_uniforms[position] |= fx10_val << 10;
+			} else {
+				ctx->fs_uniforms[position] &= ~0x3ff;
+				ctx->fs_uniforms[position] |= fx10_val;
+			}
+		} else {
+			ctx->fs_uniforms[position] = float_to_fp20(value[i]);
+		}
+
+		location += lowp ? 1 : 2;
 	}
-
-	if (location >= 32) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->fs_uniforms[location] &= ~0x3ff;
-	ctx->fs_uniforms[location] |= float_to_fx10(value);
-
-	return 0;
-}
-
-int grate_3d_ctx_set_fragment_uniform_fx10_high(struct grate_3d_ctx *ctx,
-						unsigned location, float value)
-{
-	if (!ctx->program) {
-		grate_error("No program bound\n");
-		return -1;
-
-	}
-
-	if (location >= 32) {
-		grate_error("Invalid location %u\n", location);
-		return -1;
-	}
-
-	ctx->fs_uniforms[location] &= 0x3ff;
-	ctx->fs_uniforms[location] |= float_to_fx10(value) << 10;
 
 	return 0;
 }

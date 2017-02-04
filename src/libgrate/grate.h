@@ -163,12 +163,9 @@ int grate_3d_ctx_bind_program(struct grate_3d_ctx *ctx,
 int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 				    unsigned location, unsigned nb,
 				    float *values);
-int grate_3d_ctx_set_fragment_uniform_fp20(struct grate_3d_ctx *ctx,
-					   unsigned location, float value);
-int grate_3d_ctx_set_fragment_uniform_fx10_low(struct grate_3d_ctx *ctx,
-					       unsigned location, float value);
-int grate_3d_ctx_set_fragment_uniform_fx10_high(struct grate_3d_ctx *ctx,
-						unsigned location, float value);
+int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
+				      unsigned location, unsigned nb,
+				      float *value);
 void grate_3d_ctx_set_depth_range(struct grate_3d_ctx *ctx,
 				  float near, float far);
 void grate_3d_ctx_set_dither(struct grate_3d_ctx *ctx, uint32_t unk);

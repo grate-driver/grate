@@ -398,6 +398,46 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		cgc->num_symbols++;
 	}
 
+	for (i = 0; i < 32 * 2; i++) {
+		if (!asm_fs_uniforms[i].used)
+			continue;
+
+		if ((i & 1) && asm_fs_uniforms[i].type == FS_UNIFORM_FP20)
+			continue;
+
+		symbols = realloc(cgc->symbols,
+			(cgc->num_symbols + 1) * sizeof(struct cgc_symbol));
+
+		if (!symbols) {
+			free(cgc->symbols);
+			free(shader->cgc);
+			free(shader);
+			return NULL;
+		}
+
+		cgc->symbols = symbols;
+
+		cgc->symbols[cgc->num_symbols].location = i;
+		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
+		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_FLOAT;
+		cgc->symbols[cgc->num_symbols].name = asm_fs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].input = true;
+		cgc->symbols[cgc->num_symbols].used = true;
+
+		/*
+		 * Set .xyzw components enable mask, we currently support
+		 * only one component in asm - a float.
+		 */
+		cgc->symbols[cgc->num_symbols].location |= BIT(8);
+
+		if (asm_fs_uniforms[i].type != FS_UNIFORM_FP20) {
+			/* Set low precision bit. */
+			cgc->symbols[cgc->num_symbols].location |= BIT(15);
+		}
+
+		cgc->num_symbols++;
+	}
+
 	return shader;
 }
 

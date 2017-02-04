@@ -44,6 +44,7 @@ int yywrap(void)
 
 ".asm"			return T_ASM;
 ".constants"		return T_CONSTANTS;
+".uniforms"		return T_UNIFORMS;
 [-]{0,1}[0-9]+\.[0-9]+	{
 				fragment_asmlval.f = atof(yytext);
 				return T_FLOAT;
