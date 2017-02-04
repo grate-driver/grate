@@ -60,7 +60,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		return NULL;
 
 	if (asm_vs_instructions_nb == 0) {
-		fprintf(stderr, "ERROR: no vertex instructions generated");
+		grate_error("No vertex instructions generated");
 		return NULL;
 	}
 
@@ -280,7 +280,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		return NULL;
 
 	if (asm_fs_instructions_nb == 0) {
-		fprintf(stderr, "ERROR: no fragment instructions generated");
+		grate_error("No fragment instructions generated");
 		return NULL;
 	}
 

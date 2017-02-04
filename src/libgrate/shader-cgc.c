@@ -72,9 +72,8 @@ static unsigned count_pseq_instructions_nb(struct grate_shader *shader)
 		case 5: /* EXTEND */
 			break;
 		default:
-			fprintf(stderr,
-				"ERROR: fragment shader host1x command "
-					"stream is invalid\n");
+			grate_error("Fragment shader host1x command "
+				    "stream is invalid\n");
 			break;
 		}
 	}
@@ -287,7 +286,7 @@ static void grate_program_add_attribute(struct grate_program *program,
 
 	attribute = realloc(program->attributes, size);
 	if (!attribute) {
-		fprintf(stderr, "ERROR: failed to allocate attribute\n");
+		grate_error("Failed to allocate attribute\n");
 		return;
 	}
 
@@ -316,7 +315,7 @@ static void grate_program_add_uniform(struct grate_program *program,
 	}
 
 	if (!uniform) {
-		fprintf(stderr, "ERROR: failed to allocate uniform\n");
+		grate_error("Failed to allocate uniform\n");
 		return;
 	}
 
