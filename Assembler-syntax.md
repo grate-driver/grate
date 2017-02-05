@@ -1,6 +1,6 @@
 ## Vertex assembler
 
-The vertex assembler program is defined by the four code sections:
+The vertex assembler program is defined by the five code sections:
 
 #### .attributes section
 
@@ -37,6 +37,18 @@ Example:
 		[12].z = -100.0;
 
 Here a float value 1.5 will be loaded to the "y" component of the constant register 0 and value -100.0 to the "z" of register 12.
+
+#### .uniforms section
+
+Defines locations of uniforms that will be exposed to a shader user.
+
+Example:
+
+	.uniforms
+		[100] = "uniform_100";
+		[135] = "uniform_135";
+
+Here two constants locations 100 and 135 will be available for a lookup to a user of the shader program by names "uniform_100" and "uniform_135" respectively.
 
 #### .asm section
 
@@ -95,7 +107,7 @@ Fragment program parameters must precede the .constants and .asm sections, they 
 
 #### Constants
 
-The .constants code section defines the fragment uniform constants. The postfix of the constant register index defines the format of the float value and it's sub-location within the register value:
+The .constants code section defines the fragment program constants. The postfix of the constant register index defines the format of the float value and it's sub-location within the register value:
 - ".l" and ".h" the float is converted to fx10 and stored in low/high halves of the constant register respectively
 - no postfix - float is converted to fp20
 
@@ -110,6 +122,22 @@ Example:
 		[2]   = 0x12345678;
 
 Here: 0.1 is stored in the uniform register 0 as fp20, 0.2 is stored in the low halve uniform register 1 as fx10, -0.3 is stored in the high halve uniform register 1 as fx10, a raw hex value 0x12345678 is written to the uniform register 2.
+
+#### Uniforms
+
+The .uniforms code section defines the fragment program uniforms locations that will be exposed to a shader user. Syntax is akin to the .constants section, a uniform location name is given instead of a constant value.
+
+Example:
+
+	.uniforms
+		[0]   = "uniform_0_fp20";
+		[1].l = "uniform_1_fx10_low";
+		[3].h = "uniform_3_fx10_high;
+
+Here 3 uniforms will be available for a lookup to a shader user:
+- fp20 typed "uniform_0_fp20" of constant 0
+- fx10 typed "uniform_1_fx10_low" of constant 1 low halve
+- fx10 typed "uniform_3_fx10_high" of constant 3 high halve
 
 #### Instructions
 
