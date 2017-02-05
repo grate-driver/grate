@@ -8,8 +8,8 @@ http://github.com/envytools/envytools/
 git clone https://github.com/envytools/envytools.git
 
 The rules-ng-ng source files this header was generated from are:
-- /envytools/rnndb/tgr_3d.xml          (  11967 bytes, from 2017-01-30 23:18:22)
-- /envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-01-23 10:01:40)
+- /home/kusma/src/envytools/rnndb/tgr_3d.xml          (  12088 bytes, from 2017-01-31 23:55:31)
+- /home/kusma/src/envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-01-29 21:14:55)
 
 Copyright (C) 2012-2017 by the following authors:
 - Erik Faye-Lund <kusmabite@gmail.com> (kusma)
@@ -49,6 +49,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PRIMITIVE_TYPE_TRIANGLE_FAN				0x00000006
 #define PROVOKING_VERTEX_FIRST					0x00000000
 #define PROVOKING_VERTEX_LAST					0x00000001
+#define CULL_FACE_NONE						0x00000000
+#define CULL_FACE_CCW						0x00000001
+#define CULL_FACE_CW						0x00000002
+#define CULL_FACE_BOTH						0x00000003
 #define ATTRIB_TYPE_UBYTE					0x00000000
 #define ATTRIB_TYPE_UBYTE_NORM					0x00000001
 #define ATTRIB_TYPE_SBYTE					0x00000002
@@ -197,8 +201,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TGR3D_CULL_FACE_LINKER_SETUP_LINKER_INST_COUNT__MASK	0x000003e0
 #define TGR3D_CULL_FACE_LINKER_SETUP_LINKER_INST_COUNT__SHIFT	5
 #define TGR3D_CULL_FACE_LINKER_SETUP_FRONT_CW			0x00008000
-#define TGR3D_CULL_FACE_LINKER_SETUP_CULL_CCW			0x00010000
-#define TGR3D_CULL_FACE_LINKER_SETUP_CULL_CW			0x00020000
+#define TGR3D_CULL_FACE_LINKER_SETUP_CULL_FACE__MASK		0x00030000
+#define TGR3D_CULL_FACE_LINKER_SETUP_CULL_FACE__SHIFT		16
 #define TGR3D_CULL_FACE_LINKER_SETUP_UNK_18_31__MASK		0xfffc0000
 #define TGR3D_CULL_FACE_LINKER_SETUP_UNK_18_31__SHIFT		18
 
