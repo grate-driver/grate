@@ -324,7 +324,7 @@ static void grate_program_add_uniform(struct grate_program *program,
 		uniform = &program->vs_uniforms[program->num_vs_uniforms++];
 	} else {
 		program->fs_uniforms = uniform;
-		uniform = &program->fs_uniforms[program->num_vs_uniforms++];
+		uniform = &program->fs_uniforms[program->num_fs_uniforms++];
 	}
 
 	uniform->position = symbol->location;
