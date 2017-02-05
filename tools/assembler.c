@@ -38,6 +38,11 @@ struct vs_uniform {
 	float values[4];
 };
 
+struct fs_uniform {
+	char name[256];
+	float value;
+};
+
 struct vs_asm_test {
 	char *vs_path;
 	char *fs_path;
@@ -48,6 +53,9 @@ struct vs_asm_test {
 
 	struct vs_uniform vs_uniforms[256];
 	unsigned vs_uniforms_nb;
+
+	struct fs_uniform fs_uniforms[32 * 2];
+	unsigned fs_uniforms_nb;
 };
 
 static const float vertices[] = {
@@ -113,6 +121,7 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 			{"lnk",		required_argument, NULL, 0},
 			{"testonly",	no_argument, NULL, 0},
 			{"vs_uniform",	required_argument, NULL, 0},
+			{"fs_uniform",	required_argument, NULL, 0},
 			{ /* Sentinel */ }
 		};
 		int option_index = 0;
@@ -155,6 +164,17 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 					return 0;
 				}
 				test->vs_uniforms_nb++;
+				break;
+			case 6:
+				ret = sscanf(optarg, "[\"%[^\"]\"]=%f",
+					     test->fs_uniforms[test->fs_uniforms_nb].name,
+					     &test->fs_uniforms[test->fs_uniforms_nb].value);
+				if (ret != 2) {
+					fprintf(stderr, "failed to parse argument %s %d\n",
+						optarg, ret);
+					return 0;
+				}
+				test->fs_uniforms_nb++;
 				break;
 			default:
 				return 0;
@@ -340,6 +360,14 @@ int main(int argc, char *argv[])
 
 		grate_3d_ctx_set_vertex_uniform(ctx, loc, 4,
 						test.vs_uniforms[i].values);
+	}
+
+	for (i = 0; i < test.fs_uniforms_nb; i++) {
+		int loc = grate_get_fragment_uniform_location(
+					program, test.fs_uniforms[i].name);
+
+		grate_3d_ctx_set_fragment_uniform(ctx, loc, 1,
+						  &test.fs_uniforms[i].value);
 	}
 
 	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
