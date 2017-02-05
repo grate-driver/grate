@@ -1,0 +1,17 @@
+alu_buffer_size = 1
+pseq_to_dw_exec_nb = 1
+
+.uniforms
+	[0].l  = "uniform_0_low";
+	[2]    = "uniform_2";
+	[31].l = "uniform_31_low";
+	[31].h = "uniform_31_high";
+
+.asm
+EXEC
+	ALU0:	MAD  r3.*h,  u0.l,          #1,         #0,         #1
+	ALU1:	MAD  r3.l*,  u2,            #1,         #0,         #1
+	ALU2:	MAD  r2.*h,  u31.l,         #1,         #0,         #1
+	ALU3:	MAD  r2.l*,  u31.h,         #1,         #0,         #1
+	DW:	0x00028005
+;
