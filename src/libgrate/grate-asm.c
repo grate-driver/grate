@@ -22,15 +22,79 @@
 
 #define _GNU_SOURCE
 
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "asm.h"
 #include "grate.h"
 #include "grate-3d.h"
 #include "host1x.h"
 #include "libgrate-private.h"
+
+static char *read_file(const char *path)
+{
+	struct stat sb;
+	char *data = NULL;
+	int fd;
+
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		grate_error("Failed to open %s: %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	if (fstat(fd, &sb) == -1) {
+		grate_error("Failed to get stat %s: %s\n",
+			    path, strerror(errno));
+		goto cleanup;
+	}
+
+	data = calloc(1, sb.st_size + 1);
+	if (!data) {
+		grate_error("Failed to get allocate %lu: %s\n",
+			    sb.st_size, path);
+		goto cleanup;
+	}
+
+	if (read(fd, data, sb.st_size) == -1) {
+		grate_error("Failed to read %s: %s\n", path, strerror(errno));
+		goto cleanup;
+	}
+
+cleanup:
+	close(fd);
+
+	return data;
+}
+
+struct grate_shader *grate_shader_parse_vertex_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_vertex_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
+
+struct grate_shader *grate_shader_parse_fragment_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_fragment_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
+
+struct grate_shader *grate_shader_parse_linker_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_linker_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
 
 struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 {
@@ -41,6 +105,9 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 	int words = 0;
 	int err;
 	int i;
+
+	if (!asm_txt)
+		return NULL;
 
 	locale = strdup( setlocale(LC_ALL, NULL) );
 	if (!locale)
@@ -261,6 +328,9 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	int words = 0;
 	int err;
 	int i;
+
+	if (!asm_txt)
+		return NULL;
 
 	locale = strdup( setlocale(LC_ALL, NULL) );
 	if (!locale)
@@ -716,6 +786,9 @@ struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
 	int words = 0;
 	int err;
 	int i;
+
+	if (!asm_txt)
+		return NULL;
 
 	linker_asm_scan_string(asm_txt);
 	err = linker_asmparse();

@@ -110,6 +110,9 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *);
 const char *grate_shader_disasm_fs(struct grate_shader *shader);
 struct grate_shader *grate_shader_parse_linker_asm(const char *);
 const char *grate_shader_disasm_linker(struct grate_shader *shader);
+struct grate_shader *grate_shader_parse_vertex_asm_from_file(const char *path);
+struct grate_shader *grate_shader_parse_fragment_asm_from_file(const char *path);
+struct grate_shader *grate_shader_parse_linker_asm_from_file(const char *path);
 
 struct grate_program;
 
