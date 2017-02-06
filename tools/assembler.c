@@ -20,15 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <errno.h>
-#include <fcntl.h>
 #include <getopt.h>
 #include <libgen.h>
 #include <locale.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
 
 #include "grate.h"
 #include "tgr_3d.xml.h"
@@ -75,35 +70,6 @@ static const float colors[] = {
 static const unsigned short indices[] = {
 	0, 1, 2, 1, 2, 3,
 };
-
-static void * open_file(const char *path, const char *desc)
-{
-	struct stat sb;
-	int fd;
-	void *ret;
-
-	fd = open(path, O_RDONLY);
-	if (fd == -1) {
-		fprintf(stderr, "failed to open %s %s: %s\n",
-			desc, path, strerror(errno));
-		return NULL;
-	}
-
-	if (fstat(fd, &sb) == -1) {
-		fprintf(stderr, "failed to get stat %s: %s\n",
-			path, strerror(errno));
-		return NULL;
-	}
-
-	ret = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (ret == MAP_FAILED) {
-		fprintf(stderr, "failed to mmap %s: %s\n",
-			path, strerror(errno));
-		return NULL;
-	}
-
-	return ret;
-}
 
 static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 {
@@ -224,9 +190,6 @@ int main(int argc, char *argv[])
 	struct grate_3d_ctx *ctx;
 	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_bo *bo;
-	void *vertex_shader;
-	void *fragment_shader;
-	void *linker_code;
 	uint32_t *fb_data;
 	uint32_t result;
 	int ret = 0;
@@ -263,33 +226,21 @@ int main(int argc, char *argv[])
 
 	/* Prepare shaders */
 
-	vertex_shader = open_file(test.vs_path, "vertex shader");
-	if (vertex_shader == NULL)
-		return 1;
-
-	fragment_shader = open_file(test.fs_path, "fragment shader");
-	if (fragment_shader == NULL)
-		return 1;
-
-	linker_code = open_file(test.linker_path, "shader linker");
-	if (linker_code == NULL)
-		return 1;
-
-	vs = grate_shader_parse_vertex_asm(vertex_shader);
+	vs = grate_shader_parse_vertex_asm_from_file(test.vs_path);
 	if (!vs) {
 		fprintf(stderr, "%s assembler parse failed\n",
 			test.vs_path);
 		return 1;
 	}
 
-	fs = grate_shader_parse_fragment_asm(fragment_shader);
+	fs = grate_shader_parse_fragment_asm_from_file(test.fs_path);
 	if (!fs) {
 		fprintf(stderr, "%s assembler parse failed\n",
 			test.fs_path);
 		return 1;
 	}
 
-	linker = grate_shader_parse_linker_asm(linker_code);
+	linker = grate_shader_parse_linker_asm_from_file(test.linker_path);
 	if (!linker) {
 		fprintf(stderr, "%s assembler parse failed\n",
 			test.linker_path);
