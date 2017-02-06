@@ -164,7 +164,9 @@ static int nvhost_framebuffer_init(struct host1x *host1x,
 
 	memset(mmap, 0, fb->pixbuf->bo->size);
 
-	err = HOST1X_BO_FLUSH(fb->pixbuf->bo, 0, fb->pixbuf->bo->size);
+	err = HOST1X_BO_FLUSH(fb->pixbuf->bo,
+			      fb->pixbuf->bo->offset,
+			      fb->pixbuf->bo->size);
 	if (err < 0)
 		return err;
 

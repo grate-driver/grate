@@ -843,7 +843,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	*indices++ = 0x0001;
 	*indices++ = 0x0002;
 
-	err = HOST1X_BO_FLUSH(gr3d->attributes, 0, 112);
+	err = HOST1X_BO_FLUSH(gr3d->attributes, gr3d->attributes->offset, 112);
 	if (err < 0) {
 		host1x_job_free(job);
 		return err;

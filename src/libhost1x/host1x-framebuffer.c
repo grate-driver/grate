@@ -195,7 +195,8 @@ int host1x_framebuffer_save(struct host1x *host1x,
 	if (err < 0)
 		return -EFAULT;
 
-	err = HOST1X_BO_INVALIDATE(detiled_pixbuf->bo, 0,
+	err = HOST1X_BO_INVALIDATE(detiled_pixbuf->bo,
+				   detiled_pixbuf->bo->offset,
 				   detiled_pixbuf->bo->size);
 	if (err < 0)
 		return -EFAULT;

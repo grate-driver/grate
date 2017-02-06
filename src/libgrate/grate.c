@@ -320,7 +320,7 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 	if (err < 0)
 		return NULL;
 
-	err = HOST1X_BO_INVALIDATE(fb_bo, 0, fb_bo->size);
+	err = HOST1X_BO_INVALIDATE(fb_bo, fb_bo->offset, fb_bo->size);
 	if (err < 0)
 		return NULL;
 
