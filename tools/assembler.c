@@ -216,10 +216,6 @@ int main(int argc, char *argv[])
 	if (!fb)
 		return 1;
 
-	fb_data = grate_framebuffer_data(fb, true);
-	if (!fb_data)
-		return 1;
-
 	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
 	grate_bind_framebuffer(grate, fb);
 	grate_clear(grate);
@@ -325,6 +321,10 @@ int main(int argc, char *argv[])
 			       bo, INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
+
+	fb_data = grate_framebuffer_data(fb, true);
+	if (!fb_data)
+		return 1;
 
 	result = fb_data[0];
 
