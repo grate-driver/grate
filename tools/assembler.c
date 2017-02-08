@@ -92,7 +92,7 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 		};
 		int option_index = 0;
 
-		c = getopt_long(argc, argv, "h:", long_options, &option_index);
+		c = getopt_long(argc, argv, "h", long_options, &option_index);
 
 		switch (c) {
 		case 0:
@@ -157,7 +157,7 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 			fprintf(stderr, "\t--lnk path : linker asm path\n");
 			fprintf(stderr, "\t--expected 0x00000000 : perform the test\n");
 			fprintf(stderr, "\t--testonly : don't show the rendered result\n");
-			fprintf(stderr, "\t-h\n");
+			fprintf(stderr, "\t-h : this help\n");
 			return 0;
 		}
 	} while (c != -1);
