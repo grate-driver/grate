@@ -32,6 +32,8 @@
 #include "utils.h"
 
 extern void *__libc_dlsym(void *handle, const char *name);
+extern void *__libc_malloc(size_t size);
+extern void *__libc_free(void *size);
 
 static void *dlopen_helper(const char *name)
 {
@@ -55,37 +57,13 @@ static void *dlsym_helper(const char *name)
 }
 
 #if 0
-static void print_pointer(FILE *fp, void *ptr)
-{
-	unsigned long value = (unsigned long)ptr;
-	unsigned int i, nibbles, shift;
-
-	nibbles = sizeof(value) * 2;
-	shift = (nibbles - 1) * 4;
-
-	for (i = 0; i < nibbles; i++) {
-		unsigned char c = (value >> shift) & 0xf;
-
-		if (c >= 0 && c <= 9)
-			fputc('0' + c, fp);
-		else
-			fputc('a' + c, fp);
-
-		value <<= 4;
-	}
-}
-
 void *malloc(size_t size)
 {
-	static typeof(malloc) *orig = NULL;
 	void *ret;
-
-	if (!orig)
-		orig = __libc_dlsym(RTLD_NEXT, __func__);
 
 	printf("%s(size=%zu)\n", __func__, size);
 
-	ret = orig(size);
+	ret = __libc_malloc(size);
 
 	printf("%s() = %p\n", __func__, ret);
 	return ret;
@@ -93,16 +71,9 @@ void *malloc(size_t size)
 
 void free(void *ptr)
 {
-	static typeof(free) *orig = NULL;
+	printf("%s(size=%p)\n", __func__, ptr);
 
-	fputs("free(ptr=0x", stdout);
-	print_pointer(stdout, ptr);
-	fputs(")\n", stdout);
-
-	if (!orig)
-		orig = __libc_dlsym(RTLD_NEXT, __func__);
-
-	orig(ptr);
+	__libc_free(ptr);
 
 	fputs("free()\n", stdout);
 }

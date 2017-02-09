@@ -36,15 +36,15 @@ struct CgDrv {
 	unsigned int unknown14;
 	void *binary;
 	size_t binary_size;
-	unsigned int unknown20;
+	void *unknown20;
 	unsigned int unknown24;
 	unsigned int unknown28;
 	unsigned int unknown2c;
-	unsigned int unknown30;
+	void *unknown30;
 	unsigned int unknown34;
 	unsigned int unknown38;
 	unsigned int unknown3c;
-	unsigned int unknown40;
+	void *unknown40;
 	unsigned int unknown44;
 	unsigned int unknown48;
 	unsigned int unknown4c;
