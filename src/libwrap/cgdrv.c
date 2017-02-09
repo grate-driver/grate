@@ -57,26 +57,6 @@ static void *dlsym_helper(const char *name)
 }
 
 #if 0
-static void print_pointer(FILE *fp, void *ptr)
-{
-	unsigned long value = (unsigned long)ptr;
-	unsigned int i, nibbles, shift;
-
-	nibbles = sizeof(value) * 2;
-	shift = (nibbles - 1) * 4;
-
-	for (i = 0; i < nibbles; i++) {
-		unsigned char c = (value >> shift) & 0xf;
-
-		if (c >= 0 && c <= 9)
-			fputc('0' + c, fp);
-		else
-			fputc('a' + c, fp);
-
-		value <<= 4;
-	}
-}
-
 void *malloc(size_t size)
 {
 	void *ret;
@@ -91,9 +71,7 @@ void *malloc(size_t size)
 
 void free(void *ptr)
 {
-	fputs("free(ptr=0x", stdout);
-	print_pointer(stdout, ptr);
-	fputs(")\n", stdout);
+	printf("%s(size=%p)\n", __func__, ptr);
 
 	__libc_free(ptr);
 
