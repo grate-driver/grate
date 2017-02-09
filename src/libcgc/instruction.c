@@ -74,7 +74,7 @@ void instruction_free(struct instruction *inst)
 
 void instruction_print_raw(struct instruction *inst)
 {
-	unsigned i;
+	int i;
 
 	for (i = (inst->length / 32) - 1; i >= 0; i--)
 		printf(" %08x", inst->bits[i]);
@@ -84,7 +84,7 @@ void instruction_print_raw(struct instruction *inst)
 
 void instruction_print_unknown(struct instruction *inst)
 {
-	unsigned i;
+	int i;
 
 	for (i = (inst->length / 32) - 1; i >= 0; i--)
 		printf(" %08x", inst->bits[i] & ~(inst->taken[i]));
