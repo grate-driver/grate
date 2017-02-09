@@ -1081,6 +1081,24 @@ struct cgc_symbol *cgc_shader_find_symbol_by_kind(struct cgc_shader *shader,
 	return NULL;
 }
 
+static void hexdump_line(FILE *fp, uint8_t *bytes, int count)
+{
+	int i;
+	for (i = 0; i < count; i++)
+		fprintf(fp, "%s%02x", i > 0 ? " " : "", bytes[i]);
+
+	fprintf(fp, " | ");
+
+	for (i = 0; i < count; i++) {
+		if (isprint(bytes[i]))
+			fprintf(fp, "%c", bytes[i]);
+		else
+			fprintf(fp, ".");
+	}
+
+	fprintf(fp, " |\n");
+}
+
 void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 {
 	struct cgc_header *header = shader->binary;
@@ -1094,21 +1112,8 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 		uint32_t value = *(uint32_t *)(shader->binary + i);
 		uint8_t *bytes = (uint8_t *)(shader->binary + i);
 
-		fprintf(fp, "  %08x: %08x |", i, value);
-
-		for (j = 0; j < 4; j++)
-			fprintf(fp, " %02x", bytes[j]);
-
-		fprintf(fp, " | ");
-
-		for (j = 0; j < 4; j++) {
-			if (isprint(bytes[j]))
-				fprintf(fp, "%c", bytes[j]);
-			else
-				fprintf(fp, ".");
-		}
-
-		fprintf(fp, " |\n");
+		fprintf(fp, "  %08x: %08x | ", i, value);
+		hexdump_line(fp, bytes, 4);
 	}
 
 	fprintf(fp, "shader stream: %zu bytes\n", shader->length);
@@ -1117,21 +1122,8 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 		uint32_t value = *(uint32_t *)(shader->stream + i);
 		uint8_t *bytes = (uint8_t *)(shader->stream + i);
 
-		fprintf(fp, "  %08x: %08x |", i, value);
-
-		for (j = 0; j < 4; j++)
-			fprintf(fp, " %02x", bytes[j]);
-
-		fprintf(fp, " | ");
-
-		for (j = 0; j < 4; j++) {
-			if (isprint(bytes[j]))
-				fprintf(fp, "%c", bytes[j]);
-			else
-				fprintf(fp, ".");
-		}
-
-		fprintf(fp, " |\n");
+		fprintf(fp, "  %08x: %08x | ", i, value);
+		hexdump_line(fp, bytes, 4);
 	}
 
 	if (header->type == 0x1b5d)
