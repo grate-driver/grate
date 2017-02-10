@@ -21,11 +21,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "host1x-private.h"
+#include <string.h>
 
-#include "nvhost-display.h"
-#include "nvhost-gr2d.h"
-#include "nvhost-gr3d.h"
+#include "host1x-private.h"
 #include "nvhost.h"
 
 static int nvhost_bo_mmap(struct host1x_bo *bo)
@@ -154,6 +152,27 @@ static void host1x_nvhost_close(struct host1x *host1x)
 	nvmap_close(nvhost->nvmap);
 }
 
+static int nvhost_framebuffer_init(struct host1x *host1x,
+				   struct host1x_framebuffer *fb)
+{
+	void *mmap;
+	int err;
+
+	err = HOST1X_BO_MMAP(fb->pixbuf->bo, &mmap);
+	if (err < 0)
+		return err;
+
+	memset(mmap, 0, fb->pixbuf->bo->size);
+
+	err = HOST1X_BO_FLUSH(fb->pixbuf->bo,
+			      fb->pixbuf->bo->offset,
+			      fb->pixbuf->bo->size);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
 struct host1x *host1x_nvhost_open(void)
 {
 	struct nvhost *nvhost;
@@ -190,6 +209,7 @@ struct host1x *host1x_nvhost_open(void)
 
 	nvhost->base.gr2d = &nvhost->gr2d->base;
 	nvhost->base.gr3d = &nvhost->gr3d->base;
+	nvhost->base.framebuffer_init = nvhost_framebuffer_init;
 
 	return &nvhost->base;
 }

@@ -44,6 +44,8 @@ asm_in_out asm_vs_attributes[16];
 
 asm_in_out asm_vs_exports[16];
 
+asm_in_out asm_vs_uniforms[256];
+
 int asm_vs_instructions_nb;
 
 struct parse_state {
@@ -133,6 +135,7 @@ static void reset_asm_parser_state(void)
 	memset(&asm_vs_attributes, 0, sizeof(asm_vs_attributes));
 	memset(&asm_vs_constants, 0, sizeof(asm_vs_constants));
 	memset(&asm_vs_exports, 0, sizeof(asm_vs_exports));
+	memset(&asm_vs_uniforms, 0, sizeof(asm_vs_uniforms));
 
 	reset_instruction();
 
@@ -193,6 +196,7 @@ static void reset_asm_parser_state(void)
 %token T_EXPORTS
 %token T_CONSTANTS
 %token T_ATTRIBUTES
+%token T_UNIFORMS
 %token T_EXEC
 %token T_EXEC_END
 %token <u> T_REGISTER
@@ -261,6 +265,28 @@ sections:
 	T_ATTRIBUTES ATTRIBUTES
 	|
 	T_EXPORTS EXPORTS
+	|
+	T_UNIFORMS UNIFORMS
+	;
+
+UNIFORMS: UNIFORMS UNIFORM
+	|
+	;
+
+UNIFORM:
+	'[' T_NUMBER ']' '=' T_STRING ';'
+	{
+		if ($2 > 255) {
+			PARSE_ERROR("Invalid uniform index");
+		}
+
+		if (asm_vs_uniforms[$2].used) {
+			PARSE_ERROR("Overriding uniform name");
+		}
+
+		strcpy(asm_vs_uniforms[$2].name, $5);
+		asm_vs_uniforms[$2].used = 1;
+	}
 	;
 
 EXPORTS: EXPORTS EXPORT

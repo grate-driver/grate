@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "nvhost-gr2d.h"
+#include "nvhost.h"
 
 struct nvhost_gr2d *nvhost_gr2d_open(struct nvhost *nvhost)
 {

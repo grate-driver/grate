@@ -54,6 +54,7 @@ instr_sched	asm_mfu_sched[64];
 instr_sched	asm_alu_sched[64];
 
 uint32_t	asm_fs_constants[32];
+asm_in_out	asm_fs_uniforms[32 * 2];
 
 unsigned asm_fs_instructions_nb;
 unsigned asm_mfu_instructions_nb;
@@ -73,6 +74,7 @@ static void reset_fragment_asm_parser_state(void)
 	memset(asm_mfu_sched, 0, sizeof(asm_mfu_sched));
 	memset(asm_alu_sched, 0, sizeof(asm_alu_sched));
 	memset(asm_fs_constants, 0, sizeof(asm_fs_constants));
+	memset(asm_fs_uniforms, 0, sizeof(asm_fs_uniforms));
 
 	for (i = 0; i < ARRAY_SIZE(asm_alu_instructions); i++) {
 		for (k = 0; k < 4; k++) {
@@ -122,14 +124,15 @@ static uint32_t float_to_fx10(float f)
 
 %token T_ASM
 %token T_CONSTANTS
+%token T_UNIFORMS
 %token T_EXEC
 %token T_REGISTER
 %token T_UNDEFINED
 %token T_NEG
 %token T_ABS
 %token T_SATURATE
-%token T_STRING
 
+%token <s> T_STRING
 %token <u> T_NUMBER
 
 %token T_PSEQ
@@ -204,6 +207,8 @@ static uint32_t float_to_fx10(float f)
 
 %token <u> T_HEX
 %token <f> T_FLOAT
+
+%type <u> UNIFORM_TYPE
 
 %type <u> FP20
 %type <u> FX10
@@ -289,6 +294,8 @@ sections:
 	|
 	T_CONSTANTS CONSTANTS
 	|
+	T_UNIFORMS UNIFORMS
+	|
 	T_ALU_BUFFER_SIZE '=' T_NUMBER
 	{
 		if ($3 != 0 && $3 > 4) {
@@ -301,6 +308,63 @@ sections:
 	T_PSEQ_DW_EXEC_NB '=' T_NUMBER
 	{
 		asm_pseq_to_dw_exec_nb = $3;
+	}
+	;
+
+UNIFORMS: UNIFORMS UNIFORM
+	|
+	;
+
+UNIFORM:
+	'[' T_NUMBER ']' UNIFORM_TYPE '=' T_STRING ';'
+	{
+		if ($2 > 31) {
+			PARSE_ERROR("Invalid uniform index");
+		}
+
+		$2 <<= 1;
+
+		switch ($4) {
+		case FS_UNIFORM_FP20:
+		case FS_UNIFORM_FX10_LOW:
+			if (asm_fs_uniforms[$2].used) {
+				PARSE_ERROR("Overriding uniform name");
+			}
+
+			strcpy(asm_fs_uniforms[$2].name, $6);
+			asm_fs_uniforms[$2].type = $4;
+
+			if ($4 != FS_UNIFORM_FP20) {
+				break;
+			}
+		case FS_UNIFORM_FX10_HIGH:
+			if (asm_fs_uniforms[$2 + 1].used) {
+				PARSE_ERROR("Overriding uniform name");
+			}
+
+			strcpy(asm_fs_uniforms[$2 + 1].name, $6);
+			asm_fs_uniforms[$2 + 1].type = $4;
+			break;
+		default:
+			PARSE_ERROR("Shouldn't happen");
+			break;
+		}
+	}
+	;
+
+UNIFORM_TYPE:
+	'.' T_LOW
+	{
+		yyval.u = FS_UNIFORM_FX10_LOW;
+	}
+	|
+	'.' T_HIGH
+	{
+		yyval.u = FS_UNIFORM_FX10_HIGH;
+	}
+	|
+	{
+		yyval.u = FS_UNIFORM_FP20;
 	}
 	;
 

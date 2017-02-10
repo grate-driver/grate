@@ -46,13 +46,17 @@ typedef struct asm_const {
 
 typedef struct asm_in_out {
 	char name[256];
-	int used;
+	union {
+		int used;
+		int type;
+	};
 } asm_in_out;
 
 extern vpe_instr128 asm_vs_instructions[256];
 extern asm_const asm_vs_constants[256];
 extern asm_in_out asm_vs_attributes[16];
 extern asm_in_out asm_vs_exports[16];
+extern asm_in_out asm_vs_uniforms[256];
 extern int asm_vs_instructions_nb;
 
 const char * vpe_vliw_disassemble(const vpe_instr128 *ins);
@@ -70,6 +74,12 @@ extern instr_sched	asm_mfu_sched[64];
 extern instr_sched	asm_alu_sched[64];
 
 extern uint32_t		asm_fs_constants[32];
+
+#define FS_UNIFORM_FX10_LOW	1
+#define FS_UNIFORM_FX10_HIGH	2
+#define FS_UNIFORM_FP20		3
+
+extern asm_in_out	asm_fs_uniforms[32 * 2];
 
 extern unsigned asm_fs_instructions_nb;
 extern unsigned asm_mfu_instructions_nb;

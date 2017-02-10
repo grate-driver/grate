@@ -76,6 +76,25 @@ static inline struct nvhost_bo *to_nvhost_bo(struct host1x_bo *bo)
 	return container_of(bo, struct nvhost_bo, base);
 }
 
+struct nvhost_display {
+	struct host1x_display base;
+	struct host1x_overlay overlay;
+	struct nvhost *nvhost;
+	uint32_t vblank_syncpt;
+	int plane;
+	int fd;
+};
+
+struct nvhost_gr2d {
+	struct nvhost_client client;
+	struct host1x_gr2d base;
+};
+
+struct nvhost_gr3d {
+	struct nvhost_client client;
+	struct host1x_gr3d base;
+};
+
 struct nvhost {
 	struct host1x base;
 
@@ -90,5 +109,14 @@ static inline struct nvhost *to_nvhost(struct host1x *host1x)
 {
 	return container_of(host1x, struct nvhost, base);
 }
+
+struct nvhost_display * nvhost_display_create(struct nvhost *nvhost);
+void nvhost_display_close(struct nvhost_display *display);
+
+struct nvhost_gr2d *nvhost_gr2d_open(struct nvhost *nvhost);
+void nvhost_gr2d_close(struct nvhost_gr2d *gr2d);
+
+struct nvhost_gr3d *nvhost_gr3d_open(struct nvhost *nvhost);
+void nvhost_gr3d_close(struct nvhost_gr3d *gr3d);
 
 #endif

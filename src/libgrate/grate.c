@@ -59,7 +59,7 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 
 	memcpy(map, data, size);
 
-	HOST1X_BO_INVALIDATE(bo, bo->offset, size);
+	HOST1X_BO_FLUSH(bo, bo->offset, size);
 
 	return bo;
 }
@@ -308,7 +308,7 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 {
 	struct host1x_framebuffer *host1x_fb = front ? fb->front : fb->back;
 	struct host1x_bo *fb_bo = host1x_fb->pixbuf->bo;
-	void *ret;
+	void *mmap;
 	int err;
 
 	if (fb_bo == NULL) {
@@ -316,11 +316,15 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 		return NULL;
 	}
 
-	err = HOST1X_BO_MMAP(fb_bo, &ret);
+	err = HOST1X_BO_MMAP(fb_bo, &mmap);
 	if (err < 0)
 		return NULL;
 
-	return ret;
+	err = HOST1X_BO_INVALIDATE(fb_bo, fb_bo->offset, fb_bo->size);
+	if (err < 0)
+		return NULL;
+
+	return mmap;
 }
 
 struct host1x *grate_get_host1x(struct grate *grate)

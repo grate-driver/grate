@@ -19,11 +19,8 @@ libhost1x_la_SOURCES = \
 	host1x-private.h \
 	nvhost.c \
 	nvhost-display.c \
-	nvhost-display.h \
 	nvhost-gr2d.c \
-	nvhost-gr2d.h \
 	nvhost-gr3d.c \
-	nvhost-gr3d.h \
 	nvhost.h \
 	nvhost-nvmap.c \
 	nvhost-nvmap.h

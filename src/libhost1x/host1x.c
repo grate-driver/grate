@@ -158,6 +158,15 @@ int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 	return 0;
 }
 
+int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
+		    size_t length)
+{
+	if (bo->priv->flush)
+		return bo->priv->flush(bo, offset, length);
+
+	return 0;
+}
+
 struct host1x_job *host1x_job_create(uint32_t syncpt, uint32_t increments)
 {
 	struct host1x_job *job;

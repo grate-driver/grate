@@ -231,7 +231,7 @@ int nvmap_handle_invalidate(struct nvmap *nvmap, struct nvmap_handle *handle,
 	args.addr = (uintptr_t)handle->ptr + offset;
 	args.handle = handle->id;
 	args.length = length;
-	args.op = 1;
+	args.op = 1; /* NVMAP_CACHE_OP_INV - invalidate cached DATA range */
 
 	err = ioctl(nvmap->fd, NVMAP_IOCTL_CACHE, &args);
 	if (err < 0)
@@ -252,8 +252,8 @@ int nvmap_handle_writeback_invalidate(struct nvmap *nvmap,
 	args.addr = (uintptr_t)handle->ptr + offset;
 	args.handle = handle->id;
 	args.length = length;
-	args.op = 2;
-
+	args.op = 2; /* NVMAP_CACHE_OP_WB_INV - flush cached DATA range to
+			memory and invalidate the range */
 	err = ioctl(nvmap->fd, NVMAP_IOCTL_CACHE, &args);
 	if (err < 0)
 		return -errno;

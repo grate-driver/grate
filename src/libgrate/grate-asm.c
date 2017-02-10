@@ -22,15 +22,79 @@
 
 #define _GNU_SOURCE
 
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "asm.h"
 #include "grate.h"
 #include "grate-3d.h"
 #include "host1x.h"
 #include "libgrate-private.h"
+
+static char *read_file(const char *path)
+{
+	struct stat sb;
+	char *data = NULL;
+	int fd;
+
+	fd = open(path, O_RDONLY);
+	if (fd == -1) {
+		grate_error("Failed to open %s: %s\n", path, strerror(errno));
+		return NULL;
+	}
+
+	if (fstat(fd, &sb) == -1) {
+		grate_error("Failed to get stat %s: %s\n",
+			    path, strerror(errno));
+		goto cleanup;
+	}
+
+	data = calloc(1, sb.st_size + 1);
+	if (!data) {
+		grate_error("Failed to get allocate %lu: %s\n",
+			    sb.st_size, path);
+		goto cleanup;
+	}
+
+	if (read(fd, data, sb.st_size) == -1) {
+		grate_error("Failed to read %s: %s\n", path, strerror(errno));
+		goto cleanup;
+	}
+
+cleanup:
+	close(fd);
+
+	return data;
+}
+
+struct grate_shader *grate_shader_parse_vertex_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_vertex_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
+
+struct grate_shader *grate_shader_parse_fragment_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_fragment_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
+
+struct grate_shader *grate_shader_parse_linker_asm_from_file(const char *path)
+{
+	char *asm_txt = read_file(path);
+	struct grate_shader *shader = grate_shader_parse_linker_asm(asm_txt);
+	free(asm_txt);
+	return shader;
+}
 
 struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 {
@@ -41,6 +105,9 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 	int words = 0;
 	int err;
 	int i;
+
+	if (!asm_txt)
+		return NULL;
 
 	locale = strdup( setlocale(LC_ALL, NULL) );
 	if (!locale)
@@ -60,7 +127,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		return NULL;
 
 	if (asm_vs_instructions_nb == 0) {
-		fprintf(stderr, "ERROR: no vertex instructions generated");
+		grate_error("No vertex instructions generated");
 		return NULL;
 	}
 
@@ -181,6 +248,32 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->num_symbols++;
 	}
 
+	for (i = 0; i < 256; i++) {
+		if (!asm_vs_uniforms[i].used)
+			continue;
+
+		symbols = realloc(cgc->symbols,
+			(cgc->num_symbols + 1) * sizeof(struct cgc_symbol));
+
+		if (!symbols) {
+			free(cgc->symbols);
+			free(shader->cgc);
+			free(shader);
+			return NULL;
+		}
+
+		cgc->symbols = symbols;
+
+		cgc->symbols[cgc->num_symbols].location = i;
+		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
+		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_VEC4;
+		cgc->symbols[cgc->num_symbols].name = asm_vs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].input = true;
+		cgc->symbols[cgc->num_symbols].used = true;
+
+		cgc->num_symbols++;
+	}
+
 	return shader;
 }
 
@@ -236,6 +329,9 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	int err;
 	int i;
 
+	if (!asm_txt)
+		return NULL;
+
 	locale = strdup( setlocale(LC_ALL, NULL) );
 	if (!locale)
 		return NULL;
@@ -254,7 +350,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		return NULL;
 
 	if (asm_fs_instructions_nb == 0) {
-		fprintf(stderr, "ERROR: no fragment instructions generated");
+		grate_error("No fragment instructions generated");
 		return NULL;
 	}
 
@@ -369,6 +465,46 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 		cgc->symbols[cgc->num_symbols].vector[0] = asm_fs_constants[i];
+		cgc->num_symbols++;
+	}
+
+	for (i = 0; i < 32 * 2; i++) {
+		if (!asm_fs_uniforms[i].used)
+			continue;
+
+		if ((i & 1) && asm_fs_uniforms[i].type == FS_UNIFORM_FP20)
+			continue;
+
+		symbols = realloc(cgc->symbols,
+			(cgc->num_symbols + 1) * sizeof(struct cgc_symbol));
+
+		if (!symbols) {
+			free(cgc->symbols);
+			free(shader->cgc);
+			free(shader);
+			return NULL;
+		}
+
+		cgc->symbols = symbols;
+
+		cgc->symbols[cgc->num_symbols].location = i;
+		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
+		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_FLOAT;
+		cgc->symbols[cgc->num_symbols].name = asm_fs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].input = true;
+		cgc->symbols[cgc->num_symbols].used = true;
+
+		/*
+		 * Set .xyzw components enable mask, we currently support
+		 * only one component in asm - a float.
+		 */
+		cgc->symbols[cgc->num_symbols].location |= BIT(8);
+
+		if (asm_fs_uniforms[i].type != FS_UNIFORM_FP20) {
+			/* Set low precision bit. */
+			cgc->symbols[cgc->num_symbols].location |= BIT(15);
+		}
+
 		cgc->num_symbols++;
 	}
 
@@ -650,6 +786,9 @@ struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
 	int words = 0;
 	int err;
 	int i;
+
+	if (!asm_txt)
+		return NULL;
 
 	linker_asm_scan_string(asm_txt);
 	err = linker_asmparse();
