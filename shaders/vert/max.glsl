@@ -1,6 +1,6 @@
 uniform vec4 u;
-varying vec4 v;
+attribute vec4 a;
 void main()
 {
-	gl_Position = max(u, v);
+	gl_Position = max(u, a);
 }
