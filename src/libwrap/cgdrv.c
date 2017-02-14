@@ -69,9 +69,21 @@ void *malloc(size_t size)
 	return ret;
 }
 
+void *realloc(void *ptr, size_t size)
+{
+	void *ret;
+
+	printf("%s(ptr=%p, size=%zu)\n", __func__, ptr, size);
+
+	ret = __libc_realloc(ptr, size);
+
+	printf("%s() = %p\n", __func__, ret);
+	return ret;
+}
+
 void free(void *ptr)
 {
-	printf("%s(size=%p)\n", __func__, ptr);
+	printf("%s(ptr=%p)\n", __func__, ptr);
 
 	__libc_free(ptr);
 

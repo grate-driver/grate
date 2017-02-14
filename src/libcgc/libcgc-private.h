@@ -48,6 +48,8 @@ struct CgDrv {
 	unsigned int unknown44;
 	unsigned int unknown48;
 	unsigned int unknown4c;
+	unsigned int unknown50;
+	unsigned int unknown54;
 };
 
 struct CgDrv *CgDrv_Create(void);
