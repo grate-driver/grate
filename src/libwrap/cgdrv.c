@@ -71,7 +71,7 @@ void *malloc(size_t size)
 
 void free(void *ptr)
 {
-	printf("%s(size=%p)\n", __func__, ptr);
+	printf("%s(ptr=%p)\n", __func__, ptr);
 
 	__libc_free(ptr);
 
