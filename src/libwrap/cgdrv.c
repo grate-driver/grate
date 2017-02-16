@@ -33,7 +33,8 @@
 
 extern void *__libc_dlsym(void *handle, const char *name);
 extern void *__libc_malloc(size_t size);
-extern void *__libc_free(void *size);
+extern void *__libc_realloc(void *ptr, size_t size);
+extern void *__libc_free(void *ptr);
 
 static void *dlopen_helper(const char *name)
 {
