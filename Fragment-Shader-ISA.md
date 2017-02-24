@@ -247,14 +247,34 @@ The MFU unit can interpolate 4 component vectors per instruction and/or evaluate
 
 ## TEX instruction word encoding
 
-The TEX instructions take the texture coordinate from the VAR unit in the same cycles.
+The TEX instruction takes the texture coordinate from the first row of the pixel packet (i.e. R0-R3 registers) and writes the sampled data to that first row as well. 
 
-|   Bits | Meaning           |
-|-------:|:------------------|
-| 12..31 | ???               |
-|     12 | enable bias       |
-|     11 | ???               |
-|     10 | enable            |
-|   6..9 | ???               |
-|   4..5 | texcoord from var |
-|   0..3 | sampler index     |
+|   Bits | Meaning                               |
+|-------:|:--------------------------------------|
+| 12..31 | ???                                   |
+|     12 | enable bias                           |
+|     11 | ???                                   |
+|     10 | enable                                |
+|   6..9 | ???                                   |
+|      5 | sampled data destination regs select  |
+|      4 | texcoord regs select                  |
+|   0..3 | sampler index                         |
+
+
+#### Texture coordinate registers select:
+
+The texture coordinate components (S, T, R) are loaded from the three registers as fp20's.
+
+|  Value | Meaning (S, T, R order) |
+|-------:|:------------------------|
+|      1 | R2, R3, R0              |
+|      0 | R0, R1, R2              |
+
+#### Sampled data destination registers select:
+
+The sampled RGBA data is stored in the two registers as four fx10's.
+
+|  Value | Meaning |
+|-------:|:--------|
+|      1 | R2-R3   |
+|      0 | R0-R1   |
