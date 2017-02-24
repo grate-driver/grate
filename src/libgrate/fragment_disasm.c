@@ -206,7 +206,7 @@ static const char * disassemble_mfu(const mfu_instr *mfu)
 			break;
 		}
 
-		sprintf(buf, " v%d", mfu->reg);
+		sprintf(buf, " r%d", mfu->reg);
 	}
 
 	return ret;
