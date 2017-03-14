@@ -215,12 +215,13 @@ The MFU unit can interpolate 4 component vectors per instruction and/or evaluate
 
 #### var0..3:
 
-| Bits | Meaning              |
-|-----:|:---------------------|
-| 5..6 | ??? (starts lighting up when passing output to SFU?)                 |
-| 3..4 | destination register |
-| 1..2 | opcode               |
-|    0 | saturate             |
+The varying id corresponds to the TRAM component: var0 is TRAM.x, var1 is TRAM.y, var2 is TRAM.z, var3 is TRAM.w.
+
+| Bits | Meaning                  |
+|-----:|:-------------------------|
+| 3..6 | TRAM index to fetch from |
+| 1..2 | opcode                   |
+|    0 | saturate                 |
 
 | opcode | Mnemonic | Meaning                        |
 |-------:|:--------:|:-------------------------------|
