@@ -26,6 +26,14 @@ Prior to linking, the vertex export is being squeezed. For instance, if vertex p
 
 #### Vertex export VEC4 select:
 
+VEC4.xyzw:
+
+- Vertex attribute data will be fetched from VPE export to TRAM row.
+
+VEC4.x = VEC4.z:
+
+- Vertex position.z coordinate will be set to the export.x component and propagated to the fragment shader (gl_FragCoord.z), export.x should be swizzled to TRAM.w (actual TRAM seems untouched).
+
 | Value  | Meaning                  |
 |-------:|:-------------------------|
 |   0    | VEC4.xyzw                |
