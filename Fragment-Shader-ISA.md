@@ -179,8 +179,8 @@ When bit "addition disable" is set, the Multiply-Add operation turns into two mu
 
 | write high subregister | write low subregister | destination low | destination high |
 |:----------------------:|:---------------------:|:---------------:|:----------------:|
-|            1           |           0           |      rC*rD      |       rA*rB      |
-|            0           |           1           |      rA*rB      |       rC*rD      |
+|            1           |           0           |      rC\*rD     |       rA\*rB     |
+|            0           |           1           |      rA\*rB     |       rC\*rD     |
 
 ## MFU instruction word encoding
 
