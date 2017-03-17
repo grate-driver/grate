@@ -237,14 +237,39 @@ The varying id corresponds to the TRAM component: var0 is TRAM.x, var1 is TRAM.y
 |  4..7 | source register 1    |
 |  0..3 | source register 0    |
 
+##### mul0..1 destination registers:
+
+| Value | Meaning            |
+|------:|:-------------------|
+|     0 | ???                |
+|     1 | barycentric weight |
+|  2..3 | ???                |
+|     4 | row register 0     |
+|     5 | row register 1     |
+|     6 | row register 2     |
+|     7 | row register 3     |
+
 ##### mul0..1 source registers:
+
+The SFU result is evaluated first and is available to use by MUL's via "SFU result" register.
 
 |  Value | Meaning                          |
 |-------:|:---------------------------------|
-|   0..7 | ??? (general purpose registers?) |
-|  8..12 | ??? (barycentric coords ?)       |
+|      0 | row register 0                   |
+|      1 | row register 1                   |
+|      2 | row register 2                   |
+|      3 | row register 3                   |
+|   4..7 | ??? (general purpose registers?) |
+|   8..9 | ???                              |
+|     10 | SFU result                       |
+|     11 | barycentric coef 0               |
+|     12 | barycentric coef 1               |
 |     13 | 1.0                              |
 | 14..15 | ???                              |
+
+The barycentric interpolation weights are the MUL's results written to the "barycentric weight" destination register. The weight w0 (related to the first triangle vertex - the "barycentric coef 0" source register) is hardwired to the result of the mul0, the second vertex w1 ("barycentric coef 1" source register) to the mul1. Again, only destination "barycentric weight" registers are hardwired, "barycentric coef" sources are not. The third vertex weight is derived from the w0 and w1 as "1.0 - w0 - w1". The SFU operation should be set to "rcp r4".
+
+	barycentric weight = barycentric coef * 1.0 / r4
 
 ## TEX instruction word encoding
 
