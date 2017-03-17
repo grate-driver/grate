@@ -302,7 +302,7 @@ The ALU sub-instruction consists of four ALU instructions, one per ALU, and an A
 
 ALU instruction takes the following form:
 
-	OPCODE rDst.mask, -mod(rA)*2-1, -mod(rA)*2-1, -mod(rA)*2-1, -mod(rA)*2-1 (modifier)
+	OPCODE rDst.mask, -mod(rA)*2-1, -mod(rB)*2-1, -mod(rC)*2-1, -mod(rD)*2-1 (modifier)
 
 - OPCODE is one of the ALU operations: MAD, MUL, MIN, MAX or CSEL. The MUL operations is effectively a MAD with an "addition disable" bit set.
 - rDst is the destination register; it's mask is 'lh', 'l\*', '\*h' or '\*\*', where 'l' - enabled write to the low halve, 'h' - to the high and '*' disables the write to the respective halve. The write-mask defines the destination format for the MAD/CSEL instructions: both halves - fp20, one halve - fx10 low/high.
