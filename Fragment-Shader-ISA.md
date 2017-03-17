@@ -184,7 +184,7 @@ When bit "addition disable" is set, the Multiply-Add operation turns into two mu
 
 ## MFU instruction word encoding
 
-The MFU unit can interpolate 4 component vectors per instruction and/or evaluate scalar special functions. Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf).
+The MFU unit can fetch and interpolate 4 component vectors per instruction and/or evaluate scalar special functions. Based on [this design](http://pctuning.tyden.cz/ilustrace3/soucek/g80/paper-164.pdf).
 
 |   Bits | Meaning  |
 |-------:|:---------|
@@ -267,9 +267,23 @@ The SFU result is evaluated first and is available to use by MUL's via "SFU resu
 |     13 | 1.0                              |
 | 14..15 | ???                              |
 
+#### Interpolation
+
 The barycentric interpolation weights are the MUL's results written to the "barycentric weight" destination register. The weight w0 (related to the first triangle vertex - the "barycentric coef 0" source register) is hardwired to the result of the mul0, the second vertex w1 ("barycentric coef 1" source register) to the mul1. Again, only destination "barycentric weight" registers are hardwired, "barycentric coef" sources are not. The third vertex weight is derived from the w0 and w1 as "1.0 - w0 - w1". The SFU operation should be set to "rcp r4".
 
-	barycentric weight = barycentric coef * 1.0 / r4
+	barycentric weight = barycentric coef * 1.0 / w
+
+#### Fragment w component
+
+The w component is stored in the r4 and available to the first instruction of the scheduled MFU instructions sequence.
+
+#### Fragment z component
+
+The z component comes in some form via r3. The fetch operation of the r3 should be set to NOP with "saturation" being enabled for r3. After the r3 has been populated, the following expansion should be performed:
+
+	gl_FragCoord.z = 1/1000 + (r3.low * 1/4000 + r3.high * 1/4)
+
+There is also dependency on the linker: it should perform the "magic" write to the TRAM0.w with "VEC4 select = VEC.z".
 
 ## TEX instruction word encoding
 
