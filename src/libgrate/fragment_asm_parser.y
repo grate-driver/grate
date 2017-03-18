@@ -101,6 +101,9 @@ static uint32_t float_to_fp20(float f)
 		float f;
 	} value;
 
+	if (f == 0.0f)
+		return 0;
+
 	value.f = f;
 
 	sign = (value.u >> 31) & 0x1;
