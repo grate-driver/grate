@@ -249,42 +249,71 @@ Example:
 
 #### MFU sub-instruction
 
-There are two forms of the MFU sub-instruction: varying and special function.
+The MFU sub-instruction consists of four sub-operations: special function, 2 multipliers and a fetch-interpolate. It takes the following form:
 
-The varying operation:
+	EXEC
+		MFU:	sfu: rcp r4
+			mul0: dst0, src0, src1
+			mul1: dst0, src0, src1
+			ipl: var0, var1, var2, var3
+	;
 
-	var unk(HEX value) mod(tN.fmt), mod(tN.fmt), mod(tN.fmt), mod(tN.fmt)
+The special function is evaluated first, multipliers second and varyings fetch and interpolate the last.
 
-- an optional unk(HEX value) - defines the unknown bits o the varying operation, interpolation parameters it seems. When omitted, it is treated as unk(0x0).
+The special function:
+
+	sfu: OPCODE operand
+
+- OPCODE is one of the MFU special function unit operations. See fragment ISA wiki page for the list of opcodes.
+- operand is a "pixel packet" row register in fp20 format to which the operation will be applied.
+
+Multipliers:
+
+	mul0: dst0, srcA, srcB
+	mul1: dst1, srcC, srcD
+
+Multipliers are evaluated simultaneously: dst0 = srcA * srcB, dst1 = srcC * srcD.
+
+- destination registers:
+	- bar - barycentric weight
+	- rN - current row register, N is 0..3
+	- dstN - raw destination register value, N  is 0..7
+
+- source registers:
+	- barN - barycentric coefficient, N is 0..1
+	- sfu - result of the SFU operation
+	- rN - current row register, N is 0..3
+	- srcN - raw source register value, N  is 0..7
+
+The fetch and interpolate:
+
+	ipl: mod(tN.fmt), mod(tN.fmt), mod(tN.fmt), mod(tN.fmt)
+
 - tN.fmt - TRAM row N will be read in as one fp20 or two fx10 (fmt), or could be a NOP to skip the read of a row component. The first tN.fmt operand is the TRAM's row "x" component and so on.
 - an optional sat(tN.fmt) saturate modifier could be applied to the operand
 
 Example:
 
 	EXEC
-		MFU:	var unk(0x104E51BA0) t2.fx10, t7.fp20, NOP, sat(t5.fp20)
+		MFU:	sfu: rcp r4
+			mul0: bar, sfu, bar0
+			mul1: bar, sfu, bar1
+			ipl: t2.fx10, t7.fp20, NOP, sat(t5.fp20)
 	;
 
-Here the varying sub-instruction performs a read from TRAM, interpolates the read components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
+Here the SFU performs 1.0 / w, multipliers program barycentric weights using SFU result and barycentric cefficients, IPL performs a read from TRAM, interpolates the read components and stores the result into the "pixel packet" r0, r1, r2, r3 row registers.
 - tram2.x read as two fx10 and stored into the r0 of the "pixel packet" row
 - tram7.y read as fp20 and stored into the r1 of the "pixel packet" row
 - the r2 of the "pixel packet" row is untouched
 - tram5.w read as fp20, clamped to 0..1 and stored into the r3 of the "pixel packet" row
 
-The special function:
-
-	OPCODE operand
-
-- OPCODE is one of the MFU special function operations.
-- operand is a "pixel packet" row register in fp20 format to which the operation will be applied.
-
 Example:
 
 	EXEC
-		MFU:	RCP r1
+		MFU:	sfu: RCP r1
 	;
 
-Here a reciprocal operation is applied to the register r1, r1 = 1.0 / r1.
+Here a reciprocal operation is applied to the register r1, r1 = 1.0 / r1. Multipliers and interpolation are NOP's.
 
 #### TEX sub-instruction
 
@@ -380,7 +409,7 @@ The linker assembler defines which vertex export registers will be copied to the
 
 There is only one LINK instruction, which takes the following form:
 
-	LINK fmt (mod), fmt (mod), fmt (mod), fmt (mod), tramN.swizzle, exportM
+	LINK fmt (mod), fmt (mod), fmt (mod), fmt (mod), tramN.swizzle, exportM (z)
 
 - fmt - destination TRAM component format:
 	- fp20 - 20bit float
@@ -391,6 +420,7 @@ There is only one LINK instruction, which takes the following form:
 	- dis - interpolation disable
 - tramN.swizzle - the TRAM row N, where N is 0..15 and destination components swizzle is "xyzw"
 - exportM - the exported vertex register M, where M is 0..15
+- z - optional modifier, used to pass .z component to the fragment program (select VEC4.x = VEC4.z) 
 
 Example:
 
