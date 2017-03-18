@@ -614,6 +614,12 @@ MFU_VAR:
 	{
 		memset(&yyval.mfu_var, 0, sizeof(yyval.mfu_var));
 	}
+	|
+	T_SATURATE '(' T_OPCODE_NOP ')'
+	{
+		memset(&yyval.mfu_var, 0, sizeof(yyval.mfu_var));
+		yyval.mfu_var.saturate = 1;
+	}
 	;
 
 MFU_VAR_PRECISION:

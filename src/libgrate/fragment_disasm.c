@@ -118,28 +118,27 @@ static const char * mfu_var(const mfu_instr *mfu, int reg)
 		return "invalid register";
 	}
 
-	if (opcode == MFU_VAR_NOP) {
-		sprintf(buf, "NOP");
-	} else {
-		if (saturate) {
-			buf += sprintf(buf, "sat(");
-		}
+	if (saturate) {
+		buf += sprintf(buf, "sat(");
+	}
 
-		switch (opcode) {
-		case MFU_VAR_FP20:
-			buf += sprintf(buf, "t%d.fp20", source);
-			break;
-		case MFU_VAR_FX10:
-			buf += sprintf(buf, "t%d.fx10", source);
-			break;
-		default:
-			buf += sprintf(buf, "invalid opcode");
-			break;
-		}
+	switch (opcode) {
+	case MFU_VAR_NOP:
+		buf += sprintf(buf, "NOP");
+		break;
+	case MFU_VAR_FP20:
+		buf += sprintf(buf, "t%d.fp20", source);
+		break;
+	case MFU_VAR_FX10:
+		buf += sprintf(buf, "t%d.fx10", source);
+		break;
+	default:
+		buf += sprintf(buf, "invalid opcode");
+		break;
+	}
 
-		if (saturate) {
-			sprintf(buf, ")");
-		}
+	if (saturate) {
+		sprintf(buf, ")");
 	}
 
 	return ret[reg];
