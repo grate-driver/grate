@@ -3,7 +3,10 @@ pseq_to_dw_exec_nb = 1
 
 .asm
 EXEC
-	MFU:	var unk(0x104E51BA0) t0.fp20, t0.fp20, t0.fp20, t0.fp20
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, t0.fp20, t0.fp20
 	TEX:	NOP
 	ALU0:	MAD  r3.*h,  r3,         #1,         #0,         #1
 	ALU1:	MAD  r3.l*,  r2,         #1,         #0,         #1

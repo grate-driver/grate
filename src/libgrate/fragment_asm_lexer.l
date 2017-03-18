@@ -93,7 +93,6 @@ DW:			return T_DW;
 
 NOP			return T_OPCODE_NOP;
 
-VAR			return T_MFU_OPCODE_VAR;
 RCP			return T_MFU_OPCODE_RCP;
 RSQ			return T_MFU_OPCODE_RSQ;
 LG2			return T_MFU_OPCODE_LG2;
@@ -131,7 +130,7 @@ imm[0-2]		{
 			}
 #[0-1]			{
 				fragment_asmlval.u = atoi(yytext + 1);
-				return T_ALU_LOW_PRECISION;
+				return T_CONST_0_1;
 			}
 u[0-9]{1,2}		{
 				fragment_asmlval.u = atoi(yytext + 1);
@@ -173,6 +172,28 @@ other			return T_ALU_ACCUM_OTHER;
 
 "alu_buffer_size"	return T_ALU_BUFFER_SIZE;
 "pseq_to_dw_exec_nb"	return T_PSEQ_DW_EXEC_NB;
+
+"ipl:"			return T_MFU_FETCH_INTERPOLATE;
+"sfu:"			return T_MFU_SFU;
+"mul0:"			return T_MFU_MUL0;
+"mul1:"			return T_MFU_MUL1;
+
+dst[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 3);
+				return T_MFU_MUL_DST;
+			}
+"bar"			{
+				fragment_asmlval.u = 1;
+				return T_MFU_MUL_DST_BARYCENTRIC;
+			}
+
+src[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 3);
+				return T_MUL_SRC;
+			}
+"sfu"			return T_MFU_MUL_SRC_SFU_RESULT;
+"bar0"			return T_MFU_MUL_SRC_BARYCENTRIC_0;
+"bar1"			return T_MFU_MUL_SRC_BARYCENTRIC_1;
 
 .			return T_SYNTAX_ERROR;
 %%

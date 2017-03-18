@@ -53,6 +53,21 @@ typedef union fragment_instruction_schedule {
 #define MFU_VAR_FP20	1
 #define MFU_VAR_FX10	2
 
+#define MFU_MUL_DST_BARYCENTRIC_WEIGHT		1
+#define MFU_MUL_DST_ROW_REG_0			4
+#define MFU_MUL_DST_ROW_REG_1			5
+#define MFU_MUL_DST_ROW_REG_2			6
+#define MFU_MUL_DST_ROW_REG_3			7
+
+#define MFU_MUL_SRC_ROW_REG_0			0
+#define MFU_MUL_SRC_ROW_REG_1			1
+#define MFU_MUL_SRC_ROW_REG_2			2
+#define MFU_MUL_SRC_ROW_REG_3			3
+#define MFU_MUL_SRC_SFU_RESULT			10
+#define MFU_MUL_SRC_BARYCENTRIC_COEF_0		11
+#define MFU_MUL_SRC_BARYCENTRIC_COEF_1		12
+#define MFU_MUL_SRC_CONST_1			13
+
 typedef union fragment_mfu_instruction {
 	struct __attribute__((packed)) {
 		unsigned var0_saturate:1;
@@ -71,12 +86,15 @@ typedef union fragment_mfu_instruction {
 		unsigned var3_opcode:2;
 		unsigned var3_source:4;
 
-		uint64_t unk_varying:36;
-	};
+		unsigned __pad:4;
 
-	struct __attribute__((packed)) {
-		uint32_t __pad1;
-		unsigned __pad2:22;
+		unsigned mul0_src0:4;
+		unsigned mul0_src1:4;
+		unsigned mul0_dst:3;
+
+		unsigned mul1_src0:4;
+		unsigned mul1_src1:4;
+		unsigned mul1_dst:3;
 
 		unsigned opcode:4;
 		unsigned reg:6;

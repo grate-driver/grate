@@ -101,6 +101,9 @@ static uint32_t float_to_fp20(float f)
 		float f;
 	} value;
 
+	if (f == 0.0f)
+		return 0;
+
 	value.f = f;
 
 	sign = (value.u >> 31) & 0x1;
@@ -165,6 +168,19 @@ static uint32_t float_to_fx10(float f)
 %token T_MFU_OPCODE_PRESIN
 %token T_MFU_OPCODE_PRECOS
 
+%token T_MFU_FETCH_INTERPOLATE
+%token T_MFU_SFU
+%token T_MFU_MUL0
+%token T_MFU_MUL1
+
+%token <u> T_MFU_MUL_DST
+%token T_MFU_MUL_DST_BARYCENTRIC
+
+%token <u> T_MUL_SRC
+%token T_MFU_MUL_SRC_SFU_RESULT
+%token T_MFU_MUL_SRC_BARYCENTRIC_0
+%token T_MFU_MUL_SRC_BARYCENTRIC_1
+
 %token T_MFU_UNK
 
 %token T_ALU_rB
@@ -180,7 +196,7 @@ static uint32_t float_to_fx10(float f)
 %token <u> T_GLOBAL_REGISTER
 %token <u> T_ALU_RESULT_REGISTER
 %token <u> T_IMMEDIATE
-%token <u> T_ALU_LOW_PRECISION
+%token <u> T_CONST_0_1
 %token <u> T_ALU_UNIFORM
 %token <u> T_ALU_CONDITION_REGISTER
 
@@ -216,6 +232,8 @@ static uint32_t float_to_fx10(float f)
 %type <u> MFU_VAR_PRECISION
 %type <u> MFU_OPCODE
 %type <mfu_var> MFU_VAR
+%type <u> MFU_MUL_DST
+%type <u> MFU_MUL_SRC
 
 %type <aluX_instr> ALU_OPERATION
 %type <aluX_instr> ALU_OPERATIONS
@@ -492,37 +510,118 @@ MFU_INSTRUCTION:
 	}
 	|
 	T_MFU T_OPCODE_NOP
+	|
+	T_MFU MFU_FUNC MFU_FUNC MFU_FUNC MFU_FUNC
+	|
+	T_MFU MFU_FUNC MFU_FUNC MFU_FUNC
+	|
+	T_MFU MFU_FUNC MFU_FUNC
+	|
+	T_MFU MFU_FUNC
+	;
+
+MFU_FUNC:
+	T_MFU_MUL0 MFU_MUL_DST ',' MFU_MUL_SRC ',' MFU_MUL_SRC
 	{
-		asm_mfu_instructions[asm_mfu_instructions_nb].opcode = MFU_NOP;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul0_dst = $2;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul0_src0 = $4;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul0_src1 = $6;
 	}
 	|
-	T_MFU T_MFU_OPCODE_VAR MFU_UNK MFU_VAR ',' MFU_VAR ',' MFU_VAR ',' MFU_VAR
+	T_MFU_MUL1 MFU_MUL_DST ',' MFU_MUL_SRC ',' MFU_MUL_SRC
 	{
-		asm_mfu_instructions[asm_mfu_instructions_nb].var0_saturate = $4.saturate;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var0_opcode = $4.opcode;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var0_source = $4.source;
-
-		asm_mfu_instructions[asm_mfu_instructions_nb].var1_saturate = $6.saturate;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var1_opcode = $6.opcode;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var1_source = $6.source;
-
-		asm_mfu_instructions[asm_mfu_instructions_nb].var2_saturate = $8.saturate;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var2_opcode = $8.opcode;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var2_source = $8.source;
-
-		asm_mfu_instructions[asm_mfu_instructions_nb].var3_saturate = $10.saturate;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var3_opcode = $10.opcode;
-		asm_mfu_instructions[asm_mfu_instructions_nb].var3_source = $10.source;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul1_dst = $2;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul1_src0 = $4;
+		asm_mfu_instructions[asm_mfu_instructions_nb].mul1_src1 = $6;
 	}
 	|
-	T_MFU MFU_OPCODE T_ROW_REGISTER
+	T_MFU_FETCH_INTERPOLATE MFU_VAR ',' MFU_VAR ',' MFU_VAR ',' MFU_VAR
+	{
+		asm_mfu_instructions[asm_mfu_instructions_nb].var0_saturate = $2.saturate;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var0_opcode = $2.opcode;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var0_source = $2.source;
+
+		asm_mfu_instructions[asm_mfu_instructions_nb].var1_saturate = $4.saturate;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var1_opcode = $4.opcode;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var1_source = $4.source;
+
+		asm_mfu_instructions[asm_mfu_instructions_nb].var2_saturate = $6.saturate;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var2_opcode = $6.opcode;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var2_source = $6.source;
+
+		asm_mfu_instructions[asm_mfu_instructions_nb].var3_saturate = $8.saturate;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var3_opcode = $8.opcode;
+		asm_mfu_instructions[asm_mfu_instructions_nb].var3_source = $8.source;
+	}
+	|
+	T_MFU_SFU MFU_OPCODE T_ROW_REGISTER
 	{
 		asm_mfu_instructions[asm_mfu_instructions_nb].opcode = $2;
 		asm_mfu_instructions[asm_mfu_instructions_nb].reg = $3;
 	}
 	;
 
+MFU_MUL_DST:
+	T_MFU_MUL_DST
+	|
+	T_MFU_MUL_DST_BARYCENTRIC
+	{
+		yyval.u = MFU_MUL_DST_BARYCENTRIC_WEIGHT;
+	}
+	|
+	T_ROW_REGISTER
+	{
+		if ($1 > 3) {
+			PARSE_ERROR("Invalid row register number, r3 max");
+		}
+
+		yyval.u = MFU_MUL_DST_ROW_REG_0 + $1;
+	}
+	;
+
+MFU_MUL_SRC:
+	T_ROW_REGISTER
+	{
+		if ($1 > 3) {
+			PARSE_ERROR("Invalid row register number, r3 max");
+		}
+
+		yyval.u = MFU_MUL_SRC_ROW_REG_0 + $1;
+	}
+	|
+	T_MFU_MUL_SRC_SFU_RESULT
+	{
+		yyval.u = MFU_MUL_SRC_SFU_RESULT;
+	}
+	|
+	T_MFU_MUL_SRC_BARYCENTRIC_0
+	{
+		yyval.u = MFU_MUL_SRC_BARYCENTRIC_COEF_0;
+	}
+	|
+	T_MFU_MUL_SRC_BARYCENTRIC_1
+	{
+		yyval.u = MFU_MUL_SRC_BARYCENTRIC_COEF_1;
+	}
+	|
+	T_CONST_0_1
+	{
+		if ($1 != 1) {
+			PARSE_ERROR("Invalid constant, should be #1");
+		}
+
+		yyval.u = MFU_MUL_SRC_CONST_1;
+	}
+	|
+	T_MUL_SRC
+	;
+
 MFU_OPCODE:
+	T_OPCODE_NOP
+	{
+		yyval.u = MFU_NOP;
+	}
+	|
 	T_MFU_OPCODE_RCP
 	{
 		yyval.u = MFU_RCP;
@@ -579,14 +678,6 @@ MFU_OPCODE:
 	}
 	;
 
-MFU_UNK:
-	T_MFU_UNK '(' T_HEX ')'
-	{
-		asm_mfu_instructions[asm_mfu_instructions_nb].unk_varying = $3;
-	}
-	|
-	;
-
 MFU_VAR:
 	T_TRAM_ROW '.' MFU_VAR_PRECISION
 	{
@@ -613,6 +704,12 @@ MFU_VAR:
 	T_OPCODE_NOP
 	{
 		memset(&yyval.mfu_var, 0, sizeof(yyval.mfu_var));
+	}
+	|
+	T_SATURATE '(' T_OPCODE_NOP ')'
+	{
+		memset(&yyval.mfu_var, 0, sizeof(yyval.mfu_var));
+		yyval.mfu_var.saturate = 1;
 	}
 	;
 
@@ -1203,7 +1300,7 @@ ALU_REG:
 		yyval.alu_reg.rD = 0;
 	}
 	|
-	T_ALU_LOW_PRECISION
+	T_CONST_0_1
 	{
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
 		yyval.alu_reg.index = FRAGMENT_LOWP_VEC2_0_1;

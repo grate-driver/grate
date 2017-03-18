@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <inttypes.h>
 #include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -118,31 +117,138 @@ static const char * mfu_var(const mfu_instr *mfu, int reg)
 		return "invalid register";
 	}
 
-	if (opcode == MFU_VAR_NOP) {
-		sprintf(buf, "NOP");
-	} else {
-		if (saturate) {
-			buf += sprintf(buf, "sat(");
-		}
+	if (saturate) {
+		buf += sprintf(buf, "sat(");
+	}
 
-		switch (opcode) {
-		case MFU_VAR_FP20:
-			buf += sprintf(buf, "t%d.fp20", source);
-			break;
-		case MFU_VAR_FX10:
-			buf += sprintf(buf, "t%d.fx10", source);
-			break;
-		default:
-			buf += sprintf(buf, "invalid opcode");
-			break;
-		}
+	switch (opcode) {
+	case MFU_VAR_NOP:
+		buf += sprintf(buf, "NOP");
+		break;
+	case MFU_VAR_FP20:
+		buf += sprintf(buf, "t%d.fp20", source);
+		break;
+	case MFU_VAR_FX10:
+		buf += sprintf(buf, "t%d.fx10", source);
+		break;
+	default:
+		buf += sprintf(buf, "invalid opcode");
+		break;
+	}
 
-		if (saturate) {
-			sprintf(buf, ")");
-		}
+	if (saturate) {
+		sprintf(buf, ")");
 	}
 
 	return ret[reg];
+}
+
+static const char * mfu_mul_src(unsigned src, int mul_idx)
+{
+	static char ret[2][16];
+	char *buf = ret[mul_idx];
+
+	switch (src) {
+	case MFU_MUL_SRC_ROW_REG_0:
+		return "r0";
+	case MFU_MUL_SRC_ROW_REG_1:
+		return "r1";
+	case MFU_MUL_SRC_ROW_REG_2:
+		return "r2";
+	case MFU_MUL_SRC_ROW_REG_3:
+		return "r3";
+	case MFU_MUL_SRC_SFU_RESULT:
+		return "sfu";
+	case MFU_MUL_SRC_BARYCENTRIC_COEF_0:
+		return "bar0";
+	case MFU_MUL_SRC_BARYCENTRIC_COEF_1:
+		return "bar1";
+	case MFU_MUL_SRC_CONST_1:
+		return "1.0";
+	default:
+		sprintf(buf, "src%d", src);
+		break;
+	}
+
+	return ret[mul_idx];
+}
+
+static const char * mfu_mul_dst(unsigned dst)
+{
+	static char ret[16];
+	char *buf = ret;
+
+	switch (dst) {
+	case MFU_MUL_DST_BARYCENTRIC_WEIGHT:
+		return "bar";
+	case MFU_MUL_DST_ROW_REG_0:
+		return "r0";
+	case MFU_MUL_DST_ROW_REG_1:
+		return "r1";
+	case MFU_MUL_DST_ROW_REG_2:
+		return "r2";
+	case MFU_MUL_DST_ROW_REG_3:
+		return "r3";
+	default:
+		sprintf(buf, "dst%d", dst);
+		break;
+	}
+
+	return ret;
+}
+
+static const char * mfu_mul(const mfu_instr *mfu, int mul_idx)
+{
+	static char ret[2][32];
+	char *buf = ret[mul_idx];
+	unsigned src0 = mul_idx ? mfu->mul1_src0 : mfu->mul0_src0;
+	unsigned src1 = mul_idx ? mfu->mul1_src1 : mfu->mul0_src1;
+	unsigned dst = mul_idx ? mfu->mul1_dst : mfu->mul0_dst;
+
+	sprintf(buf, "%s, %s, %s",
+		mfu_mul_dst(dst),
+		mfu_mul_src(src0, 0),
+		mfu_mul_src(src1, 1));
+
+	return ret[mul_idx];
+}
+
+static const char * mfu_opcode(unsigned opcode)
+{
+	static char ret[16];
+	char *buf = ret;
+
+	switch (opcode) {
+	case MFU_NOP:
+		return "nop";
+	case MFU_RCP:
+		return "rcp";
+	case MFU_RSQ:
+		return "rsq";
+	case MFU_LG2:
+		return "lg2";
+	case MFU_EX2:
+		return "ex2";
+	case MFU_SQRT:
+		return "sqrt";
+	case MFU_SIN:
+		return "sin";
+	case MFU_COS:
+		return "cos";
+	case MFU_FRC:
+		return "frc";
+	case MFU_PREEX2:
+		return "preEx2";
+	case MFU_PRESIN:
+		return "preSin";
+	case MFU_PRECOS:
+		return "preCos";
+	default:
+		sprintf(buf, "op%d", opcode);
+		break;
+	}
+
+	return ret;
 }
 
 static const char * disassemble_mfu(const mfu_instr *mfu)
@@ -150,64 +256,15 @@ static const char * disassemble_mfu(const mfu_instr *mfu)
 	static char ret[128];
 	char *buf = ret;
 
-	if (mfu->part0 != 0x00000000) {
-		buf += sprintf(buf, "var ");
+	buf += sprintf(buf, "sfu: %s r%d\n\t\t",
+		       mfu_opcode(mfu->opcode), mfu->reg);
 
-		if (mfu->unk_varying != 0) {
-			buf += sprintf(buf, "unk(0x%" PRIx64 ") ",
-				       (uint64_t)mfu->unk_varying);
-		}
+	buf += sprintf(buf, "mul0: %s\n\t\t", mfu_mul(mfu, 0));
+	buf += sprintf(buf, "mul1: %s\n\t\t", mfu_mul(mfu, 1));
 
-		sprintf(buf, "%s, %s, %s, %s",
-			mfu_var(mfu, 0),
-			mfu_var(mfu, 1),
-			mfu_var(mfu, 2),
-			mfu_var(mfu, 3));
-
-	} else if (mfu->opcode == MFU_NOP) {
-		sprintf(buf, "NOP");
-	} else {
-		switch (mfu->opcode) {
-		case MFU_RCP:
-			buf += sprintf(buf, "rcp");
-			break;
-		case MFU_RSQ:
-			buf += sprintf(buf, "rsq");
-			break;
-		case MFU_LG2:
-			buf += sprintf(buf, "lg2");
-			break;
-		case MFU_EX2:
-			buf += sprintf(buf, "ex2");
-			break;
-		case MFU_SQRT:
-			buf += sprintf(buf, "sqrt");
-			break;
-		case MFU_SIN:
-			buf += sprintf(buf, "sin");
-			break;
-		case MFU_COS:
-			buf += sprintf(buf, "cos");
-			break;
-		case MFU_FRC:
-			buf += sprintf(buf, "frc");
-			break;
-		case MFU_PREEX2:
-			buf += sprintf(buf, "preEx2");
-			break;
-		case MFU_PRESIN:
-			buf += sprintf(buf, "preSin");
-			break;
-		case MFU_PRECOS:
-			buf += sprintf(buf, "preCos");
-			break;
-		default:
-			buf += sprintf(buf, "invalid opcode!");
-			break;
-		}
-
-		sprintf(buf, " v%d", mfu->reg);
-	}
+	sprintf(buf, "ipl: %s, %s, %s, %s",
+		mfu_var(mfu, 0), mfu_var(mfu, 1),
+		mfu_var(mfu, 2), mfu_var(mfu, 3));
 
 	return ret;
 }
@@ -370,31 +427,24 @@ static const char * alu_dst(const union fragment_alu_instruction *alu)
 
 static const char * alu_opcode(const union fragment_alu_instruction *alu)
 {
-	static char ret[8];
-	char *buf = ret;
-
 	switch (alu->opcode) {
 	case ALU_OPCODE_MAD:
 		if (alu->addition_disable) {
-			sprintf(buf, "MUL");
+			return "MUL";
 		} else {
-			sprintf(buf, "MAD");
+			return "MAD";
 		}
-		break;
 	case ALU_OPCODE_MIN:
+		return "MIN";
 	case ALU_OPCODE_MAX:
-		if (alu->opcode == ALU_OPCODE_MIN) {
-			sprintf(buf, "MIN");
-		} else {
-			sprintf(buf, "MAX");
-		}
-		break;
+		return "MAX";
 	case ALU_OPCODE_CSEL:
-		sprintf(buf, "CSEL");
+		return "CSEL";
+	default:
 		break;
 	}
 
-	return ret;
+	return "ERR!";
 }
 
 static const char * disassemble_alu(const union fragment_alu_instruction *alu)
