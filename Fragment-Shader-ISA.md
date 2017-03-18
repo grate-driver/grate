@@ -281,9 +281,9 @@ The w component is stored in the r4 and available to the first instruction of th
 
 The z component comes in some form via r3. The fetch operation of the r3 should be set to NOP with "saturation" being enabled for r3. After the r3 has been populated, the following expansion should be performed:
 
-	gl_FragCoord.z = 1/1000 + (r3.low * 1/4000 + r3.high * 1/4)
+	gl_FragCoord.z = 1/1000 + max(0.0, r3.low) * 1/4000 + max(0.0, r3.high) * 1/4
 
-There is also dependency on the linker: it should perform the "magic" write to the TRAM0.w with "VEC4 select = VEC.z".
+There is also dependency on the linker: it should perform the "magic" write to the TRAM0.w with "VEC4 select = VEC4.z".
 
 ## TEX instruction word encoding
 
