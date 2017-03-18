@@ -72,6 +72,7 @@ unsigned asm_linker_used_tram_rows_nb;
 
 %type <u> TYPE
 %type <u> COMPONENT
+%type <u> Z
 
 %type <component> COLUMN
 %type <component> MODIFIERS
@@ -114,7 +115,7 @@ instructions: instructions instruction
 
 instruction:
 	T_LINK COLUMN ',' COLUMN ',' COLUMN ',' COLUMN ','
-		T_TRAM_ROW '.' COMPONENT COMPONENT COMPONENT COMPONENT ',' T_EXPORT
+		T_TRAM_ROW '.' COMPONENT COMPONENT COMPONENT COMPONENT ',' T_EXPORT Z
 	{
 		memset(&yyval.instr, 0, sizeof(yyval.instr));
 
@@ -126,7 +127,7 @@ instruction:
 			PARSE_ERROR("Invalid vertex export index, 15 maximum");
 		}
 
-		yyval.instr.vec4_select			= 0;
+		yyval.instr.vec4_select			= $18;
 		yyval.instr.vertex_export_index		= $17;
 		yyval.instr.tram_row_index		= $10;
 
@@ -242,5 +243,14 @@ MODIFIER:
 		yyval.component.interpolation_disable = 1;
 	}
 	;
+
+Z: '(' T_COMPONENT_Z ')'
+	{
+		yyval.u = 1;
+	}
+	|
+	{
+		yyval.u = 0;
+	}
 
 %%
