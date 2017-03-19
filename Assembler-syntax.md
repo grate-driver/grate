@@ -284,6 +284,7 @@ Multipliers are evaluated simultaneously: dst0 = srcA * srcB, dst1 = srcC * srcD
 	- sfu - result of the SFU operation
 	- rN - current row register, N is 0..3
 	- srcN - raw source register value, N  is 0..7
+	- #1 - constant 1.0
 
 The fetch and interpolate:
 
