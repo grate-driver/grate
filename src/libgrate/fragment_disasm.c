@@ -625,14 +625,14 @@ static const char * disassemble_alus(const alu_instr *alu)
 	memset(imm_fx10_high, 0, sizeof(imm_fx10_high));
 	alu_imm_used = 0;
 
-	buf += sprintf(buf, "\tALU0:\t%s\n", disassemble_alu(&alu->a[0]));
-	buf += sprintf(buf, "\tALU1:\t%s\n", disassemble_alu(&alu->a[1]));
-	buf += sprintf(buf, "\tALU2:\t%s\n", disassemble_alu(&alu->a[2]));
+	buf += sprintf(buf, "\t\tALU0:\t%s\n", disassemble_alu(&alu->a[0]));
+	buf += sprintf(buf, "\t\tALU1:\t%s\n", disassemble_alu(&alu->a[1]));
+	buf += sprintf(buf, "\t\tALU2:\t%s\n", disassemble_alu(&alu->a[2]));
 
 	if (!alu_imm_used) {
-		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu(&alu->a[3]));
+		sprintf(buf, "\t\tALU3:\t%s\n", disassemble_alu(&alu->a[3]));
 	} else {
-		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu_imm(alu));
+		sprintf(buf, "\t\tALU3:\t%s\n", disassemble_alu_imm(alu));
 	}
 
 	return ret;
@@ -698,7 +698,7 @@ const char * fragment_pipeline_disassemble(
 	}
 
 	for (i = 0; i < alu_nb; i++) {
-		buf += sprintf(buf, "%s", disassemble_alus(alu + i));
+		buf += sprintf(buf, "\tALU:\n\%s", disassemble_alus(alu + i));
 	}
 
 	if (dw->data != 0x00000000) {

@@ -8,9 +8,10 @@ EXEC
 		mul1: bar, sfu, bar1
 		ipl: t0.fp20, t0.fp20, t0.fp20, t0.fp20
 	TEX:	NOP
-	ALU0:	MAD  r3.*h,  r3,         #1,         #0,         #1
-	ALU1:	MAD  r3.l*,  r2,         #1,         #0,         #1
-	ALU2:	MAD  r2.*h,  r0,         #1,         #0,         #1
-	ALU3:	MAD  r2.l*,  r1,         #1,         #0,         #1
+	ALU:
+		ALU0:	MAD  r3.*h,  r3,         #1,         #0,         #1
+		ALU1:	MAD  r3.l*,  r2,         #1,         #0,         #1
+		ALU2:	MAD  r2.*h,  r0,         #1,         #0,         #1
+		ALU3:	MAD  r2.l*,  r1,         #1,         #0,         #1
 	DW:	0x00028005
 ;

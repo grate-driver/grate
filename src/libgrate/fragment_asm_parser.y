@@ -69,7 +69,6 @@ static void reset_fragment_asm_parser_state(void)
 	memset(asm_pseq_instructions, 0, sizeof(asm_pseq_instructions));
 	memset(asm_mfu_instructions, 0, sizeof(asm_mfu_instructions));
 	memset(asm_tex_instructions, 0, sizeof(asm_tex_instructions));
-	memset(asm_alu_instructions, 0, sizeof(asm_alu_instructions));
 	memset(asm_dw_instructions, 0, sizeof(asm_dw_instructions));
 	memset(asm_mfu_sched, 0, sizeof(asm_mfu_sched));
 	memset(asm_alu_sched, 0, sizeof(asm_alu_sched));
@@ -79,8 +78,8 @@ static void reset_fragment_asm_parser_state(void)
 	for (i = 0; i < ARRAY_SIZE(asm_alu_instructions); i++) {
 		for (k = 0; k < 4; k++) {
 			// a NOP is an instruction that writes 0.0 to r31
-			asm_alu_instructions[i].a[k].part0 = 0x000fe7e8;
-			asm_alu_instructions[i].a[k].part1 = 0x3e41f200;
+			asm_alu_instructions[i].a[k].part0 = 0x3e41f200;
+			asm_alu_instructions[i].a[k].part1 = 0x000fe7e8;
 		}
 	}
 
@@ -147,10 +146,8 @@ static uint32_t float_to_fx10(float f)
 
 %token T_SYNTAX_ERROR
 
-%token T_ALU0
-%token T_ALU1
-%token T_ALU2
-%token T_ALU3
+%token T_ALU
+%token <u> T_ALUX
 %token T_ALU_COMPLEMENT
 
 %token <aluX_instr> T_OPCODE_NOP
@@ -772,8 +769,7 @@ ALU_INSTRUCTIONS: ALU_INSTRUCTIONS ALU_INSTRUCTION
 	|
 	;
 
-ALU_INSTRUCTION:
-	ALU0_INSTRUCTION ALU1_INSTRUCTION ALU2_INSTRUCTION ALU3_INSTRUCTION
+ALU_INSTRUCTION: T_ALU ALUX_INSTRUCTIONS
 	{
 		unsigned instructions_nb = asm_alu_sched[asm_fs_instructions_nb].instructions_nb + 1;
 		unsigned address = 0;
@@ -796,36 +792,30 @@ ALU_INSTRUCTION:
 	}
 	;
 
-ALU0_INSTRUCTION:
-	T_ALU0 ALU_OPERATION
-	{
-		asm_alu_instructions[asm_alu_instructions_nb].a[0] = $2;
-	}
+ALUX_INSTRUCTIONS:
+	ALUX_INSTRUCTION ALUX_INSTRUCTION ALUX_INSTRUCTION ALUX_INSTRUCTION
+	|
+	ALUX_INSTRUCTION ALUX_INSTRUCTION ALUX_INSTRUCTION
+	|
+	ALUX_INSTRUCTION ALUX_INSTRUCTION
+	|
+	ALUX_INSTRUCTION
+	|
 	;
 
-ALU1_INSTRUCTION:
-	T_ALU1 ALU_OPERATION
+ALUX_INSTRUCTION:
+	T_ALUX ALU_OPERATION
 	{
-		asm_alu_instructions[asm_alu_instructions_nb].a[1] = $2;
-	}
-	;
-
-ALU2_INSTRUCTION:
-	T_ALU2 ALU_OPERATION
-	{
-		asm_alu_instructions[asm_alu_instructions_nb].a[2] = $2;
-	}
-	;
-
-ALU3_INSTRUCTION:
-	T_ALU3 ALU_OPERATION
-	{
-		asm_alu_instructions[asm_alu_instructions_nb].a[3] = $2;
+		asm_alu_instructions[asm_alu_instructions_nb].a[$1] = $2;
 	}
 	|
-	T_ALU3 ALU3_IMMEDIATES
+	T_ALUX ALU3_IMMEDIATES
 	{
 		uint32_t swap = asm_alu_instructions[asm_alu_instructions_nb].part7;
+
+		if ($1 != 3) {
+			PARSE_ERROR("ALU immediates can override ALU3 only");
+		}
 
 		asm_alu_instructions[asm_alu_instructions_nb].part7 =
 			asm_alu_instructions[asm_alu_instructions_nb].part6;
