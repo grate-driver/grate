@@ -287,7 +287,7 @@ There is also dependency on the linker: it should perform the "magic" write to t
 
 ## TEX instruction word encoding
 
-The TEX instruction takes the texture coordinate from the first row of the pixel packet (i.e. R0-R3 registers) and writes the sampled data to that first row as well. 
+The TEX instruction takes the texture coordinates from the first row of the pixel packet (i.e. R0-R3 registers) and writes the sampled data to that first row as well. 
 
 |   Bits | Meaning                               |
 |-------:|:--------------------------------------|
