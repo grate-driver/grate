@@ -149,10 +149,11 @@ Fragment instruction takes the following form:
 		PSEQ:	OPCODE operands
 		MFU:	OPCODE operands
 		TEX:	OPCODE operands
-		ALU0:	OPCODE operands
-		ALU1:	OPCODE operands
-		ALU2:	OPCODE operands
-		ALU3:	OPCODE operands
+		ALU:
+			ALU0:	OPCODE operands
+			ALU1:	OPCODE operands
+			ALU2:	OPCODE operands
+			ALU3:	OPCODE operands
 		ALU_COMPLEMENT: HEX
 		DW:	OPCODE operands
 	;
@@ -165,10 +166,11 @@ Example:
 		PSEQ:	NOP
 		MFU:	NOP
 		TEX:	NOP
-		ALU0:	NOP
-		ALU1:	NOP
-		ALU2:	NOP
-		ALU3:	NOP
+		ALU:
+			ALU0:	NOP
+			ALU1:	NOP
+			ALU2:	NOP
+			ALU3:	NOP
 		DW:	NOP
 	;
 
@@ -189,15 +191,16 @@ Example:
 
 		TEX:	OPCODE operands
 
-		ALU0:	OPCODE operands
-		ALU1:	OPCODE operands
-		ALU2:	OPCODE operands
-		ALU3:	OPCODE operands
-
-		ALU0:	OPCODE operands
-		ALU1:	OPCODE operands
-		ALU2:	OPCODE operands
-		ALU3:	OPCODE operands
+		ALU:
+			ALU0:	OPCODE operands
+			ALU1:	OPCODE operands
+			ALU2:	OPCODE operands
+			ALU3:	OPCODE operands
+		ALU:
+			ALU0:	OPCODE operands
+			ALU1:	OPCODE operands
+			ALU2:	OPCODE operands
+			ALU3:	OPCODE operands
 		ALU_COMPLEMENT: HEX
 
 		DW:	OPCODE operands
@@ -373,10 +376,11 @@ ALU registers:
 Example:
 
 	EXEC
-		ALU0:	MUL  u3.lh,  r3,         posx,       r1.l - 1,   rB        (x2)(this)
-		ALU1:	CSEL cr6,    r2,         u5.h,       #0,         #1
-		ALU2:	MIN  r2.*h,  r1,         #1,         r2 * 2,     abs(rC)
-		ALU3:	MAD  r2.l*,  r0,         #1,         alu2,       #1
+		ALU:
+			ALU0:	MUL  u3.lh,  r3,         posx,       r1.l - 1,   rB        (x2)(this)
+			ALU1:	CSEL cr6,    r2,         u5.h,       #0,         #1
+			ALU2:	MIN  r2.*h,  r1,         #1,         r2 * 2,     abs(rC)
+			ALU3:	MAD  r2.l*,  r0,         #1,         alu2,       #1
 	;
 
 The ALU3 could be traded for the immediate constants, it takes the following form:
@@ -388,10 +392,11 @@ If immN is postfix'ed with ".l" / ".h", the fx10 representation of a float value
 Example:
 
 	EXEC
-		ALU0:	MAD  cr0,    imm0.h,     #1,         imm1,       rB   (gt)
-		ALU1:	MAD  lp,     -posx,      #1,         #0,         #1   
-		ALU2:	NOP 
-		ALU3:	imm0.h = -0.187500, imm1 = 8192.000000
+		ALU:
+			ALU0:	MAD  cr0,    imm0.h,     #1,         imm1,       rB   (gt)
+			ALU1:	MAD  lp,     -posx,      #1,         #0,         #1   
+			ALU2:	NOP 
+			ALU3:	imm0.h = -0.187500, imm1 = 8192.000000
 	;
 
 #### DW sub-instruction
