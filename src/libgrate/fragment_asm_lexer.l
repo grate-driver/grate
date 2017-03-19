@@ -196,5 +196,10 @@ src[0-9]{1,2}		{
 "bar0"			return T_MFU_MUL_SRC_BARYCENTRIC_0;
 "bar1"			return T_MFU_MUL_SRC_BARYCENTRIC_1;
 
+tex[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 3);
+				return T_TEX_SAMPLER_ID;
+			}
+
 .			return T_SYNTAX_ERROR;
 %%

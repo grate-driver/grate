@@ -638,6 +638,32 @@ static const char * disassemble_alus(const alu_instr *alu)
 	return ret;
 }
 
+static const char * disassemble_tex(const tex_instr *tex)
+{
+	static char ret[64];
+	char *buf = ret;
+
+	if (tex->sample_dst_regs_select) {
+		buf += sprintf(buf, "r2, r3, ");
+	} else {
+		buf += sprintf(buf, "r0, r1, ");
+	}
+
+	buf += sprintf(buf, "tex%d, ", tex->sampler_index);
+
+	if (tex->tex_coord_regs_select) {
+		buf += sprintf(buf, "r2, r3, r0");
+	} else {
+		buf += sprintf(buf, "r0, r1, r2");
+	}
+
+	if (tex->unk_6_9 || tex->unk_11 || tex->unk_13_31) {
+		sprintf(buf, " // 0x%08X", tex->data);
+	}
+
+	return ret;
+}
+
 const char * fragment_pipeline_disassemble(
 	const pseq_instr *pseq,
 	const mfu_instr *mfu, unsigned mfu_nb,
@@ -668,7 +694,7 @@ const char * fragment_pipeline_disassemble(
 	}
 
 	if (tex->data != 0x00000000) {
-		buf += sprintf(buf, "\tTEX:\t0x%08X\n", tex->data);
+		buf += sprintf(buf, "\tTEX:\t%s\n", disassemble_tex(tex));
 	}
 
 	for (i = 0; i < alu_nb; i++) {
