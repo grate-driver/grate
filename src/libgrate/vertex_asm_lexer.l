@@ -38,7 +38,8 @@ int yywrap(void)
 
 %%
 [ \t]+			/* skip */;
-"/*"([^*]|(\*+[^*/]))*\*+\/ /* comment */;
+"/*"([^*]|(\*+[^*/]))*\*+\/ /* multi line comment */;
+"//".*			/* single line comment */;
 [\n]			yylineno++;
 
 ".asm"			return T_ASM;
