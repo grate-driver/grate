@@ -321,13 +321,21 @@ Here a reciprocal operation is applied to the register r1, r1 = 1.0 / r1. Multip
 
 #### TEX sub-instruction
 
-Opcodes are unknown, available only in a hex form.
+Performs texture sampling, takes the following form:
+
+	EXEC
+		TEX:	rg, ba, texID, s, t, r
+	;
+
+Destination and source registers are current row registers r0-r3. Destination registers "rg" and "ba" receive sampled texture RGBA data in fx10 format, there are two possible variants: "r0, r1" or "r2, r3". Sources are texture sampler ID and texture S, T, R coordinate; there are two possible variants of s,t,r sources: "r0, r1, r2" or "r2, r3, r0".
 
 Example:
 
 	EXEC
-		TEX:	0x00000000
+		TEX:	r2, r3, tex14, r0, r1, r2
 	;
+
+Here texture data is sampled into r2,r3 row registers from texture unit #14, "s t r" coordinate is passed via r0,r1,r2 row registers. In result, r2.fx10_low contains red; r2.fx10_high green; r3.fx10_low blue and r3.fx10_high alpha channel components.
 
 #### ALU sub-instruction
 
