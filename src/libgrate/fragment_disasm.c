@@ -164,7 +164,7 @@ static const char * mfu_mul_src(unsigned src, int mul_idx)
 	case MFU_MUL_SRC_BARYCENTRIC_COEF_1:
 		return "bar1";
 	case MFU_MUL_SRC_CONST_1:
-		return "1.0";
+		return "#1";
 	default:
 		sprintf(buf, "src%d", src);
 		break;
