@@ -1403,6 +1403,7 @@ ALU_SRC_D:
 	|
 	{
 		memset(&yyval.alu_reg, 0, sizeof(yyval.alu_reg));
+		yyval.alu_reg.disable = 1;
 		yyval.alu_reg.rD = 1;
 	}
 	;
