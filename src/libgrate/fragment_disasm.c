@@ -164,7 +164,7 @@ static const char * mfu_mul_src(unsigned src, int mul_idx)
 	case MFU_MUL_SRC_BARYCENTRIC_COEF_1:
 		return "bar1";
 	case MFU_MUL_SRC_CONST_1:
-		return "1.0";
+		return "#1";
 	default:
 		sprintf(buf, "src%d", src);
 		break;
@@ -625,14 +625,40 @@ static const char * disassemble_alus(const alu_instr *alu)
 	memset(imm_fx10_high, 0, sizeof(imm_fx10_high));
 	alu_imm_used = 0;
 
-	buf += sprintf(buf, "\tALU0:\t%s\n", disassemble_alu(&alu->a[0]));
-	buf += sprintf(buf, "\tALU1:\t%s\n", disassemble_alu(&alu->a[1]));
-	buf += sprintf(buf, "\tALU2:\t%s\n", disassemble_alu(&alu->a[2]));
+	buf += sprintf(buf, "\t\tALU0:\t%s\n", disassemble_alu(&alu->a[0]));
+	buf += sprintf(buf, "\t\tALU1:\t%s\n", disassemble_alu(&alu->a[1]));
+	buf += sprintf(buf, "\t\tALU2:\t%s\n", disassemble_alu(&alu->a[2]));
 
 	if (!alu_imm_used) {
-		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu(&alu->a[3]));
+		sprintf(buf, "\t\tALU3:\t%s\n", disassemble_alu(&alu->a[3]));
 	} else {
-		sprintf(buf, "\tALU3:\t%s\n", disassemble_alu_imm(alu));
+		sprintf(buf, "\t\tALU3:\t%s\n", disassemble_alu_imm(alu));
+	}
+
+	return ret;
+}
+
+static const char * disassemble_tex(const tex_instr *tex)
+{
+	static char ret[64];
+	char *buf = ret;
+
+	if (tex->sample_dst_regs_select) {
+		buf += sprintf(buf, "r2, r3, ");
+	} else {
+		buf += sprintf(buf, "r0, r1, ");
+	}
+
+	buf += sprintf(buf, "tex%d, ", tex->sampler_index);
+
+	if (tex->tex_coord_regs_select) {
+		buf += sprintf(buf, "r2, r3, r0");
+	} else {
+		buf += sprintf(buf, "r0, r1, r2");
+	}
+
+	if (tex->unk_6_9 || tex->unk_11 || tex->unk_13_31) {
+		sprintf(buf, " // 0x%08X", tex->data);
 	}
 
 	return ret;
@@ -668,11 +694,11 @@ const char * fragment_pipeline_disassemble(
 	}
 
 	if (tex->data != 0x00000000) {
-		buf += sprintf(buf, "\tTEX:\t0x%08X\n", tex->data);
+		buf += sprintf(buf, "\tTEX:\t%s\n", disassemble_tex(tex));
 	}
 
 	for (i = 0; i < alu_nb; i++) {
-		buf += sprintf(buf, "%s", disassemble_alus(alu + i));
+		buf += sprintf(buf, "\tALU:\n\%s", disassemble_alus(alu + i));
 	}
 
 	if (dw->data != 0x00000000) {

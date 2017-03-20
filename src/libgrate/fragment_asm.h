@@ -255,7 +255,25 @@ typedef union fragment_pseq_instruction {
 	uint32_t data;
 } pseq_instr;
 
+/*                 S  T  R */
+#define TEX_COORD_R0_R1_R2	0
+#define TEX_COORD_R2_R3_R0	1
+
+#define TEX_SAMPLE_DST_R0_R1	0
+#define TEX_SAMPLE_DST_R2_R3	1
+
 typedef union fragment_tex_instruction {
+	struct __attribute__((packed)) {
+		unsigned sampler_index:4;
+		unsigned tex_coord_regs_select:1;
+		unsigned sample_dst_regs_select:1;
+		unsigned unk_6_9:4;
+		unsigned enable:1;
+		unsigned unk_11:1;
+		unsigned enable_bias:1;
+		unsigned unk_13_31:19;
+	};
+
 	uint32_t data;
 } tex_instr;
 

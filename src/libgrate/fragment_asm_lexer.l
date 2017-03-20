@@ -39,7 +39,8 @@ int yywrap(void)
 
 %%
 [ \t]+			/* skip */;
-"/*"([^*]|(\*+[^*/]))*\*+\/ /* comment */;
+"/*"([^*]|(\*+[^*/]))*\*+\/ /* multi line comment */;
+"//".*			/* single line comment */;
 [\n]			yylineno++;
 
 ".asm"			return T_ASM;
@@ -84,10 +85,11 @@ sat			return T_SATURATE;
 PSEQ:			return T_PSEQ;
 MFU:			return T_MFU;
 TEX:			return T_TEX;
-ALU0:			return T_ALU0;
-ALU1:			return T_ALU1;
-ALU2:			return T_ALU2;
-ALU3:			return T_ALU3;
+ALU:			return T_ALU;
+ALU[0-3]:		{
+				fragment_asmlval.u = atoi(yytext + 3);
+				return T_ALUX;
+			}
 ALU_COMPLEMENT:		return T_ALU_COMPLEMENT;
 DW:			return T_DW;
 
@@ -194,6 +196,11 @@ src[0-9]{1,2}		{
 "sfu"			return T_MFU_MUL_SRC_SFU_RESULT;
 "bar0"			return T_MFU_MUL_SRC_BARYCENTRIC_0;
 "bar1"			return T_MFU_MUL_SRC_BARYCENTRIC_1;
+
+tex[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 3);
+				return T_TEX_SAMPLER_ID;
+			}
 
 .			return T_SYNTAX_ERROR;
 %%

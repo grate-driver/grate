@@ -2,6 +2,7 @@ noinst_PROGRAMS = \
 	clear \
 	cube \
 	cube-textured \
+	cube-textured2 \
 	quad \
 	triangle \
 	triangle-rotate
