@@ -110,6 +110,8 @@ The condition register comprises two fixed10 values, 0.0 or 1.0. In order to wri
 
     Condition register stored value = !!(ALU result)
 
+Looks like ALU can address up to 2 source CR's in one ALU[0-3] sub-instruction.
+
 #### Kill register:
 
 Non-zero value written to the KILL register discards the fragment, zero keeps it alive and doesn't resurrect the killed fragment. Destination register write mask (low/high halves) is ignored.
