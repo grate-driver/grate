@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &rotate, &transform);
 		mat4_rotate_z(&transform, z);
 		mat4_multiply(&rotate, &modelview, &transform);
-		mat4_translate(&transform, -0.5f, 0.8f, -4.0f);
+		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
 		mat4_multiply(&modelview, &transform, &rotate);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
@@ -364,9 +364,9 @@ int main(int argc, char *argv[])
 		grate_flush(grate);
 
 		/* Draw couple more cubes */
-		mat4_identity(&result);
-		mat4_multiply(&modelview, &result, &rotate);
-		mat4_translate(&transform, -3.0f, 0.0f, 0.0f);
+		mat4_identity(&modelview);
+		mat4_multiply(&result, &modelview, &rotate);
+		mat4_translate(&transform, -2.5f, 0.0f, 0.0f);
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&result, &rotate, &modelview);
 		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
 
 		mat4_identity(&modelview);
 		mat4_multiply(&result, &modelview, &rotate);
-		mat4_translate(&transform, 2.0f, 0.0f, 0.0f);
+		mat4_translate(&transform, 2.5f, 0.0f, 0.0f);
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&result, &rotate, &modelview);
 		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
