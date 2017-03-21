@@ -733,7 +733,8 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 {
 	int err;
 
-	gr3d->commands = host1x_bo_create(host1x, 32 * 4096, 2);
+	gr3d->commands = host1x_bo_create(host1x, 32 * 4096,
+					  NVHOST_BO_FLAG_COMMAND_BUFFER);
 	if (!gr3d->commands)
 		return -ENOMEM;
 
@@ -743,7 +744,8 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 		return err;
 	}
 
-	gr3d->attributes = host1x_bo_create(host1x, 12 * 4096, 4);
+	gr3d->attributes = host1x_bo_create(host1x, 12 * 4096,
+					    NVHOST_BO_FLAG_ATTRIBUTES);
 	if (!gr3d->attributes) {
 		host1x_bo_free(gr3d->commands);
 		return -ENOMEM;

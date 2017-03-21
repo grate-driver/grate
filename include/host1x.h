@@ -43,6 +43,11 @@ enum host1x_class {
 #define HOST1X_GR3D_FORMAT_RGB565	0x6
 #define HOST1X_GR3D_FORMAT_RGBA8888	0xd
 
+#define NVHOST_BO_FLAG_FRAMEBUFFER	1
+#define NVHOST_BO_FLAG_COMMAND_BUFFER	2
+#define NVHOST_BO_FLAG_SCRATCH		3
+#define NVHOST_BO_FLAG_ATTRIBUTES	4
+
 struct host1x_stream {
 	const uint32_t *words;
 	const uint32_t *ptr;

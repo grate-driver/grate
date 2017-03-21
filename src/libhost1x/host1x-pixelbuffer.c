@@ -37,7 +37,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				enum layout_format layout)
 {
 	struct host1x_pixelbuffer *pixbuf;
-	unsigned long flags = 1;
+	unsigned long flags = NVHOST_BO_FLAG_FRAMEBUFFER;
 
 	pixbuf = calloc(1, sizeof(*pixbuf));
 	if (!pixbuf)

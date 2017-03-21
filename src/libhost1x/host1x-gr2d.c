@@ -156,7 +156,8 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 {
 	int err;
 
-	gr2d->commands = HOST1X_BO_CREATE(host1x, 8 * 4096, 2);
+	gr2d->commands = HOST1X_BO_CREATE(host1x, 8 * 4096,
+					  NVHOST_BO_FLAG_COMMAND_BUFFER);
 	if (!gr2d->commands)
 		return -ENOMEM;
 
@@ -164,7 +165,7 @@ int host1x_gr2d_init(struct host1x *host1x, struct host1x_gr2d *gr2d)
 	if (err < 0)
 		return err;
 
-	gr2d->scratch = HOST1X_BO_CREATE(host1x, 64, 3);
+	gr2d->scratch = HOST1X_BO_CREATE(host1x, 64, NVHOST_BO_FLAG_SCRATCH);
 	if (!gr2d->scratch) {
 		host1x_bo_free(gr2d->commands);
 		return -ENOMEM;
