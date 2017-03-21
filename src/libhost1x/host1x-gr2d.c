@@ -196,20 +196,17 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
 	uint32_t fence, color;
-	uint32_t pitch;
 	int err;
 
 	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16) {
 		color = ((uint32_t)(red   * 31) << 11) |
 			((uint32_t)(green * 63) <<  5) |
 			((uint32_t)(blue  * 31) <<  0);
-		pitch = pixbuf->width * 2;
 	} else {
 		color = ((uint32_t)(alpha * 255) << 24) |
 			((uint32_t)(blue  * 255) << 16) |
 			((uint32_t)(green * 255) <<  8) |
 			((uint32_t)(red   * 255) <<  0);
-		pitch = pixbuf->width * 4;
 	}
 
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
@@ -239,7 +236,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
 	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
-	host1x_pushbuf_push(pb, pitch);
+	host1x_pushbuf_push(pb, pixbuf->pitch);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x35, 1));
 	host1x_pushbuf_push(pb, color);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x46, 1));
