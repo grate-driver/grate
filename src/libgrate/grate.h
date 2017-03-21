@@ -138,6 +138,7 @@ struct grate_profile *grate_profile_start(struct grate *grate);
 void grate_profile_free(struct grate_profile *profile);
 void grate_profile_sample(struct grate_profile *profile);
 void grate_profile_finish(struct grate_profile *profile);
+float grate_profile_time_elapsed(struct grate_profile *profile);
 
 struct grate_3d_ctx;
 struct grate_texture;
