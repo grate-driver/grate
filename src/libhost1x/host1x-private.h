@@ -60,6 +60,7 @@ static inline unsigned long host1x_bo_get_offset(struct host1x_bo *bo,
 struct host1x_display {
 	unsigned int width;
 	unsigned int height;
+	void *priv;
 
 	int (*create_overlay)(struct host1x_display *display,
 			      struct host1x_overlay **overlayp);

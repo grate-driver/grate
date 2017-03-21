@@ -31,6 +31,15 @@ AS_IF([test "x$enable_gles" = "xyes"], [
 	AM_CONDITIONAL([USE_GLES2], [test "$HAVE_GLES2" -eq 1])
 ])
 
+AC_ARG_ENABLE([x11-display],
+	[AS_HELP_STRING([--enable-x11-display],
+		[Build with X11 display support (default: enabled)])],
+		[enable_x11="$enableval"],
+		[enable_x11=yes])
+AS_IF([test "x$enable_x11" = "xyes"], [
+	PKG_CHECK_MODULES(XCB, [xcb xcb-image], [AC_DEFINE([HAVE_XCB], [1], [Use XCB])])
+])
+
 CFLAGS="$CFLAGS -Wall"
 
 AC_ARG_ENABLE([werror],
