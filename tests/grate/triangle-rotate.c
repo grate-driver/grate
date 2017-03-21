@@ -30,6 +30,8 @@
 #include "matrix.h"
 #include "tgr_3d.xml.h"
 
+#define ANIMATION_SPEED		60.0f
+
 static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
 	"uniform mat4 modelview;\n",
@@ -85,7 +87,7 @@ int main(int argc, char *argv[])
 	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_bo *bo;
 	int location, modelview_loc;
-	float angle = 0.0f;
+	float angle = 0.0f, elapsed;
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
@@ -192,7 +194,10 @@ int main(int argc, char *argv[])
 			break;
 
 		grate_profile_sample(profile);
-		angle += 1.0f;
+
+		elapsed = grate_profile_time_elapsed(profile);
+
+		angle = ANIMATION_SPEED * elapsed;
 	}
 
 	grate_profile_finish(profile);

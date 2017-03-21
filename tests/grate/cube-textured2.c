@@ -33,6 +33,8 @@
 #include "matrix.h"
 #include "tgr_3d.xml.h"
 
+#define ANIMATION_SPEED		60.0f
+
 static const float cube_vertices[] = {
 	/* front */
 	-0.5f, -0.5f,  0.5f, 1.0f,
@@ -164,7 +166,7 @@ int main(int argc, char *argv[])
 
 	struct host1x_pixelbuffer *pixbuf;
 	int cube_mvp_loc, grate_mvp_loc;
-	float aspect;
+	float aspect, elapsed;
 
 	if (chdir( dirname(argv[0]) ) == -1)
 		fprintf(stderr, "chdir failed\n");
@@ -430,9 +432,11 @@ int main(int argc, char *argv[])
 
 		grate_profile_sample(profile);
 
-		x += 0.3f;
-		y += 0.2f;
-		z += 0.4f;
+		elapsed = grate_profile_time_elapsed(profile);
+
+		x = 0.3f * ANIMATION_SPEED * elapsed;
+		y = 0.2f * ANIMATION_SPEED * elapsed;
+		z = 0.4f * ANIMATION_SPEED * elapsed;
 	}
 
 	grate_profile_finish(profile);
