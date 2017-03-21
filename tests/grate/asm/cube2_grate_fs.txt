@@ -19,11 +19,11 @@ EXEC
 	TEX:	r2, r3, tex11, r0, r1, r2
 
 	/*
-	 * cr0 = frag.r < u0;
-	 * cr1 = frag.g < u0;
-	 * cr2 = frag.b < u0;
+	 * cr0 = (-frag.r + 0.017) > 0;
+	 * cr1 = (-frag.g + 0.017) > 0;
+	 * cr2 = (-frag.b + 0.017) > 0;
 	 *
-	 * if (cr0 * cr1 * cr2 == 0)
+	 * if (cr0 * cr1 * cr2 == 1)
 	 *	discard;
 	 */
 	ALU:
