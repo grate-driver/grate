@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	err = host1x_gr2d_clear(gr2d, fb->pixbuf, 1.0f, 0.0f, 1.0f, 1.0f);
+	err = host1x_gr2d_clear(gr2d, fb->pixbuf, 0xFFFF00FF);
 	if (err < 0) {
 		fprintf(stderr, "host1x_gr2d_clear() failed: %d\n", err);
 		return 1;

@@ -355,7 +355,7 @@ struct host1x_gr3d;
 
 int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		      struct host1x_pixelbuffer *pixbuf,
-		      float red, float green, float blue, float alpha);
+		      uint32_t color);
 int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *src,
 		     struct host1x_pixelbuffer *dst,

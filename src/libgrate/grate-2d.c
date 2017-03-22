@@ -41,7 +41,9 @@ void grate_clear(struct grate *grate)
 	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
 	struct host1x_framebuffer *front = grate->fb->front;
 	struct host1x_framebuffer *back = grate->fb->back;
+	struct host1x_pixelbuffer *pixbuf;
 	struct grate_color *clear = &grate->clear;
+	uint32_t color;
 	int err;
 
 	if (!grate->fb) {
@@ -49,8 +51,20 @@ void grate_clear(struct grate *grate)
 		return;
 	}
 
-	err = host1x_gr2d_clear(gr2d, back ? back->pixbuf : front->pixbuf,
-				clear->r, clear->g, clear->b, clear->a);
+	pixbuf = back ? back->pixbuf : front->pixbuf;
+
+	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16) {
+		color = ((uint32_t)(clear->r * 31) << 11) |
+			((uint32_t)(clear->g * 63) <<  5) |
+			((uint32_t)(clear->b * 31) <<  0);
+	} else {
+		color = ((uint32_t)(clear->a * 255) << 24) |
+			((uint32_t)(clear->b * 255) << 16) |
+			((uint32_t)(clear->g * 255) <<  8) |
+			((uint32_t)(clear->r * 255) <<  0);
+	}
+
+	err = host1x_gr2d_clear(gr2d, pixbuf, color);
 	if (err < 0)
 		grate_error("host1x_gr2d_clear() failed: %d\n", err);
 }
