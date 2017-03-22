@@ -155,5 +155,7 @@ void grate_texture_set_wrap_mode(struct grate_texture *tex, unsigned wrap_mode);
 void grate_texture_set_mip_filter(struct grate_texture *tex, bool enable);
 void grate_texture_set_mag_filter(struct grate_texture *tex, bool enable);
 void grate_texture_set_min_filter(struct grate_texture *tex, bool enable);
+void grate_texture_clear(struct grate *grate, struct grate_texture *texture,
+			 uint32_t color);
 
 #endif

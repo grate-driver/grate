@@ -141,3 +141,14 @@ void grate_texture_set_min_filter(struct grate_texture *tex, bool enable)
 {
 	tex->min_filter = enable;
 }
+
+void grate_texture_clear(struct grate *grate, struct grate_texture *tex,
+			 uint32_t color)
+{
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
+	int err;
+
+	err = host1x_gr2d_clear(gr2d, tex->pixbuf, color);
+	if (err < 0)
+		grate_error("host1x_gr2d_clear() failed: %d\n", err);
+}
