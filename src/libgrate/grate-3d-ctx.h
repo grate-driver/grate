@@ -39,6 +39,17 @@ enum grate_3d_ctx_cull_face
 	GRATE_3D_CTX_CULL_FACE_BOTH,
 };
 
+enum grate_3d_ctx_depth_function {
+	GRATE_3D_CTX_DEPTH_FUNC_NEVER,
+	GRATE_3D_CTX_DEPTH_FUNC_LESS,
+	GRATE_3D_CTX_DEPTH_FUNC_EQUAL,
+	GRATE_3D_CTX_DEPTH_FUNC_LEQUAL,
+	GRATE_3D_CTX_DEPTH_FUNC_GREATER,
+	GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL,
+	GRATE_3D_CTX_DEPTH_FUNC_GEQUAL,
+	GRATE_3D_CTX_DEPTH_FUNC_ALWAYS,
+};
+
 struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate);
 
 int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
@@ -120,5 +131,15 @@ void grate_3d_ctx_set_provoking_vtx_last(struct grate_3d_ctx *ctx, bool last);
 int grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
 			      unsigned location,
 			      struct grate_texture *tex);
+
+void grate_3d_ctx_set_depth_func(struct grate_3d_ctx *ctx,
+				 enum grate_3d_ctx_depth_function func);
+
+void grate_3d_ctx_perform_depth_test(struct grate_3d_ctx *ctx, bool enable);
+
+void grate_3d_ctx_perform_depth_write(struct grate_3d_ctx *ctx, bool enable);
+
+int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
+				   struct host1x_pixelbuffer *pixbuf);
 
 #endif

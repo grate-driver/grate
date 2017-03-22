@@ -206,10 +206,11 @@ static void grate_3d_set_scissor(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb, value);
 }
 
-static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
-					      unsigned index,
-					      bool enable_dither,
-					      struct host1x_pixelbuffer *pixbuf)
+static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
+					     unsigned index,
+					     bool depth_test,
+					     bool enable_dither,
+					     struct host1x_pixelbuffer *pixbuf)
 {
 	unsigned pixel_format;
 	uint32_t value = 0;
@@ -250,7 +251,19 @@ static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
-		return;
+		return -1;
+	}
+
+	if (index == 0 && depth_test) {
+		switch (pixel_format) {
+		case PIXEL_FORMAT_D16_LINEAR:
+		case PIXEL_FORMAT_D16_NONLINEAR:
+			break;
+		default:
+			grate_error("Invalid depth buffer format %u\n",
+				    pixbuf->format);
+			return -1;
+		}
 	}
 
 	switch (pixbuf->layout) {
@@ -259,7 +272,7 @@ static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 		break;
 	default:
 		grate_error("Invalid layout %u\n", pixbuf->layout);
-		return;
+		return -1;
 	}
 
 	value |= TGR3D_BOOL(RT_PARAMS, DITHER_ENABLE, enable_dither);
@@ -270,10 +283,12 @@ static void grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_PARAMS(index), 1));
 	host1x_pushbuf_push(pb, value);
+
+	return 0;
 }
 
 static void grate_3d_enable_render_targets(struct host1x_pushbuf *pb,
-					   unsigned mask)
+					   uint32_t mask)
 {
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_RT_ENABLE, 1));
 	host1x_pushbuf_push(pb, mask);
@@ -455,6 +470,52 @@ static void grate_3d_startup_pseq_engine(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb, 0x20006000 | ctx->program->fs->pseq_inst_nb);
 }
 
+static unsigned get_depth_func(struct grate_3d_ctx *ctx)
+{
+	switch (ctx->depth_func) {
+	case GRATE_3D_CTX_DEPTH_FUNC_NEVER:
+		return DEPTH_FUNC_NEVER;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_LESS:
+		return DEPTH_FUNC_LESS;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_EQUAL:
+		return DEPTH_FUNC_EQUAL;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_LEQUAL:
+		return DEPTH_FUNC_LEQUAL;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_GREATER:
+		return DEPTH_FUNC_GREATER;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL:
+		return DEPTH_FUNC_NOTEQUAL;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_GEQUAL:
+		return DEPTH_FUNC_GEQUAL;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_ALWAYS:
+		return DEPTH_FUNC_ALWAYS;
+	}
+
+	grate_error("Something gone horribly wrong\n");
+	abort();
+}
+
+static void grate_3d_set_depth_buffer(struct host1x_pushbuf *pb,
+				      struct grate_3d_ctx *ctx)
+{
+	uint32_t value = 0;
+
+	value |= TGR3D_VAL(DEPTH_TEST_PARAMS, FUNC, get_depth_func(ctx));
+	value |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_TEST, ctx->depth_test);
+	value |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_WRITE, ctx->depth_write);
+	value |= 0x200;
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_TEST_PARAMS, 1));
+	host1x_pushbuf_push(pb, value);
+}
+
 static void grate_3d_set_vp_attributes_in_out_mask(struct host1x_pushbuf *pb,
 						   uint32_t in_mask,
 						   uint32_t out_mask)
@@ -525,21 +586,33 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 	for (i = 0; i < 16; i++) {
 		struct grate_render_target *rt = &ctx->render_targets[i];
 
+		/*
+		 * Render target 0 is used for depth buffer inclusively,
+		 * depth write is performed only if depth test is enabled.
+		 */
+		if (i == 0 && ctx->depth_test)
+			goto pixbuf_check;
+
 		if (!(ctx->render_targets_enable_mask & (1u << i)))
 			continue;
-
+pixbuf_check:
 		if (!rt->pixbuf)
 			continue;
 
-		enable_mask |= 1u << i;
+		if (grate_3d_set_render_target_params(pb, i,
+						      ctx->depth_test,
+						      rt->dither_enabled,
+						      rt->pixbuf))
+			continue;
 
 		grate_3d_relocate_render_target(pb, i,
 						rt->pixbuf->bo,
 						rt->pixbuf->bo->offset);
 
-		grate_3d_set_render_target_params(pb, i,
-						  rt->dither_enabled,
-						  rt->pixbuf);
+		if (i == 0 && ctx->depth_test)
+			enable_mask |= TGR3D_RT_ENABLE_DEPTH_BUFFER;
+
+		enable_mask |= 1u << i;
 	}
 
 	grate_3d_enable_render_targets(pb, enable_mask);
@@ -604,7 +677,15 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
-		abort();
+		return;
+	}
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+		break;
+	default:
+		grate_error("Invalid layout %u\n", pixbuf->layout);
+		return;
 	}
 
 	host1x_pushbuf_push(pb,
@@ -682,6 +763,7 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 	grate_3d_set_pseq_dw_cfg(pb, ctx);
 	grate_3d_set_depth_range(pb, ctx);
 	grate_3d_set_point_params(pb, ctx);
+	grate_3d_set_depth_buffer(pb, ctx);
 	grate_3d_set_polygon_offset(pb, ctx);
 	grate_3d_set_alu_buffer_size(pb, ctx);
 	grate_3d_startup_pseq_engine(pb, ctx);

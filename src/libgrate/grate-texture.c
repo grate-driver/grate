@@ -42,6 +42,8 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 
 	switch (format) {
 	case PIX_BUF_FMT_RGBA8888:
+	case PIX_BUF_FMT_D16_LINEAR:
+	case PIX_BUF_FMT_D16_NONLINEAR:
 		break;
 	default:
 		grate_error("Invalid format %u\n", format);
@@ -50,6 +52,7 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 
 	switch (layout) {
 	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
 		break;
 	default:
 		grate_error("Invalid layout %u\n", layout);

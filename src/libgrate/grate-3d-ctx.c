@@ -448,3 +448,45 @@ int grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
 
 	return 0;
 }
+
+void grate_3d_ctx_set_depth_func(struct grate_3d_ctx *ctx,
+				 enum grate_3d_ctx_depth_function func)
+{
+	ctx->depth_func = func;
+}
+
+void grate_3d_ctx_perform_depth_test(struct grate_3d_ctx *ctx, bool enable)
+{
+	ctx->depth_test = enable;
+}
+
+void grate_3d_ctx_perform_depth_write(struct grate_3d_ctx *ctx, bool enable)
+{
+	ctx->depth_write = enable;
+}
+
+int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
+				   struct host1x_pixelbuffer *pixbuf)
+{
+	switch (pixbuf->format) {
+	case PIX_BUF_FMT_D16_LINEAR:
+	case PIX_BUF_FMT_D16_NONLINEAR:
+		break;
+	default:
+		grate_error("Invalid format %u\n", pixbuf->format);
+		return -1;
+	}
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		grate_error("Invalid layout %u\n", pixbuf->layout);
+		return -1;
+	}
+
+	ctx->render_targets[0].pixbuf = pixbuf;
+
+	return 0;
+}
