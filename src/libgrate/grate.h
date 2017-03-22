@@ -43,12 +43,12 @@ struct grate;
 #define GRATE_SINGLE_BUFFERED (0 << 0)
 #define GRATE_DOUBLE_BUFFERED (1 << 0)
 
-enum grate_cull_face
+enum grate_3d_ctx_cull_face
 {
-	GRATE_CULL_FACE_NONE  = 0,
-	GRATE_CULL_FACE_FRONT = 1,
-	GRATE_CULL_FACE_BACK  = 2,
-	GRATE_CULL_FACE_BOTH  = 3
+	GRATE_3D_CTX_CULL_FACE_NONE  = 0,
+	GRATE_3D_CTX_CULL_FACE_FRONT = 1,
+	GRATE_3D_CTX_CULL_FACE_BACK  = 2,
+	GRATE_3D_CTX_CULL_FACE_BOTH  = 3
 };
 
 struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
@@ -185,7 +185,7 @@ void grate_3d_ctx_use_guardband(struct grate_3d_ctx *ctx, bool enabled);
 void grate_3d_ctx_set_front_direction_is_cw(struct grate_3d_ctx *ctx,
 					    bool front_cw);
 void grate_3d_ctx_set_cull_face(struct grate_3d_ctx *ctx,
-                                enum grate_cull_face cull_face);
+                                enum grate_3d_ctx_cull_face cull_face);
 void grate_3d_ctx_set_scissor(struct grate_3d_ctx *ctx,
 			      unsigned x, unsigned width,
 			      unsigned y, unsigned height);

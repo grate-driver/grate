@@ -148,20 +148,21 @@ static void grate_3d_set_guardband(struct host1x_pushbuf *pb,
 static int get_cull_face(struct grate_3d_ctx *ctx)
 {
 	switch (ctx->cull_face) {
-	case GRATE_CULL_FACE_NONE:
+	case GRATE_3D_CTX_CULL_FACE_NONE:
 		return CULL_FACE_NONE;
 
-	case GRATE_CULL_FACE_FRONT:
+	case GRATE_3D_CTX_CULL_FACE_FRONT:
 		return ctx->tri_face_front_cw ? CULL_FACE_CW : CULL_FACE_CCW;
 
-	case GRATE_CULL_FACE_BACK:
+	case GRATE_3D_CTX_CULL_FACE_BACK:
 		return ctx->tri_face_front_cw ? CULL_FACE_CCW : CULL_FACE_CW;
 
-	case GRATE_CULL_FACE_BOTH:
+	case GRATE_3D_CTX_CULL_FACE_BOTH:
 		return CULL_FACE_BOTH;
 	}
 
-	return CULL_FACE_NONE; /* just a stupid fallback */
+	grate_error("Something gone horribly wrong\n");
+	abort();
 }
 
 static void grate_3d_set_cull_face_and_linker_inst_nb(struct host1x_pushbuf *pb,

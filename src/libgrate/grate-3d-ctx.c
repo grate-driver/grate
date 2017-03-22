@@ -398,7 +398,7 @@ void grate_3d_ctx_set_front_direction_is_cw(struct grate_3d_ctx *ctx,
 }
 
 void grate_3d_ctx_set_cull_face(struct grate_3d_ctx *ctx,
-                                enum grate_cull_face cull_face)
+                                enum grate_3d_ctx_cull_face cull_face)
 {
 	ctx->cull_face = cull_face;
 }
