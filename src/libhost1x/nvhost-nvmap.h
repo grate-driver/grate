@@ -46,6 +46,11 @@ nvmap_handle_get_offset(struct nvmap_handle *handle, void *ptr)
 	return (unsigned long)ptr - (unsigned long)handle->ptr;
 }
 
+#define NVMAP_HEAP_SYSTEM           (1ul << 31)
+#define NVMAP_HEAP_IOVMM            (1ul << 30)
+#define NVMAP_HEAP_CARVEOUT_IRAM    (1ul << 29)
+#define NVMAP_HEAP_CARVEOUT_GENERIC (1ul << 0)
+
 #define NVMAP_HANDLE_UNREACHABLE     (0x0ul << 0)
 #define NVMAP_HANDLE_WRITE_COMBINE   (0x1ul << 0)
 #define NVMAP_HANDLE_INNER_CACHEABLE (0x2ul << 0)

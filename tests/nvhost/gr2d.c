@@ -140,7 +140,7 @@ struct nvhost_gr2d *nvhost_gr2d_open(struct nvmap *nvmap,
 		return NULL;
 	}
 
-	err = nvmap_handle_alloc(nvmap, gr2d->buffer, 1 << 0,
+	err = nvmap_handle_alloc(nvmap, gr2d->buffer, NVMAP_HEAP_CARVEOUT_GENERIC,
 	                         NVMAP_HANDLE_WRITE_COMBINE, 0x20);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr2d->buffer);
@@ -165,7 +165,7 @@ struct nvhost_gr2d *nvhost_gr2d_open(struct nvmap *nvmap,
 		return NULL;
 	}
 
-	err = nvmap_handle_alloc(nvmap, gr2d->scratch, 1 << 30,
+	err = nvmap_handle_alloc(nvmap, gr2d->scratch, NVMAP_HEAP_IOVMM,
 	                         NVMAP_HANDLE_WRITE_COMBINE, 0x20);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr2d->scratch);
