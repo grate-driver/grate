@@ -30,6 +30,8 @@
 #include "matrix.h"
 #include "tgr_3d.xml.h"
 
+#define ANIMATION_SPEED		60.0f
+
 static const char *vertex_shader[] = {
 	"attribute vec4 position;\n",
 	"uniform mat4 modelview;\n",
@@ -85,7 +87,7 @@ int main(int argc, char *argv[])
 	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_bo *bo;
 	int location, modelview_loc;
-	float angle = 0.0f;
+	float angle = 0.0f, elapsed;
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
@@ -143,7 +145,8 @@ int main(int argc, char *argv[])
 	/* Setup vertices attribute */
 
 	location = grate_get_attribute_location(program, "position");
-	bo = grate_bo_create_from_data(grate, sizeof(vertices), 4, vertices);
+	bo = grate_bo_create_from_data(grate, sizeof(vertices),
+				       NVHOST_BO_FLAG_ATTRIBUTES, vertices);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -152,7 +155,8 @@ int main(int argc, char *argv[])
 	/* Setup colors attribute */
 
 	location = grate_get_attribute_location(program, "color");
-	bo = grate_bo_create_from_data(grate, sizeof(colors), 4, colors);
+	bo = grate_bo_create_from_data(grate, sizeof(colors),
+				       NVHOST_BO_FLAG_ATTRIBUTES, colors);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -163,7 +167,8 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	bo = grate_bo_create_from_data(grate, sizeof(indices), 4, indices);
+	bo = grate_bo_create_from_data(grate, sizeof(indices),
+				       NVHOST_BO_FLAG_ATTRIBUTES, indices);
 
 	profile = grate_profile_start(grate);
 
@@ -192,7 +197,10 @@ int main(int argc, char *argv[])
 			break;
 
 		grate_profile_sample(profile);
-		angle += 1.0f;
+
+		elapsed = grate_profile_time_elapsed(profile);
+
+		angle = ANIMATION_SPEED * elapsed;
 	}
 
 	grate_profile_finish(profile);

@@ -33,6 +33,8 @@
 #include "matrix.h"
 #include "tgr_3d.xml.h"
 
+#define ANIMATION_SPEED		60.0f
+
 static const float cube_vertices[] = {
 	/* front */
 	-0.5f, -0.5f,  0.5f, 1.0f,
@@ -164,7 +166,7 @@ int main(int argc, char *argv[])
 
 	struct host1x_pixelbuffer *pixbuf;
 	int cube_mvp_loc, grate_mvp_loc;
-	float aspect;
+	float aspect, elapsed;
 
 	if (chdir( dirname(argv[0]) ) == -1)
 		fprintf(stderr, "chdir failed\n");
@@ -257,13 +259,15 @@ int main(int argc, char *argv[])
 	cube_vertices_loc = grate_get_attribute_location(cube_program,
 							 "position");
 	cube_vertices_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_vertices), 4,
+						     sizeof(cube_vertices),
+						     NVHOST_BO_FLAG_ATTRIBUTES,
 						     cube_vertices);
 
 	cube_texcoord_loc = grate_get_attribute_location(cube_program,
 							 "texcoord");
 	cube_texcoord_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_uv), 4,
+						     sizeof(cube_uv),
+						     NVHOST_BO_FLAG_ATTRIBUTES,
 						     cube_uv);
 
 	/* Setup grate attributes */
@@ -271,13 +275,15 @@ int main(int argc, char *argv[])
 	grate_vertices_loc = grate_get_attribute_location(grate_program,
 							  "position");
 	grate_vertices_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_vertices), 4,
+						      sizeof(grate_vertices),
+						      NVHOST_BO_FLAG_ATTRIBUTES,
 						      grate_vertices);
 
 	grate_texcoord_loc = grate_get_attribute_location(grate_program,
 							  "texcoord");
 	grate_texcoord_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_uv), 4,
+						      sizeof(grate_uv),
+						      NVHOST_BO_FLAG_ATTRIBUTES,
 						      grate_uv);
 
 	/* Setup render target */
@@ -313,10 +319,12 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices), 4,
+	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices),
+					    NVHOST_BO_FLAG_ATTRIBUTES,
 					    cube_indices);
 
-	grate_bo = grate_bo_create_from_data(grate, sizeof(grate_indices), 4,
+	grate_bo = grate_bo_create_from_data(grate, sizeof(grate_indices),
+					     NVHOST_BO_FLAG_ATTRIBUTES,
 					     grate_indices);
 
 	profile = grate_profile_start(grate);
@@ -341,7 +349,7 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &rotate, &transform);
 		mat4_rotate_z(&transform, z);
 		mat4_multiply(&rotate, &modelview, &transform);
-		mat4_translate(&transform, -0.5f, 0.8f, -4.0f);
+		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
 		mat4_multiply(&modelview, &transform, &rotate);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
@@ -364,9 +372,9 @@ int main(int argc, char *argv[])
 		grate_flush(grate);
 
 		/* Draw couple more cubes */
-		mat4_identity(&result);
-		mat4_multiply(&modelview, &result, &rotate);
-		mat4_translate(&transform, -3.0f, 0.0f, 0.0f);
+		mat4_identity(&modelview);
+		mat4_multiply(&result, &modelview, &rotate);
+		mat4_translate(&transform, -2.5f, 0.0f, 0.0f);
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&result, &rotate, &modelview);
 		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
@@ -382,7 +390,7 @@ int main(int argc, char *argv[])
 
 		mat4_identity(&modelview);
 		mat4_multiply(&result, &modelview, &rotate);
-		mat4_translate(&transform, 2.0f, 0.0f, 0.0f);
+		mat4_translate(&transform, 2.5f, 0.0f, 0.0f);
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&result, &rotate, &modelview);
 		mat4_translate(&transform, 0.0f, 0.8f, -4.0f);
@@ -430,9 +438,11 @@ int main(int argc, char *argv[])
 
 		grate_profile_sample(profile);
 
-		x += 0.3f;
-		y += 0.2f;
-		z += 0.4f;
+		elapsed = grate_profile_time_elapsed(profile);
+
+		x = 0.3f * ANIMATION_SPEED * elapsed;
+		y = 0.2f * ANIMATION_SPEED * elapsed;
+		z = 0.4f * ANIMATION_SPEED * elapsed;
 	}
 
 	grate_profile_finish(profile);

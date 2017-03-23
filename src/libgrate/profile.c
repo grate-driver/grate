@@ -82,3 +82,12 @@ void grate_profile_finish(struct grate_profile *profile)
 	clock_gettime(CLOCK_MONOTONIC, &profile->end);
 	grate_profile_dump(profile, stdout);
 }
+
+float grate_profile_time_elapsed(struct grate_profile *profile)
+{
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+
+	return timespec_diff(&profile->start, &now);
+}

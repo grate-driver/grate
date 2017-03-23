@@ -36,6 +36,7 @@
 
 #include "host1x-private.h"
 #include "tegra_drm.h"
+#include "x11-display.h"
 
 struct drm;
 
@@ -366,21 +367,27 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	display->drm = drm;
 
 	err = drmSetMaster(drm->fd);
-	if (err < 0) {
-		free(display);
-		return -errno;
-	}
+	if (err < 0)
+		goto try_x11;
 
 	err = drm_display_setup(display);
-	if (err < 0) {
-		free(display);
-		return err;
-	}
+	if (err < 0)
+		goto try_x11;
 
 	display->base.width = display->mode.hdisplay;
 	display->base.height = display->mode.vdisplay;
 	display->base.create_overlay = drm_overlay_create;
 	display->base.set = drm_display_set;
+
+	*displayp = display;
+
+	return 0;
+try_x11:
+	err = x11_display_create(&drm->base, &display->base);
+	if (err < 0) {
+		free(display);
+		return err;
+	}
 
 	*displayp = display;
 

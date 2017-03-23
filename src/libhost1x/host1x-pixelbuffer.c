@@ -37,14 +37,14 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				enum layout_format layout)
 {
 	struct host1x_pixelbuffer *pixbuf;
-	unsigned long flags = 1;
+	unsigned long flags = NVHOST_BO_FLAG_FRAMEBUFFER;
 
 	pixbuf = calloc(1, sizeof(*pixbuf));
 	if (!pixbuf)
 		return NULL;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
-		pitch = ALIGN(pitch, 16);
+		pitch = ALIGN(pitch, 256);
 
 	pixbuf->pitch = pitch;
 	pixbuf->width = width;

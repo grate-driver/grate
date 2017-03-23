@@ -239,10 +239,7 @@ void grate_framebuffer_save(struct grate *grate,
 			    struct grate_framebuffer *fb,
 			    const char *path)
 {
-	if (fb->back)
-		host1x_framebuffer_save(grate->host1x, fb->back, path);
-	else
-		host1x_framebuffer_save(grate->host1x, fb->front, path);
+	host1x_framebuffer_save(grate->host1x, fb->front, path);
 }
 
 void grate_swap_buffers(struct grate *grate)

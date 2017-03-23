@@ -733,7 +733,8 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 {
 	int err;
 
-	gr3d->commands = host1x_bo_create(host1x, 32 * 4096, 2);
+	gr3d->commands = host1x_bo_create(host1x, 32 * 4096,
+					  NVHOST_BO_FLAG_COMMAND_BUFFER);
 	if (!gr3d->commands)
 		return -ENOMEM;
 
@@ -743,7 +744,8 @@ int host1x_gr3d_init(struct host1x *host1x, struct host1x_gr3d *gr3d)
 		return err;
 	}
 
-	gr3d->attributes = host1x_bo_create(host1x, 12 * 4096, 4);
+	gr3d->attributes = host1x_bo_create(host1x, 12 * 4096,
+					    NVHOST_BO_FLAG_ATTRIBUTES);
 	if (!gr3d->attributes) {
 		host1x_bo_free(gr3d->commands);
 		return -ENOMEM;
@@ -790,7 +792,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	struct host1x_pushbuf *pb;
 	unsigned int depth = 32;
 	struct host1x_job *job;
-	uint32_t format, pitch;
+	uint32_t format;
 	uint16_t *indices;
 	uint32_t fence;
 	int err, i;
@@ -898,15 +900,12 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, pixbuf->height & 0xffff);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe11, 0x01));
 
-	if (depth == 16) {
+	if (depth == 16)
 		format = HOST1X_GR3D_FORMAT_RGB565;
-		pitch = pixbuf->width * 2;
-	} else {
+	else
 		format = HOST1X_GR3D_FORMAT_RGBA8888;
-		pitch = pixbuf->width * 4;
-	}
 
-	host1x_pushbuf_push(pb, 0x04000000 | (pitch << 8) | format << 2 | 0x1);
+	host1x_pushbuf_push(pb, 0x04000000 | (pixbuf->pitch << 8) | format << 2 | 0x1);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x903, 0x01));
 	host1x_pushbuf_push(pb, 0x00000002);

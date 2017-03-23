@@ -6,7 +6,8 @@ libhost1x_la_CPPFLAGS = \
 
 libhost1x_la_CFLAGS = \
 	$(DRM_CFLAGS) \
-	$(PNG_CFLAGS)
+	$(PNG_CFLAGS) \
+	$(XCB_CFLAGS)
 
 libhost1x_la_SOURCES = \
 	host1x.c \
@@ -23,6 +24,8 @@ libhost1x_la_SOURCES = \
 	nvhost-gr3d.c \
 	nvhost.h \
 	nvhost-nvmap.c \
-	nvhost-nvmap.h
+	nvhost-nvmap.h \
+	x11-display.c \
+	x11-display.h
 
-libhost1x_la_LIBADD = $(DRM_LIBS) $(PNG_LIBS)
+libhost1x_la_LIBADD = $(XCB_LIBS) $(DRM_LIBS) $(PNG_LIBS)

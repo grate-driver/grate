@@ -15,19 +15,30 @@ AC_PROG_INSTALL
 AM_PROG_LEX
 AC_PROG_YACC
 
-PKG_CHECK_MODULES(GLES1, [egl glesv1_cm], [HAVE_GLES1=1], [HAVE_GLES1=0])
-AM_CONDITIONAL([USE_GLES1], [test "$HAVE_GLES1" -eq 1])
-
-PKG_CHECK_MODULES(GLES2, [egl glesv2], [HAVE_GLES2=1], [HAVE_GLES2=0])
-AM_CONDITIONAL([USE_GLES2], [test "$HAVE_GLES2" -eq 1])
-
-if [test "$HAVE_GLES1" -eq 1] || [test "$HAVE_GLES2" -eq 1]; then
-	PKG_CHECK_MODULES(X11, x11)
-fi
-
 PKG_CHECK_MODULES(DevIL, ILU)
 PKG_CHECK_MODULES(PNG, libpng)
 PKG_CHECK_MODULES(DRM, libdrm)
+
+AC_ARG_ENABLE([gles-tests],
+	[AS_HELP_STRING([--enable-gles-tests],
+		[Build GLES tests (default: enabled)])],
+		[enable_gles="$enableval"],
+		[enable_gles=yes])
+AS_IF([test "x$enable_gles" = "xyes"], [
+	PKG_CHECK_MODULES(GLES1, [egl glesv1_cm x11], [HAVE_GLES1=1], [HAVE_GLES1=0])
+	AM_CONDITIONAL([USE_GLES1], [test "$HAVE_GLES1" -eq 1])
+	PKG_CHECK_MODULES(GLES2, [egl glesv2 x11], [HAVE_GLES2=1], [HAVE_GLES2=0])
+	AM_CONDITIONAL([USE_GLES2], [test "$HAVE_GLES2" -eq 1])
+])
+
+AC_ARG_ENABLE([x11-display],
+	[AS_HELP_STRING([--enable-x11-display],
+		[Build with X11 display support (default: enabled)])],
+		[enable_x11="$enableval"],
+		[enable_x11=yes])
+AS_IF([test "x$enable_x11" = "xyes"], [
+	PKG_CHECK_MODULES(XCB, [xcb xcb-image], [AC_DEFINE([HAVE_XCB], [1], [Use XCB])])
+])
 
 CFLAGS="$CFLAGS -Wall"
 

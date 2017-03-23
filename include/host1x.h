@@ -43,6 +43,11 @@ enum host1x_class {
 #define HOST1X_GR3D_FORMAT_RGB565	0x6
 #define HOST1X_GR3D_FORMAT_RGBA8888	0xd
 
+#define NVHOST_BO_FLAG_FRAMEBUFFER	1
+#define NVHOST_BO_FLAG_COMMAND_BUFFER	2
+#define NVHOST_BO_FLAG_SCRATCH		3
+#define NVHOST_BO_FLAG_ATTRIBUTES	4
+
 struct host1x_stream {
 	const uint32_t *words;
 	const uint32_t *ptr;
@@ -94,6 +99,8 @@ enum pixel_format {
     PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16),
     PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32),
     PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(10, 32),
+    PIX_BUF_FMT_ARGB8888      = PIX_BUF_FMT(11, 32),
+    PIX_BUF_FMT_ABGR8888      = PIX_BUF_FMT(12, 32),
 };
 
 enum layout_format {
@@ -355,6 +362,13 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     unsigned int sx, unsigned int sy,
 		     unsigned int dx, unsigned int dy,
 		     unsigned int width, unsigned int height);
+int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
+			     struct host1x_pixelbuffer *src,
+			     struct host1x_pixelbuffer *dst,
+			     unsigned int sx, unsigned int sy,
+			     unsigned int src_width, unsigned int src_height,
+			     unsigned int dx, unsigned int dy,
+			     unsigned int dst_width, unsigned int dst_height);
 void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
 			  float width, float height);
 void host1x_gr3d_line_width(struct host1x_pushbuf *pb, float width);

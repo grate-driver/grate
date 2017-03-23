@@ -37,7 +37,7 @@ static const GLfloat vertices[] = {
 	 0.5f, -0.5f,  0.0f, 1.0f,
 	 0.0f,  0.5f,  0.0f, 1.0f,
 };
-
+/*
 static const GLfloat texcoords[3][6] = {
 	{
 		0.0f, 0.0f,
@@ -52,7 +52,7 @@ static const GLfloat texcoords[3][6] = {
 		3.0f, 0.0f,
 		0.0f, 3.0f,
 	}
-};
+};*/
 
 static void window_setup(struct window *window)
 {
