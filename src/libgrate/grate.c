@@ -31,6 +31,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <unistd.h>
 
 #include "../libhost1x/host1x-private.h"
@@ -38,6 +39,8 @@
 
 #include "grate.h"
 #include "host1x.h"
+
+static bool termio_adjusted;
 
 struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					   unsigned long flags,
@@ -141,8 +144,17 @@ struct grate *grate_init(struct grate_options *options)
 
 void grate_exit(struct grate *grate)
 {
+	struct termios term;
+
 	if (grate)
 		host1x_close(grate->host1x);
+
+	if (termio_adjusted) {
+		/* Restore terminal input */
+		tcgetattr(STDIN_FILENO, &term);
+		term.c_lflag |= ICANON | ECHO;
+		tcsetattr(STDIN_FILENO, TCSANOW, &term);
+	}
 
 	free(grate);
 }
@@ -265,10 +277,13 @@ void grate_wait_for_key(struct grate *grate)
 	getchar();
 }
 
-bool grate_key_pressed(struct grate *grate)
+static uint8_t grate_key_pressed__(struct grate *grate, bool return_key)
 {
 	int err, max_fd = STDIN_FILENO;
+	uint8_t key[3];
+	size_t cnt;
 	struct timeval timeout;
+	struct termios term;
 	fd_set fds;
 
 	/*
@@ -277,6 +292,14 @@ bool grate_key_pressed(struct grate *grate)
 	 */
 	if (!grate->display && !grate->overlay)
 		return true;
+
+	if (return_key && !termio_adjusted) {
+		termio_adjusted = true;
+		/* Redirect terminal input to us */
+		tcgetattr(STDIN_FILENO, &term);
+		term.c_lflag &= ~(ICANON | ECHO);
+		tcsetattr(STDIN_FILENO, TCSANOW, &term);
+	}
 
 	memset(&timeout, 0, sizeof(timeout));
 	timeout.tv_sec = 0;
@@ -289,16 +312,32 @@ bool grate_key_pressed(struct grate *grate)
 	if (err <= 0) {
 		if (err < 0) {
 			grate_error("select() failed: %m\n");
-			return false;
+			return 0;
 		}
 
-		return false;
+		return 0;
 	}
 
-	if (FD_ISSET(STDIN_FILENO, &fds))
-		return true;
+	if (!FD_ISSET(STDIN_FILENO, &fds))
+		return 0;
 
-	return false;
+	if (!return_key)
+		return 1;
+
+	cnt = read(STDIN_FILENO, key, 3);
+	tcflush(STDIN_FILENO, TCIFLUSH);
+
+	return cnt > 0 ? key[cnt - 1] : 0;
+}
+
+bool grate_key_pressed(struct grate *grate)
+{
+	return !!grate_key_pressed__(grate, false);
+}
+
+uint8_t grate_key_pressed2(struct grate *grate)
+{
+	return grate_key_pressed__(grate, true);
 }
 
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
