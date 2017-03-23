@@ -149,6 +149,7 @@ int main(int argc, char *argv[])
 	struct grate_options options;
 	struct grate *grate;
 	struct grate_3d_ctx *ctx;
+	struct grate_texture *depth_buffer;
 
 	struct grate_program *cube_program;
 	struct grate_texture *cube_texture;
@@ -248,11 +249,24 @@ int main(int argc, char *argv[])
 	grate_3d_ctx_set_viewport_scale(ctx, options.width, options.height, 0.5f);
 	grate_3d_ctx_use_guardband(ctx, true);
 	grate_3d_ctx_set_front_direction_is_cw(ctx, false);
-	grate_3d_ctx_set_cull_face(ctx, GRATE_CULL_FACE_BACK);
+	grate_3d_ctx_set_cull_face(ctx, GRATE_3D_CTX_CULL_FACE_BACK);
 	grate_3d_ctx_set_scissor(ctx, 0, options.width, 0, options.height);
 	grate_3d_ctx_set_point_coord_range(ctx, 0.0f, 1.0f, 0.0f, 1.0f);
 	grate_3d_ctx_set_polygon_offset(ctx, 0.0f, 0.0f);
 	grate_3d_ctx_set_provoking_vtx_last(ctx, true);
+
+	/* Setup depth buffer */
+
+	depth_buffer = grate_create_texture(grate,
+					    options.width, options.height,
+					    PIX_BUF_FMT_D16_LINEAR,
+					    PIX_BUF_LAYOUT_TILED_16x16);
+
+	pixbuf = grate_texture_pixbuf(depth_buffer);
+
+	grate_3d_ctx_bind_depth_buffer(ctx, pixbuf);
+	grate_3d_ctx_perform_depth_test(ctx, true);
+	grate_3d_ctx_perform_depth_write(ctx, true);
 
 	/* Setup cube attributes */
 
@@ -341,6 +355,10 @@ int main(int argc, char *argv[])
 
 		mat4_perspective(&projection, 60.0f, aspect, 1.0f, 1024.0f);
 
+		/* Clear depth buffer and enable depth test */
+		grate_texture_clear(grate, depth_buffer, 0xFFFFFFFF);
+		grate_3d_ctx_set_depth_func(ctx, GRATE_3D_CTX_DEPTH_FUNC_LEQUAL);
+
 		/* Cube MVP */
 		mat4_identity(&modelview);
 		mat4_rotate_x(&transform, x);
@@ -422,6 +440,9 @@ int main(int argc, char *argv[])
 			2 * sizeof(float), grate_texcoord_bo);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, grate_vertices_loc);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, grate_texcoord_loc);
+
+		/* Bypass depth test to always draw on top of cubes */
+		grate_3d_ctx_set_depth_func(ctx, GRATE_3D_CTX_DEPTH_FUNC_ALWAYS);
 
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       grate_bo, INDEX_MODE_UINT16,

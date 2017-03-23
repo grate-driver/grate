@@ -197,24 +197,13 @@ void host1x_gr2d_exit(struct host1x_gr2d *gr2d)
 
 int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		      struct host1x_pixelbuffer *pixbuf,
-		      float red, float green, float blue, float alpha)
+		      uint32_t color)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
-	uint32_t fence, color;
+	uint32_t fence;
 	int err;
-
-	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16) {
-		color = ((uint32_t)(red   * 31) << 11) |
-			((uint32_t)(green * 63) <<  5) |
-			((uint32_t)(blue  * 31) <<  0);
-	} else {
-		color = ((uint32_t)(alpha * 255) << 24) |
-			((uint32_t)(blue  * 255) << 16) |
-			((uint32_t)(green * 255) <<  8) |
-			((uint32_t)(red   * 255) <<  0);
-	}
 
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
