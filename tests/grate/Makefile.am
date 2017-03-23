@@ -3,6 +3,7 @@ noinst_PROGRAMS = \
 	cube \
 	cube-textured \
 	cube-textured2 \
+	interactive \
 	quad \
 	triangle \
 	triangle-rotate

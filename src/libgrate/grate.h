@@ -82,6 +82,7 @@ void grate_flush(struct grate *grate);
 void grate_swap_buffers(struct grate *grate);
 void grate_wait_for_key(struct grate *grate);
 bool grate_key_pressed(struct grate *grate);
+uint8_t grate_key_pressed2(struct grate *grate);
 
 struct host1x *grate_get_host1x(struct grate *grate);
 
