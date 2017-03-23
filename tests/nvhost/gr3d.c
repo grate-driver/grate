@@ -799,7 +799,7 @@ struct nvhost_gr3d *nvhost_gr3d_open(struct nvmap *nvmap,
 	}
 
 	err = nvmap_handle_alloc(nvmap, gr3d->buffer, 1 << 0,
-	                         0x0a000000 | NVMAP_HANDLE_WRITE_COMBINE, 0x20);
+	                         NVMAP_HANDLE_WRITE_COMBINE, 0x20);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr3d->buffer);
 		nvhost_client_exit(&gr3d->client);
@@ -824,7 +824,7 @@ struct nvhost_gr3d *nvhost_gr3d_open(struct nvmap *nvmap,
 	}
 
 	err = nvmap_handle_alloc(nvmap, gr3d->attributes, 1 << 30,
-	                         0x3d000000 | NVMAP_HANDLE_WRITE_COMBINE, 0x4);
+	                         NVMAP_HANDLE_WRITE_COMBINE, 0x4);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr3d->attributes);
 		nvmap_handle_free(nvmap, gr3d->buffer);

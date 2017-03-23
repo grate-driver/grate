@@ -98,7 +98,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
 
 	case 2: /* command buffer */
 		heap_mask = 1 << 0;
-		flags = 0x0a000000 | NVMAP_HANDLE_WRITE_COMBINE;
+		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x20;
 		break;
 
@@ -110,13 +110,13 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
 
 	case 4: /* attributes */
 		heap_mask = 1 << 30;
-		flags = 0x3d000000 | NVMAP_HANDLE_WRITE_COMBINE;
+		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x4;
 		break;
 
 	default:
 		heap_mask = 1 << 30;
-		flags = 0x3d000000 | NVMAP_HANDLE_WRITE_COMBINE;
+		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x4;
 		break;
 	}

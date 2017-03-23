@@ -141,7 +141,7 @@ struct nvhost_gr2d *nvhost_gr2d_open(struct nvmap *nvmap,
 	}
 
 	err = nvmap_handle_alloc(nvmap, gr2d->buffer, 1 << 0,
-	                         0x0a000000 | NVMAP_HANDLE_WRITE_COMBINE, 0x20);
+	                         NVMAP_HANDLE_WRITE_COMBINE, 0x20);
 	if (err < 0) {
 		nvmap_handle_free(nvmap, gr2d->buffer);
 		nvhost_client_exit(&gr2d->client);
