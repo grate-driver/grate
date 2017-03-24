@@ -143,7 +143,7 @@ void mat4_perspective(struct mat4 *m, float fov, float aspect,
 	m->xx = cotangent / aspect;
 	m->yy = cotangent;
 	m->zz = -(far + near) / depth;
-	m->zw = -1.0f;
-	m->wz = -2.0f * near * far / depth;
+	m->zw = -2.0f * near * far / depth;
+	m->wz = -1.0f;
 	m->ww = 0.0f;
 }
