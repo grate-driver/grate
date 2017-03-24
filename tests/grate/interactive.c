@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
 	float aspect;
 
 	unsigned cull_mode = 0;
+	unsigned depth_func = 0;
 	bool front_direction_cw = false;
 
 	if (chdir( dirname(argv[0]) ) == -1)
@@ -232,6 +233,8 @@ int main(int argc, char *argv[])
 
 	/* Setup depth buffer */
 
+	grate_3d_ctx_set_depth_func(ctx, GRATE_3D_CTX_DEPTH_FUNC_LEQUAL);
+
 	depth_buffer = grate_create_texture(grate,
 					    options.width, options.height,
 					    PIX_BUF_FMT_D16_LINEAR,
@@ -303,6 +306,7 @@ int main(int argc, char *argv[])
 	printf("Key Z     - move cube down\n");
 	printf("Key 1     - toggle face cull mode\n");
 	printf("Key 2     - toggle triangle front face direction mode\n");
+	printf("Key 3     - toggle depth test function\n");
 	printf("To exit press any other key\n");
 	printf("\n");
 
@@ -322,7 +326,6 @@ int main(int argc, char *argv[])
 
 		/* Clear depth buffer and enable depth test */
 		grate_texture_clear(grate, depth_buffer, 0xFFFFFFFF);
-		grate_3d_ctx_set_depth_func(ctx, GRATE_3D_CTX_DEPTH_FUNC_LEQUAL);
 
 		/* Cube MVP */
 		mat4_identity(&modelview);
@@ -416,6 +419,50 @@ int main(int argc, char *argv[])
 
 			grate_3d_ctx_set_front_direction_is_cw(ctx,
 						front_direction_cw);
+			continue;
+		case 51: /* KEY_3 */
+			switch (depth_func++ % 8) {
+			case 0:
+				printf("Depth function: never\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_NEVER);
+				continue;
+			case 1:
+				printf("Depth function: less\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_LESS);
+				continue;
+			case 2:
+				printf("Depth function: equal\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_EQUAL);
+				continue;
+			case 3:
+				printf("Depth function: less or equal\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_LEQUAL);
+				continue;
+			case 4:
+				printf("Depth function: greater\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_GREATER);
+				continue;
+			case 5:
+				printf("Depth function: not equal\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL);
+				continue;
+			case 6:
+				printf("Depth function: greater or equal\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_GEQUAL);
+				continue;
+			case 7:
+				printf("Depth function: always\n");
+				grate_3d_ctx_set_depth_func(ctx,
+						GRATE_3D_CTX_DEPTH_FUNC_ALWAYS);
+				continue;
+			}
 			continue;
 		}
 
