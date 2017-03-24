@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
 			case 0:
 				printf("Cull face: none\n");
 				grate_3d_ctx_set_cull_face(ctx,
-						GRATE_3D_CTX_CULL_FACE_BACK);
+						GRATE_3D_CTX_CULL_FACE_NONE);
 				continue;
 			case 1:
 				printf("Cull face: front\n");
