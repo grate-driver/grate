@@ -41,6 +41,7 @@
 #include "host1x.h"
 
 static bool termio_adjusted;
+static tcflag_t saved_c_lflag;
 
 struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					   unsigned long flags,
@@ -149,10 +150,10 @@ void grate_exit(struct grate *grate)
 	if (grate)
 		host1x_close(grate->host1x);
 
-	if (termio_adjusted) {
+	if (termio_adjusted && saved_c_lflag) {
 		/* Restore terminal input */
 		tcgetattr(STDIN_FILENO, &term);
-		term.c_lflag |= ICANON | ECHO;
+		term.c_lflag |= saved_c_lflag;
 		tcsetattr(STDIN_FILENO, TCSANOW, &term);
 	}
 
@@ -277,7 +278,7 @@ void grate_wait_for_key(struct grate *grate)
 	getchar();
 }
 
-static uint8_t grate_key_pressed__(struct grate *grate, bool return_key)
+static uint8_t grate_key_pressed__(struct grate *grate, bool return_keycode)
 {
 	int err, max_fd = STDIN_FILENO;
 	uint8_t key[3];
@@ -293,11 +294,12 @@ static uint8_t grate_key_pressed__(struct grate *grate, bool return_key)
 	if (!grate->display && !grate->overlay)
 		return true;
 
-	if (return_key && !termio_adjusted) {
+	if (return_keycode && !termio_adjusted) {
 		termio_adjusted = true;
 		/* Redirect terminal input to us */
 		tcgetattr(STDIN_FILENO, &term);
-		term.c_lflag &= ~(ICANON | ECHO);
+		saved_c_lflag = term.c_lflag & (ICANON | ECHO);
+		term.c_lflag &= ~saved_c_lflag;
 		tcsetattr(STDIN_FILENO, TCSANOW, &term);
 	}
 
@@ -321,7 +323,7 @@ static uint8_t grate_key_pressed__(struct grate *grate, bool return_key)
 	if (!FD_ISSET(STDIN_FILENO, &fds))
 		return 0;
 
-	if (!return_key)
+	if (!return_keycode)
 		return 1;
 
 	cnt = read(STDIN_FILENO, key, 3);
