@@ -131,6 +131,7 @@ int main(int argc, char *argv[])
 {
 	float x = 0.0f, y = 0.0f, z = 0.0f;
 	float x_pos = 0.0f, y_pos = 0.0f, z_pos = -4.0f;
+	float scale = 1.0f;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
 	struct grate_options options;
@@ -300,6 +301,8 @@ int main(int argc, char *argv[])
 	printf("Key RIGHT - move cube right\n");
 	printf("Key A     - move cube up\n");
 	printf("Key Z     - move cube down\n");
+	printf("Key S     - enlarge cube\n");
+	printf("Key X     - shrink cube\n");
 	printf("Key 1     - toggle face cull mode\n");
 	printf("Key 2     - toggle triangle front face direction mode\n");
 	printf("Key 3     - toggle depth test function\n");
@@ -324,7 +327,7 @@ int main(int argc, char *argv[])
 		grate_texture_clear(grate, depth_buffer, 0xFFFFFFFF);
 
 		/* Cube MVP */
-		mat4_identity(&modelview);
+		mat4_scale(&modelview, scale, scale, scale);
 		mat4_rotate_x(&transform, x);
 		mat4_multiply(&rotate, &modelview, &transform);
 		mat4_rotate_y(&transform, y);
@@ -380,6 +383,12 @@ int main(int argc, char *argv[])
 		case 122: /* KEY_Z */
 			y_pos -= 20  * (elapsed1 - elapsed0);
 			print_cube_position(x_pos, y_pos, z_pos);
+			continue;
+		case 115: /* KEY_S */
+			scale += 20  * (elapsed1 - elapsed0);
+			continue;
+		case 120: /* KEY_X */
+			scale -= 20  * (elapsed1 - elapsed0);
 			continue;
 		case 49: /* KEY_1 */
 			switch (cull_mode++ % 4) {
