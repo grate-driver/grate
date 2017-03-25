@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 	printf("Key 1     - toggle face cull mode\n");
 	printf("Key 2     - toggle triangle front face direction mode\n");
 	printf("Key 3     - toggle depth test function\n");
-	printf("To exit press any other key\n");
+	printf("Press escape to exit\n");
 	printf("\n");
 
 	profile = grate_profile_start(grate);
@@ -361,8 +361,6 @@ int main(int argc, char *argv[])
 		z = 0.4f * ANIMATION_SPEED * elapsed1;
 
 		switch (grate_key_pressed2(grate)) {
-		case 0:
-			continue;
 		case 65: /* KEY_UP */
 			z_pos -= 20 * (elapsed1 - elapsed0);
 			print_cube_position(x_pos, y_pos, z_pos);
@@ -463,6 +461,10 @@ int main(int argc, char *argv[])
 						GRATE_3D_CTX_DEPTH_FUNC_ALWAYS);
 				continue;
 			}
+			continue;
+		case 27: /* KEY_ESC */
+			break;
+		default:
 			continue;
 		}
 
