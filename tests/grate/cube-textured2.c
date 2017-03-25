@@ -282,33 +282,23 @@ int main(int argc, char *argv[])
 
 	cube_vertices_loc = grate_get_attribute_location(cube_program,
 							 "position");
-	cube_vertices_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_vertices),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_vertices);
+	cube_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							    cube_vertices);
 
 	cube_texcoord_loc = grate_get_attribute_location(cube_program,
 							 "texcoord");
-	cube_texcoord_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_uv),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_uv);
+	cube_texcoord_bo = grate_create_attrib_bo_from_data(grate, cube_uv);
 
 	/* Setup grate attributes */
 
 	grate_vertices_loc = grate_get_attribute_location(grate_program,
 							  "position");
-	grate_vertices_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_vertices),
-						      NVHOST_BO_FLAG_ATTRIBUTES,
-						      grate_vertices);
+	grate_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							     grate_vertices);
 
 	grate_texcoord_loc = grate_get_attribute_location(grate_program,
 							  "texcoord");
-	grate_texcoord_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_uv),
-						      NVHOST_BO_FLAG_ATTRIBUTES,
-						      grate_uv);
+	grate_texcoord_bo = grate_create_attrib_bo_from_data(grate, grate_uv);
 
 	/* Setup render target */
 
@@ -343,13 +333,8 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices),
-					    NVHOST_BO_FLAG_ATTRIBUTES,
-					    cube_indices);
-
-	grate_bo = grate_bo_create_from_data(grate, sizeof(grate_indices),
-					     NVHOST_BO_FLAG_ATTRIBUTES,
-					     grate_indices);
+	cube_bo = grate_create_attrib_bo_from_data(grate, cube_indices);
+	grate_bo = grate_create_attrib_bo_from_data(grate, grate_indices);
 
 	profile = grate_profile_start(grate);
 

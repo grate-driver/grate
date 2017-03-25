@@ -255,17 +255,12 @@ int main(int argc, char *argv[])
 
 	cube_vertices_loc = grate_get_attribute_location(cube_program,
 							 "position");
-	cube_vertices_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_vertices),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_vertices);
+	cube_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							    cube_vertices);
 
 	cube_texcoord_loc = grate_get_attribute_location(cube_program,
 							 "texcoord");
-	cube_texcoord_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_uv),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_uv);
+	cube_texcoord_bo = grate_create_attrib_bo_from_data(grate, cube_uv);
 
 	grate_3d_ctx_vertex_attrib_pointer(
 		ctx, cube_vertices_loc, 4, ATTRIB_TYPE_FLOAT32,
@@ -298,9 +293,7 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices),
-					    NVHOST_BO_FLAG_ATTRIBUTES,
-					    cube_indices);
+	cube_bo = grate_create_attrib_bo_from_data(grate, cube_indices);
 
 	printf("\n");
 	printf("Key UP    - move cube forward\n");

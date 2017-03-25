@@ -59,6 +59,10 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					    unsigned long flags,
 					    const void *data);
 
+#define grate_create_attrib_bo_from_data(grate, data)			\
+	grate_bo_create_from_data(grate, sizeof(data),			\
+				  NVHOST_BO_FLAG_ATTRIBUTES, data)
+
 struct grate_options {
 	unsigned int x, y, width, height;
 	bool fullscreen;

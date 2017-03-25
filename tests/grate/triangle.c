@@ -139,8 +139,7 @@ int main(int argc, char *argv[])
 	/* Setup vertices attribute */
 
 	location = grate_get_attribute_location(program, "position");
-	bo = grate_bo_create_from_data(grate, sizeof(vertices),
-				       NVHOST_BO_FLAG_ATTRIBUTES, vertices);
+	bo = grate_create_attrib_bo_from_data(grate, vertices);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -149,8 +148,7 @@ int main(int argc, char *argv[])
 	/* Setup colors attribute */
 
 	location = grate_get_attribute_location(program, "color");
-	bo = grate_bo_create_from_data(grate, sizeof(colors),
-				       NVHOST_BO_FLAG_ATTRIBUTES, colors);
+	bo = grate_create_attrib_bo_from_data(grate, colors);
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
 					   ATTRIB_TYPE_FLOAT32,
 				           4 * sizeof(float), bo);
@@ -164,8 +162,7 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	bo = grate_bo_create_from_data(grate, sizeof(indices),
-				       NVHOST_BO_FLAG_ATTRIBUTES, indices);
+	bo = grate_create_attrib_bo_from_data(grate, indices);
 
 	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 			       bo, INDEX_MODE_UINT16,
