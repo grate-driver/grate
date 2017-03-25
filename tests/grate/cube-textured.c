@@ -288,8 +288,7 @@ int main(int argc, char *argv[])
 
 		mat4_multiply(&mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, mvp_loc, 16,
-						(float *) &mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, mvp_loc, &mvp);
 
 		/* Setup render target */
 		pixbuf = grate_get_draw_pixbuf(fb);

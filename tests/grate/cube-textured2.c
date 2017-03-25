@@ -368,8 +368,8 @@ int main(int argc, char *argv[])
 
 		/* Draw cube */
 		grate_3d_ctx_bind_program(ctx, cube_program);
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 		grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_vertices_loc,
 							 4, cube_vertices_bo);
 		grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_texcoord_loc,
@@ -392,8 +392,8 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       cube_bo, INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
@@ -408,8 +408,8 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       cube_bo, INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
@@ -423,8 +423,8 @@ int main(int argc, char *argv[])
 
 		/* Draw grate */
 		grate_3d_ctx_bind_program(ctx, grate_program);
-		grate_3d_ctx_set_vertex_uniform(ctx, grate_mvp_loc, 16,
-						(float *) &grate_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, grate_mvp_loc,
+						     &grate_mvp);
 		grate_3d_ctx_vertex_attrib_float_pointer(ctx, grate_vertices_loc,
 							 4, grate_vertices_bo);
 		grate_3d_ctx_vertex_attrib_float_pointer(ctx, grate_texcoord_loc,

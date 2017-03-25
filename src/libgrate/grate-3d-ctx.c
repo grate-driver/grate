@@ -253,7 +253,6 @@ int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 	if (!ctx->program) {
 		grate_error("No program bound\n");
 		return -1;
-
 	}
 
 	if (location + nb > 256) {
@@ -264,6 +263,13 @@ int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 	memcpy(&ctx->vs_uniforms[location * 4], values, nb * sizeof(float));
 
 	return 0;
+}
+
+int grate_3d_ctx_set_vertex_mat4_uniform(struct grate_3d_ctx *ctx,
+					 unsigned location, struct mat4 *mat)
+{
+	return grate_3d_ctx_set_vertex_uniform(ctx, location,
+					       16, (float *) mat);
 }
 
 int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,

@@ -178,8 +178,8 @@ int main(int argc, char *argv[])
 		mat4_scale(&scale, (float)options.height / options.width, 1, 1);
 		mat4_multiply(&modelview, &scale, &rotation);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, modelview_loc, 16,
-						(float *) &modelview);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, modelview_loc,
+						     &modelview);
 
 		/* Setup render target */
 		pixbuf = grate_get_draw_pixbuf(fb);

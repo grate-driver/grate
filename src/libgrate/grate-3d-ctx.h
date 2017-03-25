@@ -30,6 +30,7 @@ struct grate;
 struct grate_program;
 struct grate_texture;
 struct grate_3d_ctx;
+struct mat4;
 
 enum grate_3d_ctx_cull_face
 {
@@ -88,6 +89,9 @@ int grate_3d_ctx_bind_program(struct grate_3d_ctx *ctx,
 int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 				    unsigned location, unsigned nb,
 				    float *values);
+
+int grate_3d_ctx_set_vertex_mat4_uniform(struct grate_3d_ctx *ctx,
+					 unsigned location, struct mat4 *mat);
 
 int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
 				      unsigned location, unsigned nb,
