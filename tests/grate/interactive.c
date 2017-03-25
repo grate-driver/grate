@@ -132,6 +132,7 @@ int main(int argc, char *argv[])
 	float x = 0.0f, y = 0.0f, z = 0.0f;
 	float x_pos = 0.0f, y_pos = 0.0f, z_pos = -4.0f;
 	float scale = 1.0f;
+	float k_factor = 1.0f;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
 	struct grate_options options;
@@ -148,8 +149,10 @@ int main(int argc, char *argv[])
 
 	struct host1x_pixelbuffer *pixbuf;
 	int cube_mvp_loc;
-	float elapsed1 = 0.0f, elapsed0;
+	float elapsed0, elapsed1 = 0.0f, elapsed2 = 0.0f;
 	float aspect;
+
+	unsigned prev_key, key = 0;
 
 	unsigned cull_mode = 0;
 	unsigned depth_func = 0;
@@ -359,36 +362,41 @@ int main(int argc, char *argv[])
 		y = 0.2f * ANIMATION_SPEED * elapsed1;
 		z = 0.4f * ANIMATION_SPEED * elapsed1;
 
-		switch (grate_key_pressed2(grate)) {
+		prev_key = key;
+		key = grate_key_pressed2(grate);
+
+		k_factor += elapsed1 - elapsed0;
+
+		switch (key) {
 		case 65: /* KEY_UP */
-			z_pos -= 20 * (elapsed1 - elapsed0);
+			z_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 66: /* KEY_DOWN */
-			z_pos += 20 * (elapsed1 - elapsed0);
+			z_pos += 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 68: /* KEY_LEFT */
-			x_pos -= 20 * (elapsed1 - elapsed0);
+			x_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 67: /* KEY_RIGHT */
-			x_pos += 20 * (elapsed1 - elapsed0);
+			x_pos += 0.1 * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 97: /* KEY_A */
-			y_pos += 20 * (elapsed1 - elapsed0);
+			y_pos += 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 122: /* KEY_Z */
-			y_pos -= 20  * (elapsed1 - elapsed0);
+			y_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 115: /* KEY_S */
-			scale += 20  * (elapsed1 - elapsed0);
+			scale += 0.1f * powf(k_factor, 2.0f);
 			continue;
 		case 120: /* KEY_X */
-			scale -= 20  * (elapsed1 - elapsed0);
+			scale -= 0.1f * powf(k_factor, 2.0f);
 			continue;
 		case 49: /* KEY_1 */
 			switch (cull_mode++ % 4) {
@@ -469,6 +477,12 @@ int main(int argc, char *argv[])
 			continue;
 		case 27: /* KEY_ESC */
 			break;
+		case 0:
+			if (prev_key != 0)
+				elapsed2 = elapsed1;
+
+			if (prev_key == 0 && elapsed1 - elapsed2 > 0.45f)
+				k_factor = 1.0f;
 		default:
 			continue;
 		}
