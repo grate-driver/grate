@@ -235,18 +235,14 @@ int main(int argc, char *argv[])
 
 	location = grate_get_attribute_location(program, "position");
 	bo = grate_create_attrib_bo_from_data(grate, vertices);
-	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
-					   ATTRIB_TYPE_FLOAT32,
-				           4 * sizeof(float), bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, 4, bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
 	/* Setup texcoords attribute */
 
 	location = grate_get_attribute_location(program, "texcoord");
 	bo = grate_create_attrib_bo_from_data(grate, uv);
-	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 2,
-					   ATTRIB_TYPE_FLOAT32,
-				           2 * sizeof(float), bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, 2, bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
 	/* Setup render target */

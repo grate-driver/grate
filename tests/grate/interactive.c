@@ -262,13 +262,11 @@ int main(int argc, char *argv[])
 							 "texcoord");
 	cube_texcoord_bo = grate_create_attrib_bo_from_data(grate, cube_uv);
 
-	grate_3d_ctx_vertex_attrib_pointer(
-		ctx, cube_vertices_loc, 4, ATTRIB_TYPE_FLOAT32,
-		4 * sizeof(float), cube_vertices_bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_vertices_loc,
+						 4, cube_vertices_bo);
 
-	grate_3d_ctx_vertex_attrib_pointer(
-		ctx, cube_texcoord_loc, 2, ATTRIB_TYPE_FLOAT32,
-		2 * sizeof(float), cube_texcoord_bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_texcoord_loc,
+						 2, cube_texcoord_bo);
 
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_vertices_loc);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_texcoord_loc);

@@ -57,6 +57,11 @@ int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 				       unsigned type, unsigned stride,
 				       struct host1x_bo *data_bo);
 
+#define grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, size, bo)\
+	grate_3d_ctx_vertex_attrib_pointer(ctx, location, size,		\
+					   ATTRIB_TYPE_FLOAT32,		\
+				           size * sizeof(float), bo)	\
+
 int grate_3d_ctx_enable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					    unsigned target);
 
