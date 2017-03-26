@@ -227,9 +227,19 @@ int main(int argc, char *argv[])
 	}
 
 	cube_program = grate_program_new(grate, cube_vs, cube_fs, cube_linker);
+	if (!cube_program) {
+		fprintf(stderr, "grate_program_new() failed\n");
+		return 1;
+	}
+
 	grate_program_link(cube_program);
 
 	grate_program = grate_program_new(grate, cube_vs, grate_fs, cube_linker);
+	if (!grate_program) {
+		fprintf(stderr, "grate_program_new() failed\n");
+		return 1;
+	}
+
 	grate_program_link(grate_program);
 
 	cube_mvp_loc = grate_get_vertex_uniform_location(cube_program, "mvp");
