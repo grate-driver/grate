@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -335,6 +336,8 @@ void grate_program_link(struct grate_program *program)
 {
 	struct cgc_shader *shader;
 	unsigned int i;
+
+	assert(program);
 
 	if (!program->vs) {
 		grate_error("No vertex program?");
