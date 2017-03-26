@@ -97,6 +97,9 @@ int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
 				      unsigned location, unsigned nb,
 				      float *value);
 
+int grate_3d_ctx_set_fragment_float_uniform(struct grate_3d_ctx *ctx,
+					    unsigned location, float value);
+
 void grate_3d_ctx_set_depth_range(struct grate_3d_ctx *ctx,
 				  float near, float far);
 

@@ -344,6 +344,12 @@ int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
 	return 0;
 }
 
+int grate_3d_ctx_set_fragment_float_uniform(struct grate_3d_ctx *ctx,
+					    unsigned location, float value)
+{
+	return grate_3d_ctx_set_fragment_uniform(ctx, location, 1, &value);
+}
+
 void grate_3d_ctx_set_depth_range(struct grate_3d_ctx *ctx,
 				  float near, float far)
 {
