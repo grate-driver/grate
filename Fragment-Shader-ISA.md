@@ -299,7 +299,7 @@ The TEX instruction takes the texture coordinates and LOD bias from the first ro
 |     10 | enable                                |
 |   6..9 | ???                                   |
 |      5 | sampled data destination regs select  |
-|      4 | texcoords/lod regs select             |
+|      4 | texcoords / lod regs select           |
 |   0..3 | sampler index                         |
 
 
