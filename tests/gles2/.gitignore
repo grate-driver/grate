@@ -17,5 +17,6 @@ gles-pbuffer-uniforms-rg
 gles-pbuffer-uniforms-rgb
 gles-pbuffer-vertex-offset
 gles-quad-textured
+gles-quad-textured2
 gles-shader-fill
 libcommon.la

@@ -29,6 +29,8 @@
 #include <string.h>
 
 #include <GLES2/gl2.h>
+#include <IL/il.h>
+#include <IL/ilu.h>
 #include <png.h>
 
 #include "common.h"
@@ -674,6 +676,47 @@ struct gles_texture *gles_texture_load(const char *filename)
 		     texture->image->width, texture->image->height, 0,
 		     texture->base.format, GL_UNSIGNED_BYTE,
 		     texture->image->data);
+
+	return &texture->base;
+}
+
+struct gles_texture *gles_texture_load2(const char *filename,
+					unsigned width, unsigned height)
+{
+	struct texture *texture;
+	ILuint ImageTex;
+	int err;
+
+	texture = calloc(1, sizeof(*texture));
+	if (!texture)
+		return NULL;
+
+	ilInit();
+	ilGenImages(1, &ImageTex);
+	ilBindImage(ImageTex);
+	ilLoadImage(filename);
+	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+	iluScale(width, height, 0);
+
+	err = ilGetError();
+	if (err != IL_NO_ERROR) {
+		free(texture);
+		return NULL;
+	}
+
+	texture->base.format = GL_RGBA;
+
+	glGenTextures(1, &texture->base.id);
+	glBindTexture(GL_TEXTURE_2D, texture->base.id);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, texture->base.format,
+		     width, height, 0, texture->base.format, GL_UNSIGNED_BYTE,
+		     ilGetData());
 
 	return &texture->base;
 }

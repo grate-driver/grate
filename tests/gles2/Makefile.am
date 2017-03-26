@@ -4,7 +4,7 @@ libcommon_la_SOURCES = \
 	common.c \
 	common.h
 
-libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS)
+libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS) $(DevIL_LIBS)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate $(GLES2_CFLAGS)
 AM_CFLAGS = $(GLES2_CFLAGS)
@@ -30,6 +30,7 @@ noinst_PROGRAMS = \
 	gles-pbuffer-uniforms-rg \
 	gles-pbuffer-vertex-offset \
 	gles-quad-textured \
+	gles-quad-textured2 \
 	gles-shader-fill
 
 gles_cube_LDADD = \
@@ -49,5 +50,9 @@ gles_pbuffer_cube_LDADD = \
 	libcommon.la
 
 gles_quad_textured_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	libcommon.la
+
+gles_quad_textured2_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
 	libcommon.la
