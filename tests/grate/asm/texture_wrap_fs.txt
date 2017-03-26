@@ -1,0 +1,28 @@
+/*
+ * Fragment shader for /grate/tests/texture-wrap
+ */
+
+pseq_to_dw_exec_nb = 1
+alu_buffer_size = 1
+
+.uniforms
+	[0] = "tex_scale";
+	[1] = "tex_offset";
+
+.asm
+EXEC
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, NOP, NOP
+
+	ALU:
+		ALU0:	MAD r0.lh, r0, u0, u1
+		ALU1:	MAD r1.lh, r1, u0, u1
+;
+
+EXEC
+	TEX:	r2, r3, tex0, r0, r1, r2
+
+	DW:	0x00028005
+;
