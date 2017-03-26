@@ -303,14 +303,14 @@ The TEX instruction takes the texture coordinates and LOD bias from the first ro
 |   0..3 | sampler index                         |
 
 
-#### Texture coordinate registers select:
+#### Texture coordinates and LOD registers select:
 
-The texture coordinate components (S, T, R) are loaded from the three registers as fp20's.
+The texture coordinate components (S, T, R) and level-of-detail bias are loaded from the row registers as fp20's.
 
-|  Value | Meaning (S, T, R order) |
-|-------:|:------------------------|
-|      1 | R2, R3, R0              |
-|      0 | R0, R1, R2              |
+|  Value | Meaning (S, T, R, LOD order) |
+|-------:|:-----------------------------|
+|      1 | R2, R3, R0, R1               |
+|      0 | R0, R1, R2, R3               |
 
 #### Sampled data destination registers select:
 
@@ -320,7 +320,3 @@ The sampled RGBA data is stored in the two registers as four fx10's.
 |-------:|:--------|
 |      1 | R2-R3   |
 |      0 | R0-R1   |
-
-#### Level of detail bias:
-
-Register R3 carries LOD bias value.
