@@ -289,7 +289,7 @@ There is also dependency on the linker: it should perform the "magic" write to t
 
 ## TEX instruction word encoding
 
-The TEX instruction takes the texture coordinates from the first row of the pixel packet (i.e. R0-R3 registers) and writes the sampled data to that first row as well. 
+The TEX instruction takes the texture coordinates and LOD bias from the first row of the pixel packet (i.e. R0-R3 registers) and writes the sampled data to that first row as well. 
 
 |   Bits | Meaning                               |
 |-------:|:--------------------------------------|
@@ -320,3 +320,7 @@ The sampled RGBA data is stored in the two registers as four fx10's.
 |-------:|:--------|
 |      1 | R2-R3   |
 |      0 | R0-R1   |
+
+#### Level of detail bias:
+
+Register R3 carries LOD bias value.
