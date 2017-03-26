@@ -191,6 +191,11 @@ int main(int argc, char *argv[])
 	linker = grate_shader_parse_linker_asm(shader_linker);
 
 	program = grate_program_new(grate, vs, fs, linker);
+	if (!program) {
+		fprintf(stderr, "grate_program_new() failed\n");
+		return 1;
+	}
+
 	grate_program_link(program);
 
 	mvp_loc = grate_get_vertex_uniform_location(program, "mvp");
