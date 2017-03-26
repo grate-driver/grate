@@ -8,7 +8,7 @@ http://github.com/envytools/envytools/
 git clone https://github.com/envytools/envytools.git
 
 The rules-ng-ng source files this header was generated from are:
-- /envytools/rnndb/tgr_3d.xml          (  12332 bytes, from 2017-03-26 18:33:41)
+- /envytools/rnndb/tgr_3d.xml          (  12556 bytes, from 2017-03-26 19:57:59)
 - /envytools/rnndb/grate_copyright.xml (   1556 bytes, from 2017-03-22 16:47:40)
 
 Copyright (C) 2012-2017 by the following authors:
@@ -307,8 +307,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TGR3D_TEXTURE_DESC1_MINFILTER				0x20000000
 #define TGR3D_TEXTURE_DESC1_FORMAT__MASK			0x00001f00
 #define TGR3D_TEXTURE_DESC1_FORMAT__SHIFT			8
-#define TGR3D_TEXTURE_DESC1_WRAP__MASK				0x0000000f
-#define TGR3D_TEXTURE_DESC1_WRAP__SHIFT				0
+#define TGR3D_TEXTURE_DESC1_WRAP_S_MIRRORED_REPEAT		0x00000008
+#define TGR3D_TEXTURE_DESC1_WRAP_T_MIRRORED_REPEAT		0x00000004
+#define TGR3D_TEXTURE_DESC1_WRAP_S_CLAMP_TO_EDGE		0x00000002
+#define TGR3D_TEXTURE_DESC1_WRAP_T_CLAMP_TO_EDGE		0x00000001
 
 #define TGR3D_TEXTURE_DESC2(i0)				       (0x00000721 + 0x2*(i0))
 #define TGR3D_TEXTURE_DESC2__ESIZE				0x00000002

@@ -147,6 +147,12 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned index_mode,
 			    unsigned vtx_count);
 
+enum grate_textute_wrap_mode {
+	GRATE_TEXTURE_CLAMP_TO_EDGE,
+	GRATE_TEXTURE_MIRRORED_REPEAT,
+	GRATE_TEXTURE_REPEAT,
+};
+
 struct grate_texture *grate_create_texture(struct grate *grate,
 					   unsigned width, unsigned height,
 					   enum pixel_format format,
@@ -156,7 +162,10 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 struct host1x_pixelbuffer *grate_texture_pixbuf(struct grate_texture *tex);
 void grate_texture_free(struct grate_texture *tex);
 void grate_texture_set_max_lod(struct grate_texture *tex, unsigned max_lod);
-void grate_texture_set_wrap_mode(struct grate_texture *tex, unsigned wrap_mode);
+void grate_texture_set_wrap_s(struct grate_texture *tex,
+			      enum grate_textute_wrap_mode wrap_mode);
+void grate_texture_set_wrap_t(struct grate_texture *tex,
+			      enum grate_textute_wrap_mode wrap_mode);
 void grate_texture_set_mip_filter(struct grate_texture *tex, bool enable);
 void grate_texture_set_mag_filter(struct grate_texture *tex, bool enable);
 void grate_texture_set_min_filter(struct grate_texture *tex, bool enable);

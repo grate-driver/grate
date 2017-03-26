@@ -721,7 +721,10 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER, mag_filter);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER, min_filter);
 	value |= TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
-	value |= TGR3D_VAL(TEXTURE_DESC1, WRAP, wrap_mode);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE, wrap_mode & 1);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE, wrap_mode & 2);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT, wrap_mode & 4);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT, wrap_mode & 8);
 // 	value |= 0x50;
 
 	host1x_pushbuf_push(pb, value);

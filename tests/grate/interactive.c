@@ -286,7 +286,8 @@ int main(int argc, char *argv[])
 					    PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, cube_texture, "data/tegra.png");
 	grate_texture_set_max_lod(cube_texture, 0);
-	grate_texture_set_wrap_mode(cube_texture, 0);
+	grate_texture_set_wrap_s(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
+	grate_texture_set_wrap_t(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_mip_filter(cube_texture, false);
 	grate_texture_set_mag_filter(cube_texture, false);
 	grate_texture_set_min_filter(cube_texture, false);

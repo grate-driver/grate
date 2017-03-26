@@ -125,9 +125,38 @@ void grate_texture_set_max_lod(struct grate_texture *tex, unsigned max_lod)
 	tex->max_lod = max_lod;
 }
 
-void grate_texture_set_wrap_mode(struct grate_texture *tex, unsigned wrap_mode)
+void grate_texture_set_wrap_s(struct grate_texture *tex,
+			      enum grate_textute_wrap_mode wrap_mode)
 {
-	tex->wrap_mode = wrap_mode;
+	tex->wrap_mode &= 4 | 1;
+
+	switch (wrap_mode) {
+	case GRATE_TEXTURE_CLAMP_TO_EDGE:
+		tex->wrap_mode |= 2;
+		break;
+	case GRATE_TEXTURE_MIRRORED_REPEAT:
+		tex->wrap_mode |= 8;
+		break;
+	case GRATE_TEXTURE_REPEAT:
+		break;
+	}
+}
+
+void grate_texture_set_wrap_t(struct grate_texture *tex,
+			      enum grate_textute_wrap_mode wrap_mode)
+{
+	tex->wrap_mode &= 8 | 2;
+
+	switch (wrap_mode) {
+	case GRATE_TEXTURE_CLAMP_TO_EDGE:
+		tex->wrap_mode |= 1;
+		break;
+	case GRATE_TEXTURE_MIRRORED_REPEAT:
+		tex->wrap_mode |= 4;
+		break;
+	case GRATE_TEXTURE_REPEAT:
+		break;
+	}
 }
 
 void grate_texture_set_mip_filter(struct grate_texture *tex, bool enable)
