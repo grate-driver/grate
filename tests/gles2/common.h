@@ -100,6 +100,8 @@ struct gles_texture {
 };
 
 struct gles_texture *gles_texture_load(const char *filename);
+struct gles_texture *gles_texture_load2(const char *filename,
+					unsigned width, unsigned height);
 void gles_texture_free(struct gles_texture *texture);
 
 #endif

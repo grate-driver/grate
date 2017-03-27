@@ -234,21 +234,15 @@ int main(int argc, char *argv[])
 	/* Setup vertices attribute */
 
 	location = grate_get_attribute_location(program, "position");
-	bo = grate_bo_create_from_data(grate, sizeof(vertices),
-				       NVHOST_BO_FLAG_ATTRIBUTES, vertices);
-	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 4,
-					   ATTRIB_TYPE_FLOAT32,
-				           4 * sizeof(float), bo);
+	bo = grate_create_attrib_bo_from_data(grate, vertices);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, 4, bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
 	/* Setup texcoords attribute */
 
 	location = grate_get_attribute_location(program, "texcoord");
-	bo = grate_bo_create_from_data(grate, sizeof(uv),
-				       NVHOST_BO_FLAG_ATTRIBUTES, uv);
-	grate_3d_ctx_vertex_attrib_pointer(ctx, location, 2,
-					   ATTRIB_TYPE_FLOAT32,
-				           2 * sizeof(float), bo);
+	bo = grate_create_attrib_bo_from_data(grate, uv);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, 2, bo);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, location);
 
 	/* Setup render target */
@@ -262,7 +256,8 @@ int main(int argc, char *argv[])
 				       PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, texture, "data/tegra.png");
 	grate_texture_set_max_lod(texture, 0);
-	grate_texture_set_wrap_mode(texture, 0);
+	grate_texture_set_wrap_s(texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
+	grate_texture_set_wrap_t(texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_mip_filter(texture, false);
 	grate_texture_set_mag_filter(texture, false);
 	grate_texture_set_min_filter(texture, false);
@@ -271,8 +266,7 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	bo = grate_bo_create_from_data(grate, sizeof(indices),
-				       NVHOST_BO_FLAG_ATTRIBUTES, indices);
+	bo = grate_create_attrib_bo_from_data(grate, indices);
 
 	profile = grate_profile_start(grate);
 
@@ -295,8 +289,7 @@ int main(int argc, char *argv[])
 
 		mat4_multiply(&mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, mvp_loc, 16,
-						(float *) &mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, mvp_loc, &mvp);
 
 		/* Setup render target */
 		pixbuf = grate_get_draw_pixbuf(fb);

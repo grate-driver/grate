@@ -282,33 +282,23 @@ int main(int argc, char *argv[])
 
 	cube_vertices_loc = grate_get_attribute_location(cube_program,
 							 "position");
-	cube_vertices_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_vertices),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_vertices);
+	cube_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							    cube_vertices);
 
 	cube_texcoord_loc = grate_get_attribute_location(cube_program,
 							 "texcoord");
-	cube_texcoord_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_uv),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_uv);
+	cube_texcoord_bo = grate_create_attrib_bo_from_data(grate, cube_uv);
 
 	/* Setup grate attributes */
 
 	grate_vertices_loc = grate_get_attribute_location(grate_program,
 							  "position");
-	grate_vertices_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_vertices),
-						      NVHOST_BO_FLAG_ATTRIBUTES,
-						      grate_vertices);
+	grate_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							     grate_vertices);
 
 	grate_texcoord_loc = grate_get_attribute_location(grate_program,
 							  "texcoord");
-	grate_texcoord_bo = grate_bo_create_from_data(grate,
-						      sizeof(grate_uv),
-						      NVHOST_BO_FLAG_ATTRIBUTES,
-						      grate_uv);
+	grate_texcoord_bo = grate_create_attrib_bo_from_data(grate, grate_uv);
 
 	/* Setup render target */
 
@@ -321,7 +311,8 @@ int main(int argc, char *argv[])
 					    PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, cube_texture, "data/tegra.png");
 	grate_texture_set_max_lod(cube_texture, 0);
-	grate_texture_set_wrap_mode(cube_texture, 0);
+	grate_texture_set_wrap_s(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
+	grate_texture_set_wrap_t(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_mip_filter(cube_texture, false);
 	grate_texture_set_mag_filter(cube_texture, false);
 	grate_texture_set_min_filter(cube_texture, false);
@@ -334,7 +325,8 @@ int main(int argc, char *argv[])
 					     PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, grate_texture, "data/grate/grate.jpg");
 	grate_texture_set_max_lod(grate_texture, 0);
-	grate_texture_set_wrap_mode(grate_texture, 0);
+	grate_texture_set_wrap_s(grate_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
+	grate_texture_set_wrap_t(grate_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_mip_filter(grate_texture, false);
 	grate_texture_set_mag_filter(grate_texture, false);
 	grate_texture_set_min_filter(grate_texture, false);
@@ -343,13 +335,8 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices),
-					    NVHOST_BO_FLAG_ATTRIBUTES,
-					    cube_indices);
-
-	grate_bo = grate_bo_create_from_data(grate, sizeof(grate_indices),
-					     NVHOST_BO_FLAG_ATTRIBUTES,
-					     grate_indices);
+	cube_bo = grate_create_attrib_bo_from_data(grate, cube_indices);
+	grate_bo = grate_create_attrib_bo_from_data(grate, grate_indices);
 
 	profile = grate_profile_start(grate);
 
@@ -383,14 +370,12 @@ int main(int argc, char *argv[])
 
 		/* Draw cube */
 		grate_3d_ctx_bind_program(ctx, cube_program);
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
-		grate_3d_ctx_vertex_attrib_pointer(
-			ctx, cube_vertices_loc, 4, ATTRIB_TYPE_FLOAT32,
-			4 * sizeof(float), cube_vertices_bo);
-		grate_3d_ctx_vertex_attrib_pointer(
-			ctx, cube_texcoord_loc, 2, ATTRIB_TYPE_FLOAT32,
-			2 * sizeof(float), cube_texcoord_bo);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
+		grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_vertices_loc,
+							 4, cube_vertices_bo);
+		grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_texcoord_loc,
+							 2, cube_texcoord_bo);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_vertices_loc);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_texcoord_loc);
 
@@ -409,8 +394,8 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       cube_bo, INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
@@ -425,8 +410,8 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &transform, &result);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
 				       cube_bo, INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
@@ -440,14 +425,12 @@ int main(int argc, char *argv[])
 
 		/* Draw grate */
 		grate_3d_ctx_bind_program(ctx, grate_program);
-		grate_3d_ctx_set_vertex_uniform(ctx, grate_mvp_loc, 16,
-						(float *) &grate_mvp);
-		grate_3d_ctx_vertex_attrib_pointer(
-			ctx, grate_vertices_loc, 4,  ATTRIB_TYPE_FLOAT32,
-			4 * sizeof(float), grate_vertices_bo);
-		grate_3d_ctx_vertex_attrib_pointer(
-			ctx, grate_texcoord_loc, 2, ATTRIB_TYPE_FLOAT32,
-			2 * sizeof(float), grate_texcoord_bo);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, grate_mvp_loc,
+						     &grate_mvp);
+		grate_3d_ctx_vertex_attrib_float_pointer(ctx, grate_vertices_loc,
+							 4, grate_vertices_bo);
+		grate_3d_ctx_vertex_attrib_float_pointer(ctx, grate_texcoord_loc,
+							 2, grate_texcoord_bo);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, grate_vertices_loc);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, grate_texcoord_loc);
 

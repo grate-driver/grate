@@ -629,6 +629,31 @@ static void grate_3d_relocate_texture(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 }
 
+static int log2_size(unsigned sz)
+{
+	switch (sz) {
+	case 1: return 0;
+	case 2: return 1;
+	case 4: return 2;
+	case 8: return 3;
+	case 16: return 4;
+	case 32: return 5;
+	case 64: return 6;
+	case 128: return 7;
+	case 256: return 8;
+	case 512: return 9;
+	case 1024: return 10;
+	case 2048: return 11;
+	case 4096: return 12;
+	case 8192: return 13;
+	case 16384: return 14;
+	default:
+		break;
+	}
+
+	return -1;
+}
+
 static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 				      unsigned index,
 				      struct host1x_pixelbuffer *pixbuf,
@@ -638,6 +663,7 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 				      bool mag_filter,
 				      bool min_filter)
 {
+	int log2_width, log2_height;
 	unsigned pixel_format;
 	uint32_t value = 0;
 
@@ -695,20 +721,27 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER, mag_filter);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER, min_filter);
 	value |= TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
-	value |= TGR3D_VAL(TEXTURE_DESC1, WRAP, wrap_mode);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE, wrap_mode & 1);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE, wrap_mode & 2);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT, wrap_mode & 4);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT, wrap_mode & 8);
 // 	value |= 0x50;
 
 	host1x_pushbuf_push(pb, value);
 
-	if (mip_filter) {
-		value  = TGR3D_VAL(TEXTURE_DESC2, WIDTH_LOG2, pixbuf->width);
-		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT_LOG2, pixbuf->height);
-		value |= TGR3D_VAL(TEXTURE_DESC2, MAX_LOD, max_lod);
+	log2_width = log2_size(pixbuf->width);
+	log2_height = log2_size(pixbuf->height);
+
+	if (log2_width >= 0 && log2_height >= 0) {
+		value  = TGR3D_VAL(TEXTURE_DESC2, MAX_LOD, max_lod);
+		value |= TGR3D_VAL(TEXTURE_DESC2, WIDTH_LOG2, log2_width);
+		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT_LOG2, log2_height);
 	} else {
-		value  = TGR3D_VAL(TEXTURE_DESC2, WIDTH, pixbuf->width);
+		value  = TGR3D_BOOL(TEXTURE_DESC2, NOT_POW2_DIMENSIONS, 1);
+		value |= TGR3D_VAL(TEXTURE_DESC2, WIDTH, pixbuf->width);
 		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT, pixbuf->height);
 	}
-	value |= 0xC0;
+	value |= 0x80;
 
 	host1x_pushbuf_push(pb, value);
 }

@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 {
 	float x = 0.0f, y = 0.0f, z = 0.0f;
 	float x_pos = 0.0f, y_pos = 0.0f, z_pos = -4.0f;
+	float scale = 1.0f;
+	float k_factor = 1.0f;
 	struct grate_profile *profile;
 	struct grate_framebuffer *fb;
 	struct grate_options options;
@@ -147,8 +149,10 @@ int main(int argc, char *argv[])
 
 	struct host1x_pixelbuffer *pixbuf;
 	int cube_mvp_loc;
-	float elapsed1 = 0.0f, elapsed0;
+	float elapsed0, elapsed1 = 0.0f, elapsed2 = 0.0f;
 	float aspect;
+
+	unsigned prev_key, key = 0;
 
 	unsigned cull_mode = 0;
 	unsigned depth_func = 0;
@@ -255,25 +259,18 @@ int main(int argc, char *argv[])
 
 	cube_vertices_loc = grate_get_attribute_location(cube_program,
 							 "position");
-	cube_vertices_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_vertices),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_vertices);
+	cube_vertices_bo = grate_create_attrib_bo_from_data(grate,
+							    cube_vertices);
 
 	cube_texcoord_loc = grate_get_attribute_location(cube_program,
 							 "texcoord");
-	cube_texcoord_bo = grate_bo_create_from_data(grate,
-						     sizeof(cube_uv),
-						     NVHOST_BO_FLAG_ATTRIBUTES,
-						     cube_uv);
+	cube_texcoord_bo = grate_create_attrib_bo_from_data(grate, cube_uv);
 
-	grate_3d_ctx_vertex_attrib_pointer(
-		ctx, cube_vertices_loc, 4, ATTRIB_TYPE_FLOAT32,
-		4 * sizeof(float), cube_vertices_bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_vertices_loc,
+						 4, cube_vertices_bo);
 
-	grate_3d_ctx_vertex_attrib_pointer(
-		ctx, cube_texcoord_loc, 2, ATTRIB_TYPE_FLOAT32,
-		2 * sizeof(float), cube_texcoord_bo);
+	grate_3d_ctx_vertex_attrib_float_pointer(ctx, cube_texcoord_loc,
+						 2, cube_texcoord_bo);
 
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_vertices_loc);
 	grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_texcoord_loc);
@@ -289,7 +286,8 @@ int main(int argc, char *argv[])
 					    PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, cube_texture, "data/tegra.png");
 	grate_texture_set_max_lod(cube_texture, 0);
-	grate_texture_set_wrap_mode(cube_texture, 0);
+	grate_texture_set_wrap_s(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
+	grate_texture_set_wrap_t(cube_texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_mip_filter(cube_texture, false);
 	grate_texture_set_mag_filter(cube_texture, false);
 	grate_texture_set_min_filter(cube_texture, false);
@@ -298,9 +296,7 @@ int main(int argc, char *argv[])
 
 	/* Create indices BO */
 
-	cube_bo = grate_bo_create_from_data(grate, sizeof(cube_indices),
-					    NVHOST_BO_FLAG_ATTRIBUTES,
-					    cube_indices);
+	cube_bo = grate_create_attrib_bo_from_data(grate, cube_indices);
 
 	printf("\n");
 	printf("Key UP    - move cube forward\n");
@@ -309,6 +305,8 @@ int main(int argc, char *argv[])
 	printf("Key RIGHT - move cube right\n");
 	printf("Key A     - move cube up\n");
 	printf("Key Z     - move cube down\n");
+	printf("Key S     - enlarge cube\n");
+	printf("Key X     - shrink cube\n");
 	printf("Key 1     - toggle face cull mode\n");
 	printf("Key 2     - toggle triangle front face direction mode\n");
 	printf("Key 3     - toggle depth test function\n");
@@ -333,7 +331,7 @@ int main(int argc, char *argv[])
 		grate_texture_clear(grate, depth_buffer, 0xFFFFFFFF);
 
 		/* Cube MVP */
-		mat4_identity(&modelview);
+		mat4_scale(&modelview, scale, scale, scale);
 		mat4_rotate_x(&transform, x);
 		mat4_multiply(&rotate, &modelview, &transform);
 		mat4_rotate_y(&transform, y);
@@ -344,8 +342,8 @@ int main(int argc, char *argv[])
 		mat4_multiply(&modelview, &transform, &rotate);
 		mat4_multiply(&cube_mvp, &projection, &modelview);
 
-		grate_3d_ctx_set_vertex_uniform(ctx, cube_mvp_loc, 16,
-						(float *) &cube_mvp);
+		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
+						     &cube_mvp);
 
 		/* Draw cube */
 
@@ -365,30 +363,41 @@ int main(int argc, char *argv[])
 		y = 0.2f * ANIMATION_SPEED * elapsed1;
 		z = 0.4f * ANIMATION_SPEED * elapsed1;
 
-		switch (grate_key_pressed2(grate)) {
+		prev_key = key;
+		key = grate_key_pressed2(grate);
+
+		k_factor += elapsed1 - elapsed0;
+
+		switch (key) {
 		case 65: /* KEY_UP */
-			z_pos -= 20 * (elapsed1 - elapsed0);
+			z_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 66: /* KEY_DOWN */
-			z_pos += 20 * (elapsed1 - elapsed0);
+			z_pos += 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 68: /* KEY_LEFT */
-			x_pos -= 20 * (elapsed1 - elapsed0);
+			x_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 67: /* KEY_RIGHT */
-			x_pos += 20 * (elapsed1 - elapsed0);
+			x_pos += 0.1 * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 97: /* KEY_A */
-			y_pos += 20 * (elapsed1 - elapsed0);
+			y_pos += 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
 			continue;
 		case 122: /* KEY_Z */
-			y_pos -= 20  * (elapsed1 - elapsed0);
+			y_pos -= 0.1f * powf(k_factor, 2.0f);
 			print_cube_position(x_pos, y_pos, z_pos);
+			continue;
+		case 115: /* KEY_S */
+			scale += 0.1f * powf(k_factor, 2.0f);
+			continue;
+		case 120: /* KEY_X */
+			scale -= 0.1f * powf(k_factor, 2.0f);
 			continue;
 		case 49: /* KEY_1 */
 			switch (cull_mode++ % 4) {
@@ -469,6 +478,12 @@ int main(int argc, char *argv[])
 			continue;
 		case 27: /* KEY_ESC */
 			break;
+		case 0:
+			if (prev_key != 0)
+				elapsed2 = elapsed1;
+
+			if (prev_key == 0 && elapsed1 - elapsed2 > 0.45f)
+				k_factor = 1.0f;
 		default:
 			continue;
 		}

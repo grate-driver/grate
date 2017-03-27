@@ -30,6 +30,7 @@ struct grate;
 struct grate_program;
 struct grate_texture;
 struct grate_3d_ctx;
+struct mat4;
 
 enum grate_3d_ctx_cull_face
 {
@@ -56,6 +57,11 @@ int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 				       unsigned location, unsigned size,
 				       unsigned type, unsigned stride,
 				       struct host1x_bo *data_bo);
+
+#define grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, size, bo)\
+	grate_3d_ctx_vertex_attrib_pointer(ctx, location, size,		\
+					   ATTRIB_TYPE_FLOAT32,		\
+				           size * sizeof(float), bo)	\
 
 int grate_3d_ctx_enable_vertex_attrib_array(struct grate_3d_ctx *ctx,
 					    unsigned target);
@@ -84,9 +90,15 @@ int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 				    unsigned location, unsigned nb,
 				    float *values);
 
+int grate_3d_ctx_set_vertex_mat4_uniform(struct grate_3d_ctx *ctx,
+					 unsigned location, struct mat4 *mat);
+
 int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
 				      unsigned location, unsigned nb,
 				      float *value);
+
+int grate_3d_ctx_set_fragment_float_uniform(struct grate_3d_ctx *ctx,
+					    unsigned location, float value);
 
 void grate_3d_ctx_set_depth_range(struct grate_3d_ctx *ctx,
 				  float near, float far);

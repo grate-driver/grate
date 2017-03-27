@@ -90,25 +90,25 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
 	}
 
 	switch (flags & ~HOST1X_BO_CREATE_DRM_FLAGS_MASK) {
-	case 1: /* framebuffer */
+	case NVHOST_BO_FLAG_FRAMEBUFFER:
 		heap_mask = NVMAP_HEAP_CARVEOUT_GENERIC;
 		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x100;
 		break;
 
-	case 2: /* command buffer */
+	case NVHOST_BO_FLAG_COMMAND_BUFFER:
 		heap_mask = NVMAP_HEAP_CARVEOUT_GENERIC;
 		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x20;
 		break;
 
-	case 3: /* scratch */
+	case NVHOST_BO_FLAG_SCRATCH:
 		heap_mask = NVMAP_HEAP_IOVMM;
 		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x20;
 		break;
 
-	case 4: /* attributes */
+	case NVHOST_BO_FLAG_ATTRIBUTES:
 		heap_mask = NVMAP_HEAP_IOVMM;
 		flags = NVMAP_HANDLE_WRITE_COMBINE;
 		align = 0x4;
