@@ -324,10 +324,12 @@ Here a reciprocal operation is applied to the register r1, r1 = 1.0 / r1. Multip
 Performs texture sampling, takes the following form:
 
 	EXEC
-		TEX:	rg, ba, texID, s, t, r
+		TEX:	rg, ba, texID, s, t, r, lod_bias
 	;
 
-Destination and source registers are current row registers r0-r3. Destination registers "rg" and "ba" receive sampled texture RGBA data in fx10 format, there are two possible variants: "r0, r1" or "r2, r3". Sources are texture sampler ID and texture S, T, R coordinates; there are two possible variants of s,t,r sources: "r0, r1, r2" or "r2, r3, r0".
+Destination and source registers are current row registers r0-r3. Destination registers "rg" and "ba" receive sampled texture RGBA data in fx10 format, there are two possible variants: "r0, r1" or "r2, r3". Sources are texture sampler ID, texture S, T, R coordinates and LOD bias; there are two possible variants of s,t,r,lod sources: "r0, r1, r2, r3" or "r2, r3, r0, r1".
+
+Lod bias register is optional. When it is omitted, the mipmap LOD biasing is effectively disabled.
 
 Example:
 
@@ -335,7 +337,15 @@ Example:
 		TEX:	r2, r3, tex14, r0, r1, r2
 	;
 
-Here texture data is sampled into r2,r3 row registers from texture unit #14, "s t r" coordinates are passed via r0,r1,r2 row registers. In result, r2.fx10_low contains red; r2.fx10_high green; r3.fx10_low blue and r3.fx10_high alpha channel components.
+Here texture data is sampled into r2,r3 row registers from texture unit #14, "s t r" coordinates are passed via r0,r1,r2 row registers. In result, r2.fx10_low contains red; r2.fx10_high green; r3.fx10_low blue and r3.fx10_high alpha channel components. Load bias source is register is omitted, i.e. no LOD biasing would be performed. 
+
+Example:
+
+	EXEC
+		TEX:	r0, r1, tex3, r0, r1, r2, r3
+	;
+
+Here texture data is sampled into r0,r1 row registers from texture unit #3, "s t r" coordinates are passed via r0,r1,r2 row registers, LOD bias is enabled and passed via row register r3. In result, r2.fx10_low contains red; r2.fx10_high green; r3.fx10_low blue and r3.fx10_high alpha channel components.
 
 #### ALU sub-instruction
 
