@@ -62,9 +62,25 @@ static void nvhost_bo_free(struct host1x_bo *bo)
 {
 	struct nvhost_bo *nbo = to_nvhost_bo(bo);
 
+	if (bo->wrapped)
+		return free(nbo);
+
 	nvmap_handle_free(nbo->nvmap, nbo->handle);
 
 	free(nbo);
+}
+
+static struct host1x_bo *nvhost_bo_clone(struct host1x_bo *bo)
+{
+	struct nvhost_bo *nbo = to_nvhost_bo(bo);
+	struct nvhost_bo *clone = malloc(sizeof(*nbo));
+
+	if (!clone)
+		return NULL;
+
+	memcpy(clone, nbo, sizeof(*nbo));
+
+	return &clone->base;
 }
 
 static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
@@ -137,6 +153,7 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
 	bo->base.priv->invalidate = nvhost_bo_invalidate;
 	bo->base.priv->flush = nvhost_bo_flush;
 	bo->base.priv->free = nvhost_bo_free;
+	bo->base.priv->clone = nvhost_bo_clone;
 
 	return &bo->base;
 }

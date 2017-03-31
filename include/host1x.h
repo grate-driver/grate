@@ -72,6 +72,7 @@ struct host1x;
 
 struct host1x_bo {
 	struct host1x_bo_priv *priv;
+	struct host1x_bo *wrapped;
 	uint32_t handle;
 	unsigned long offset;
 	size_t size;
@@ -209,6 +210,19 @@ int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
 })
 
 int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
+
+#define HOST1X_BO_WRAP(bo, offset, size)				\
+({									\
+	struct host1x_bo *wrap = host1x_bo_wrap(bo, offset, size);	\
+	if (!wrap)							\
+		fprintf(stderr,						\
+			"ERROR: %s:%d: host1x_bo_wrap() failed\n",	\
+			__FILE__, __LINE__);				\
+	wrap;								\
+})
+
+struct host1x_bo *host1x_bo_wrap(struct host1x_bo *bo,
+				 unsigned long offset, size_t size);
 
 #define HOST1X_OPCODE_SETCL(offset, classid, mask) \
 	((0x0 << 28) | (((offset) & 0xfff) << 16) | (((classid) & 0x3ff) << 6) | ((mask) & 0x3f))

@@ -167,6 +167,54 @@ int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
 	return 0;
 }
 
+/*
+ * Offset is given relatively to the wrapped BO and not the original,
+ * to make nested wrapping work seamlessly. However the actual offset of
+ * the wrapped BO is set relatively to the original BO.
+ */
+struct host1x_bo *host1x_bo_wrap(struct host1x_bo *bo,
+				 unsigned long offset, size_t size)
+{
+	struct host1x_bo_priv *priv;
+	struct host1x_bo *wrap;
+	struct host1x_bo *orig;
+
+	orig = bo->wrapped ?: bo;
+
+	if (bo->wrapped) {
+		if (bo->offset + bo->size + offset + size > orig->size)
+			goto chk_err;
+	} else {
+		if (bo->offset + offset + size > orig->size)
+			goto chk_err;
+	}
+
+	priv = calloc(1, sizeof(*priv));
+	if (!priv)
+		return NULL;
+
+	wrap = bo->priv->clone(bo);
+	if (wrap) {
+		memcpy(priv, bo->priv, sizeof(*priv));
+		wrap->offset += (bo->wrapped ? bo->size : 0) + offset;
+		wrap->wrapped = orig;
+		wrap->size = size;
+		wrap->priv = priv;
+		wrap->ptr = NULL;
+	} else {
+		free(priv);
+	}
+
+	return wrap;
+
+chk_err:
+	host1x_error("To wrap offset %lu size %zu orig size %zu; "
+		     "Requested offset %lu size %zu\n",
+		     bo->offset, bo->size, orig->size, offset, size);
+
+	return NULL;
+}
+
 struct host1x_job *host1x_job_create(uint32_t syncpt, uint32_t increments)
 {
 	struct host1x_job *job;

@@ -413,11 +413,16 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 {
 	struct drm_bo *drm = to_drm_bo(bo);
 	struct drm_tegra_gem_mmap args;
+	struct host1x_bo *orig;
 	void *ptr;
 	int err;
 
-	if (bo->ptr)
+	orig = bo->wrapped ?: bo;
+
+	if (orig->ptr) {
+		bo->ptr = orig->ptr;
 		return 0;
+	}
 
 	memset(&args, 0, sizeof(args));
 	args.handle = bo->handle;
@@ -426,11 +431,12 @@ static int drm_bo_mmap(struct host1x_bo *bo)
 	if (err < 0)
 		return -errno;
 
-	ptr = mmap(NULL, bo->size, PROT_READ | PROT_WRITE, MAP_SHARED,
+	ptr = mmap(NULL, orig->size, PROT_READ | PROT_WRITE, MAP_SHARED,
 		   drm->drm->fd, (__off_t)args.offset);
 	if (ptr == MAP_FAILED)
 		return -errno;
 
+	orig->ptr = ptr;
 	bo->ptr = ptr;
 
 	return 0;
@@ -454,6 +460,9 @@ static void drm_bo_free(struct host1x_bo *bo)
 	struct drm_gem_close args;
 	int err;
 
+	if (bo->wrapped)
+		return free(drm_bo);
+
 	memset(&args, 0, sizeof(args));
 	args.handle = bo->handle;
 
@@ -462,6 +471,19 @@ static void drm_bo_free(struct host1x_bo *bo)
 		host1x_error("failed to delete buffer object: %m\n");
 
 	free(drm_bo);
+}
+
+static struct host1x_bo *drm_bo_clone(struct host1x_bo *bo)
+{
+	struct drm_bo *dbo = to_drm_bo(bo);
+	struct drm_bo *clone = malloc(sizeof(*dbo));
+
+	if (!clone)
+		return NULL;
+
+	memcpy(clone, dbo, sizeof(*dbo));
+
+	return &clone->base;
 }
 
 static struct host1x_bo *drm_bo_create(struct host1x *host1x,
@@ -502,6 +524,7 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x,
 	bo->base.priv->invalidate = drm_bo_invalidate;
 	bo->base.priv->flush = drm_bo_flush;
 	bo->base.priv->free = drm_bo_free;
+	bo->base.priv->clone = drm_bo_clone;
 
 	return &bo->base;
 }
