@@ -109,7 +109,7 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	if (err)
 		return err;
 
-	memcpy(map, data, data_size);
+	memcpy(map + tmp->bo->offset, data, data_size);
 
 	HOST1X_BO_FLUSH(tmp->bo, tmp->bo->offset, data_size);
 

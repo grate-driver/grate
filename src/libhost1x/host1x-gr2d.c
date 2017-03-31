@@ -230,7 +230,7 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 
 	host1x_pushbuf_push(pb, 0x000000cc);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
-	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, pixbuf->bo->offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	host1x_pushbuf_push(pb, pixbuf->pitch);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x35, 1));
@@ -340,10 +340,10 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, dst_tiled << 20 | src_tiled); /* tilemode */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0xe149));
-	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, dst->bo->offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
-	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, src->bo->offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb, height << 16 | width); /* dstsize */
@@ -531,16 +531,18 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	 * [ 0: 0] tile mode Y/RGB (0: linear, 1: tiled)
 	 */
 	host1x_pushbuf_push(pb, dst_tiled << 20 | src_tiled); /* tilemode */
-	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, sb_offset(src, sx, sy), 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, src->bo,
+				src->bo->offset + sb_offset(src, sx, sy), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba_sb_surfbase */
-	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, sb_offset(dst, dx, dy), 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
+				dst->bo->offset + sb_offset(dst, dx, dy), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba_sb_surfbase */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x3149));
-	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, dst->bo->offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
-	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, 0, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, src->bo->offset, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb,
