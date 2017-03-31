@@ -22,7 +22,7 @@ EXEC
 ;
 
 EXEC
-	TEX:	r2, r3, tex0, r0, r1, r2
+	TEX:	tex r2, r3, tex0, r0, r1, r2
 
 	DW:	0x00028005
 ;

@@ -202,5 +202,8 @@ tex[0-9]{1,2}		{
 				return T_TEX_SAMPLER_ID;
 			}
 
+TEX			return T_TEX_OPCODE;
+TXB			return T_TXB_OPCODE;
+
 .			return T_SYNTAX_ERROR;
 %%
