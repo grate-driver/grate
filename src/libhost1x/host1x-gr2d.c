@@ -31,6 +31,12 @@
 #define FLOAT_TO_FIXED_6_12(fp) \
 	(((int32_t) (fp * 4096.0f + 0.5f)) & ((1 << 18) - 1))
 
+#define FLOAT_TO_FIXED_2_7(fp) \
+	(((int32_t) (fp * 128.0f + 0.5f)) & ((1 << 9) - 1))
+
+#define FLOAT_TO_FIXED_1_7(fp) \
+	(((int32_t) (fp * 128.0f + 0.5f)) & ((1 << 8) - 1))
+
 #define FLOAT_TO_FIXED_0_8(fp) \
 	(((int32_t) (fp * 256.0f + 0.5f)) & ((1 << 8) - 1))
 
@@ -437,6 +443,17 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
+	/*
+	 * GR2DSB doesn't support this format. Not sure that this is fine
+	 * to do, but scaled result looks correct.
+	 */
+	if (src->format == dst->format &&
+	    src->format == PIX_BUF_FMT_RGBA8888) {
+		src_fmt = 14;
+		dst_fmt = 14;
+		goto scale_check;
+	}
+
 	switch (src->format) {
 	case PIX_BUF_FMT_ARGB8888:
 		src_fmt = 14;
@@ -461,8 +478,19 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-	inv_scale_x = (src_width - 1) / (float)(dst_width - 1);
-	inv_scale_y = (src_height - 1) / (float)(dst_height - 1);
+scale_check:
+	inv_scale_x = (src_width) / (float)(dst_width);
+	inv_scale_y = (src_height) / (float)(dst_height);
+
+	if (inv_scale_y > 64.0f || inv_scale_y < 1.0f / 4096.0f) {
+		host1x_error("Unsupported Y scale\n");
+		return -EINVAL;
+	}
+
+	if (inv_scale_x > 64.0f || inv_scale_x < 1.0f / 4096.0f) {
+		host1x_error("Unsupported X scale\n");
+		return -EINVAL;
+	}
 
 	if (inv_scale_x == 1.0f)
 		hftype = 7;
@@ -511,11 +539,22 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, FLOAT_TO_FIXED_6_12(inv_scale_x)); /* hdda */
 	host1x_pushbuf_push(pb, FLOAT_TO_FIXED_0_8(sx)); /* hddainils */
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x1c, 0xF));
-	host1x_pushbuf_push(pb, dst_fmt << 8 | src_fmt); /* sbformat */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x15, 0x787));
+	/* CSC RGB -> RGB coefficients */
 	host1x_pushbuf_push(pb,
-			    hftype << 20 |
-			    vfen << 18 | vftype << 16); /* controlsb */
+			/* cvr */ FLOAT_TO_FIXED_2_7(1.0f) << 12 |
+			/* cub */ FLOAT_TO_FIXED_2_7(1.0f)); /* cscfirst */
+	host1x_pushbuf_push(pb,
+			/* cyx */ FLOAT_TO_FIXED_1_7(1.0f) << 24 |
+			/* cur */ FLOAT_TO_FIXED_2_7(0.0f) << 12 |
+			/* cug */ FLOAT_TO_FIXED_1_7(0.0f)); /* cscsecond */
+	host1x_pushbuf_push(pb,
+			/* cvb */ FLOAT_TO_FIXED_2_7(0.0f) << 16 |
+			/* cvg */ FLOAT_TO_FIXED_1_7(0.0f)); /* cscthird */
+
+	host1x_pushbuf_push(pb, dst_fmt << 8 | src_fmt); /* sbformat */
+	host1x_pushbuf_push(pb, /* controlsb */
+			    hftype << 20 | vfen << 18 | vftype << 16);
 	host1x_pushbuf_push(pb, 0x00000000); /* controlsecond */
 	/*
 	 * [20:20] source color depth (0: mono, 1: same)
@@ -546,11 +585,9 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb,
-			    (src_height - 1) << 16 |
-			    (src_width - 1)); /* srcsize */
+			    (src_height - 1) << 16 | src_width); /* srcsize */
 	host1x_pushbuf_push(pb,
-			    (dst_height - 1) << 16 |
-			    (dst_width - 1)); /* dstsize */
+			    (dst_height - 1) << 16 | dst_width); /* dstsize */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
