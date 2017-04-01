@@ -118,6 +118,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 
 	vertex_asm_scan_string(asm_txt);
 	err = vertex_asmparse();
+	vertex_asmlex_destroy();
 
 	/* restore locale */
 	setlocale(LC_ALL, locale);
@@ -341,6 +342,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 
 	fragment_asm_scan_string(asm_txt);
 	err = fragment_asmparse();
+	fragment_asmlex_destroy();
 
 	/* restore locale */
 	setlocale(LC_ALL, locale);
@@ -792,6 +794,7 @@ struct grate_shader *grate_shader_parse_linker_asm(const char *asm_txt)
 
 	linker_asm_scan_string(asm_txt);
 	err = linker_asmparse();
+	linker_asmlex_destroy();
 
 	if (err != 0)
 		return NULL;

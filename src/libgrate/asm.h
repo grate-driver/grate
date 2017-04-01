@@ -26,6 +26,7 @@ struct yy_buffer_state;
 
 extern struct yy_buffer_state *vertex_asm_scan_string(const char *);
 extern int vertex_asmparse(void);
+extern int vertex_asmlex_destroy(void);
 
 struct asm_vec_component {
 	uint32_t value;
@@ -63,6 +64,7 @@ const char * vpe_vliw_disassemble(const vpe_instr128 *ins);
 
 extern struct yy_buffer_state *fragment_asm_scan_string(const char *);
 extern int fragment_asmparse(void);
+extern int fragment_asmlex_destroy(void);
 
 extern pseq_instr	asm_pseq_instructions[64];
 extern mfu_instr	asm_mfu_instructions[64];
@@ -97,6 +99,7 @@ const char * fragment_pipeline_disassemble(
 
 extern struct yy_buffer_state *linker_asm_scan_string(const char *);
 extern int linker_asmparse(void);
+extern int linker_asmlex_destroy(void);
 
 extern link_instr	asm_linker_instructions[32];
 
