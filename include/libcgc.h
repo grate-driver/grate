@@ -178,7 +178,7 @@ struct cgc_symbol {
 	int location;
 	enum glsl_kind kind;
 	enum glsl_type type;
-	const char *name;
+	char *name;
 	bool input;
 	bool used;
 

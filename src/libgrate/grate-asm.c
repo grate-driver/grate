@@ -183,7 +183,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_ATTRIBUTE;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_VEC4;
-		cgc->symbols[cgc->num_symbols].name = asm_vs_attributes[i].name;
+		cgc->symbols[cgc->num_symbols].name = strdup(asm_vs_attributes[i].name);
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 
@@ -209,7 +209,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_ATTRIBUTE;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_UNKNOWN;
-		cgc->symbols[cgc->num_symbols].name = asm_vs_exports[i].name;
+		cgc->symbols[cgc->num_symbols].name = strdup(asm_vs_exports[i].name);
 		cgc->symbols[cgc->num_symbols].input = false;
 		cgc->symbols[cgc->num_symbols].used = true;
 
@@ -235,7 +235,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_CONSTANT;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_VEC4;
-		cgc->symbols[cgc->num_symbols].name = "asm-constant";
+		cgc->symbols[cgc->num_symbols].name = strdup("asm-constant");
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 		cgc->symbols[cgc->num_symbols].vector[0] =
@@ -268,7 +268,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_VEC4;
-		cgc->symbols[cgc->num_symbols].name = asm_vs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].name = strdup(asm_vs_uniforms[i].name);
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 
@@ -463,7 +463,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_CONSTANT;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_UNKNOWN;
-		cgc->symbols[cgc->num_symbols].name = "asm-constant";
+		cgc->symbols[cgc->num_symbols].name = strdup("asm-constant");
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 		cgc->symbols[cgc->num_symbols].vector[0] = asm_fs_constants[i];
@@ -492,7 +492,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		cgc->symbols[cgc->num_symbols].location = i;
 		cgc->symbols[cgc->num_symbols].kind = GLSL_KIND_UNIFORM;
 		cgc->symbols[cgc->num_symbols].type = GLSL_TYPE_FLOAT;
-		cgc->symbols[cgc->num_symbols].name = asm_fs_uniforms[i].name;
+		cgc->symbols[cgc->num_symbols].name = strdup(asm_fs_uniforms[i].name);
 		cgc->symbols[cgc->num_symbols].input = true;
 		cgc->symbols[cgc->num_symbols].used = true;
 

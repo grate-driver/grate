@@ -178,6 +178,8 @@ struct grate_shader *grate_shader_new(struct grate *grate,
 
 static void grate_free_asm_shader(struct grate_shader *shader)
 {
+	while (shader->cgc->num_symbols--)
+		free(shader->cgc->symbols[shader->cgc->num_symbols].name);
 	free(shader->words);
 	free(shader->cgc->symbols);
 	free(shader->cgc);
