@@ -101,7 +101,7 @@ struct grate_shader *grate_shader_parse_vertex_asm(const char *asm_txt)
 	struct grate_shader *shader;
 	struct cgc_symbol *symbols;
 	struct cgc_shader *cgc;
-	static char *locale;
+	char *locale;
 	int words = 0;
 	int err;
 	int i;
@@ -324,7 +324,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	struct grate_shader *shader;
 	struct cgc_symbol *symbols;
 	struct cgc_shader *cgc;
-	static char *locale;
+	char *locale;
 	int words = 0;
 	int err;
 	int i;

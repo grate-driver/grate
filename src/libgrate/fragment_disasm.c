@@ -682,7 +682,7 @@ const char * fragment_pipeline_disassemble(
 	const dw_instr *dw)
 {
 	static char ret[2048];
-	static char *locale;
+	char *locale;
 	char *buf = ret;
 	unsigned i;
 
