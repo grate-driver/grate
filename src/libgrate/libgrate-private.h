@@ -48,4 +48,7 @@ void grate_overlay_show(struct grate_overlay *overlay,
 #define grate_error(fmt, args...) \
 	fprintf(stderr, "ERROR: %s: " fmt, __func__, ##args)
 
+#define grate_info(fmt, args...) \
+	fprintf(stdout, "INFO: %s: " fmt, __func__, ##args)
+
 #endif

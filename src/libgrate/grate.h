@@ -153,6 +153,15 @@ enum grate_textute_wrap_mode {
 	GRATE_TEXTURE_REPEAT,
 };
 
+enum grate_textute_filter {
+	GRATE_TEXTURE_NEAREST,
+	GRATE_TEXTURE_LINEAR,
+	GRATE_TEXTURE_NEAREST_MIPMAP_NEAREST,
+	GRATE_TEXTURE_LINEAR_MIPMAP_NEAREST,
+	GRATE_TEXTURE_NEAREST_MIPMAP_LINEAR,
+	GRATE_TEXTURE_LINEAR_MIPMAP_LINEAR,
+};
+
 struct grate_texture *grate_create_texture(struct grate *grate,
 					   unsigned width, unsigned height,
 					   enum pixel_format format,
@@ -166,10 +175,16 @@ void grate_texture_set_wrap_s(struct grate_texture *tex,
 			      enum grate_textute_wrap_mode wrap_mode);
 void grate_texture_set_wrap_t(struct grate_texture *tex,
 			      enum grate_textute_wrap_mode wrap_mode);
-void grate_texture_set_mip_filter(struct grate_texture *tex, bool enable);
-void grate_texture_set_mag_filter(struct grate_texture *tex, bool enable);
-void grate_texture_set_min_filter(struct grate_texture *tex, bool enable);
+void grate_texture_set_min_filter(struct grate_texture *tex,
+				  enum grate_textute_filter filter);
+void grate_texture_set_mag_filter(struct grate_texture *tex,
+				  enum grate_textute_filter filter);
 void grate_texture_clear(struct grate *grate, struct grate_texture *texture,
 			 uint32_t color);
+int grate_texture_generate_mipmap(struct grate *grate,
+				  struct grate_texture *tex);
+int grate_texture_load_miplevel(struct grate *grate,
+				struct grate_texture *tex,
+				unsigned level, const char *path);
 
 #endif
