@@ -11,6 +11,7 @@ libgrate_la_SOURCES = \
 	grate.c \
 	grate.h \
 	grate-asm.c \
+	grate-font.c \
 	grate-texture.c \
 	grate-2d.c \
 	grate-3d.c \

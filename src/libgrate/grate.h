@@ -191,4 +191,15 @@ int grate_texture_load_miplevel(struct grate *grate,
 				struct grate_texture *tex,
 				unsigned level, const char *path);
 
+struct grate_font;
+
+struct grate_font *grate_create_font(struct grate *grate,
+				     const char *font_path,
+				     const char *config_path);
+void grate_3d_printf(struct grate *grate,
+		     const struct grate_3d_ctx *ctx,
+		     struct grate_font *font,
+		     float x, float y, float scale,
+		     const char *fmt, ...);
+
 #endif
