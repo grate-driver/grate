@@ -1,0 +1,26 @@
+/*
+ * Fragment shader for /grate/tests/texture-filter
+ */
+
+pseq_to_dw_exec_nb = 1
+alu_buffer_size = 1
+
+.uniforms
+	[0] = "lod_bias";
+
+.asm
+EXEC
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, NOP, NOP
+
+	ALU:
+		ALU0:	MAD r3.lh, u0, #1, #0
+;
+
+EXEC
+	TEX:	txb r2, r3, tex0, r0, r1, r2, r3
+
+	DW:	0x00028005
+;

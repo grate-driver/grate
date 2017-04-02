@@ -1,0 +1,29 @@
+/*
+ * Vertex shader for /grate/tests/texture-filter
+ */
+
+.exports
+	[0] = "position";
+	[7] = "texcoord";
+
+.attributes
+	[0] = "position";
+	[1] = "texcoord";
+
+.uniforms
+	[0] = "mvp";
+	// [0] = "mvp[0]";
+	// [1] = "mvp[1]";
+	// [2] = "mvp[2]";
+	// [3] = "mvp[3]";
+
+.asm
+
+/* Position */
+EXEC(export[0]=vector) DP4v r63.x***, a[0].xyzw, c[0].xyzw;
+EXEC(export[0]=vector) DP4v r63.*y**, a[0].xyzw, c[1].xyzw;
+EXEC(export[0]=vector) DP4v r63.**z*, a[0].xyzw, c[2].xyzw;
+EXEC(export[0]=vector) DP4v r63.***w, a[0].xyzw, c[3].xyzw;
+
+/* texcoord export */
+EXEC(export[7]=vector) MOVv r63.xy**, a[1].xyzw;
