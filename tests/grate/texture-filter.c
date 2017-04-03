@@ -77,6 +77,7 @@ static float font_scale;
 static float elapsed;
 static int active_tex;
 static int location;
+static int max_lod;
 
 static void test1_lod_bias(enum grate_textute_filter min_filter,
 			   enum grate_textute_filter mag_filter)
@@ -92,6 +93,7 @@ static void test1_lod_bias(enum grate_textute_filter min_filter,
 
 	grate_texture_set_min_filter(tex[active_tex], min_filter);
 	grate_texture_set_mag_filter(tex[active_tex], mag_filter);
+	grate_texture_set_max_lod(tex[active_tex], max_lod);
 	grate_3d_ctx_bind_texture(ctx, 0, tex[active_tex]);
 
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
@@ -102,9 +104,10 @@ static void test1_lod_bias(enum grate_textute_filter min_filter,
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
-			"LOD BIAS: %f\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
+			"LOD BIAS: %f\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
-			bias, texfilter[min_filter], texfilter[mag_filter],
+			bias, max_lod,
+			texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
 	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale, "Test #1");
@@ -126,6 +129,7 @@ static void test2_scale(enum grate_textute_filter min_filter,
 
 	grate_texture_set_min_filter(tex[active_tex], min_filter);
 	grate_texture_set_mag_filter(tex[active_tex], mag_filter);
+	grate_texture_set_max_lod(tex[active_tex], max_lod);
 	grate_3d_ctx_bind_texture(ctx, 0, tex[active_tex]);
 
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
@@ -136,9 +140,9 @@ static void test2_scale(enum grate_textute_filter min_filter,
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
-			"LOD BIAS: 0\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
+			"LOD BIAS: 0\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
-			texfilter[min_filter], texfilter[mag_filter],
+			max_lod, texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
 	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale,
@@ -161,6 +165,7 @@ static void test3_mag(enum grate_textute_filter min_filter,
 
 	grate_texture_set_min_filter(tex[active_tex], min_filter);
 	grate_texture_set_mag_filter(tex[active_tex], mag_filter);
+	grate_texture_set_max_lod(tex[active_tex], max_lod);
 	grate_3d_ctx_bind_texture(ctx, 0, tex[active_tex]);
 
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
@@ -171,13 +176,47 @@ static void test3_mag(enum grate_textute_filter min_filter,
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
-			"LOD BIAS: 0\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
+			"LOD BIAS: 0\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
-			texfilter[min_filter], texfilter[mag_filter],
+			max_lod, texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
 	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale,
 			"Test #3");
+}
+
+static void test4_max_lod(enum grate_textute_filter min_filter,
+			  enum grate_textute_filter mag_filter)
+{
+	float bias = 12.0f;
+	struct mat4 mvp, transform;
+
+	mat4_translate(&transform, 0.0f, 0.0f, -1.0f);
+	mat4_multiply(&mvp, &projection, &transform);
+
+	location = grate_get_vertex_uniform_location(quad_program, "mvp");
+	grate_3d_ctx_set_vertex_mat4_uniform(ctx, location, &mvp);
+
+	grate_texture_set_min_filter(tex[active_tex], min_filter);
+	grate_texture_set_mag_filter(tex[active_tex], mag_filter);
+	grate_texture_set_max_lod(tex[active_tex], max_lod);
+	grate_3d_ctx_bind_texture(ctx, 0, tex[active_tex]);
+
+	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
+	grate_3d_ctx_set_fragment_float_uniform(ctx, location, bias);
+
+	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
+			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
+	grate_flush(grate);
+
+	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
+			"LOD BIAS: %f\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
+			"Texture id: %d",
+			bias, max_lod,
+			texfilter[min_filter], texfilter[mag_filter],
+			mipdesc[active_tex], active_tex);
+
+	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale, "Test #4");
 }
 
 int main(int argc, char *argv[])
@@ -334,9 +373,10 @@ int main(int argc, char *argv[])
 		pixbuf = grate_get_draw_pixbuf(fb);
 		grate_3d_ctx_bind_render_target(ctx, 1, pixbuf);
 
-		active_tex = ((int)elapsed / 120) & 1;
+		active_tex = ((int)elapsed / 135) & 1;
+		max_lod = 11;
 
-		switch ((int)elapsed % 120) {
+		switch ((int)elapsed % 135) {
 		case 0 ... 9:
 			test1_lod_bias(GRATE_TEXTURE_NEAREST_MIPMAP_NEAREST,
 				       GRATE_TEXTURE_LINEAR);
@@ -404,6 +444,11 @@ int main(int argc, char *argv[])
 		case 114 ... 119:
 			active_tex = 2;
 			test3_mag(GRATE_TEXTURE_LINEAR, GRATE_TEXTURE_NEAREST);
+			break;
+		case 120 ... 134:
+			max_lod = (powf(sinf(elapsed * 0.3f), 6.0f)) * 12;
+			test4_max_lod(GRATE_TEXTURE_LINEAR_MIPMAP_LINEAR,
+				      GRATE_TEXTURE_LINEAR);
 			break;
 		}
 

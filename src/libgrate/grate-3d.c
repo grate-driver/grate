@@ -633,7 +633,10 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 				      unsigned index,
 				      struct host1x_pixelbuffer *pixbuf,
 				      unsigned max_lod,
-				      unsigned wrap_mode,
+				      bool wrap_t_clamp_to_edge,
+				      bool wrap_s_clamp_to_edge,
+				      bool wrap_t_mirrored_repeat,
+				      bool wrap_s_mirrored_repeat,
 				      bool mipmap_enabled,
 				      bool min_filter_enabled,
 				      bool mip_filter_enabled,
@@ -694,17 +697,21 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_DESC1(index), 2));
 
-	value  = TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_WITHIN,
+	value  = TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_WITHIN,
 			    min_filter_enabled);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_BETWEEN,
 			    mip_filter_enabled);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER_LINEAR,
 			    mag_filter_enabled);
-	value |= TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE, wrap_mode & 1);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE, wrap_mode & 2);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT, wrap_mode & 4);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT, wrap_mode & 8);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE,
+			    wrap_t_clamp_to_edge);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE,
+			    wrap_s_clamp_to_edge);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT,
+			    wrap_t_mirrored_repeat);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT,
+			    wrap_s_mirrored_repeat);
 // 	value |= 0x50;
 
 	host1x_pushbuf_push(pb, value);
@@ -752,7 +759,10 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 		grate_3d_set_texture_desc(pb, i,
 					  pixbuf,
 					  tex->max_lod,
-					  tex->wrap_mode,
+					  tex->wrap_t_clamp_to_edge,
+					  tex->wrap_s_clamp_to_edge,
+					  tex->wrap_t_mirrored_repeat,
+					  tex->wrap_s_mirrored_repeat,
 					  tex->mipmap_enabled,
 					  tex->min_filter_enabled,
 					  tex->mip_filter_enabled,

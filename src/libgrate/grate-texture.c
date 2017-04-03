@@ -176,16 +176,18 @@ void grate_texture_set_max_lod(struct grate_texture *tex, unsigned max_lod)
 void grate_texture_set_wrap_s(struct grate_texture *tex,
 			      enum grate_textute_wrap_mode wrap_mode)
 {
-	tex->wrap_mode &= 4 | 1;
-
 	switch (wrap_mode) {
 	case GRATE_TEXTURE_CLAMP_TO_EDGE:
-		tex->wrap_mode |= 2;
+		tex->wrap_s_clamp_to_edge = true;
+		tex->wrap_s_mirrored_repeat = false;
 		break;
 	case GRATE_TEXTURE_MIRRORED_REPEAT:
-		tex->wrap_mode |= 8;
+		tex->wrap_s_clamp_to_edge = false;
+		tex->wrap_s_mirrored_repeat = true;
 		break;
 	case GRATE_TEXTURE_REPEAT:
+		tex->wrap_s_clamp_to_edge = false;
+		tex->wrap_s_mirrored_repeat = false;
 		break;
 	}
 }
@@ -193,16 +195,18 @@ void grate_texture_set_wrap_s(struct grate_texture *tex,
 void grate_texture_set_wrap_t(struct grate_texture *tex,
 			      enum grate_textute_wrap_mode wrap_mode)
 {
-	tex->wrap_mode &= 8 | 2;
-
 	switch (wrap_mode) {
 	case GRATE_TEXTURE_CLAMP_TO_EDGE:
-		tex->wrap_mode |= 1;
+		tex->wrap_t_clamp_to_edge = true;
+		tex->wrap_t_mirrored_repeat = false;
 		break;
 	case GRATE_TEXTURE_MIRRORED_REPEAT:
-		tex->wrap_mode |= 4;
+		tex->wrap_t_clamp_to_edge = false;
+		tex->wrap_t_mirrored_repeat = true;
 		break;
 	case GRATE_TEXTURE_REPEAT:
+		tex->wrap_t_clamp_to_edge = false;
+		tex->wrap_t_mirrored_repeat = false;
 		break;
 	}
 }

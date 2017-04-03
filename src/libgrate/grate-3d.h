@@ -71,7 +71,10 @@ struct grate_vtx_attribute {
 struct grate_texture {
 	struct host1x_pixelbuffer *pixbuf;
 	struct host1x_pixelbuffer *mipmap_pixbuf;
-	unsigned wrap_mode;
+	bool wrap_t_clamp_to_edge;
+	bool wrap_s_clamp_to_edge;
+	bool wrap_t_mirrored_repeat;
+	bool wrap_s_mirrored_repeat;
 	unsigned max_lod;
 	bool mag_filter_enabled;
 	bool min_filter_enabled;
