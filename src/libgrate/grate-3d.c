@@ -629,41 +629,21 @@ static void grate_3d_relocate_texture(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 }
 
-static int log2_size(unsigned sz)
-{
-	switch (sz) {
-	case 1: return 0;
-	case 2: return 1;
-	case 4: return 2;
-	case 8: return 3;
-	case 16: return 4;
-	case 32: return 5;
-	case 64: return 6;
-	case 128: return 7;
-	case 256: return 8;
-	case 512: return 9;
-	case 1024: return 10;
-	case 2048: return 11;
-	case 4096: return 12;
-	case 8192: return 13;
-	case 16384: return 14;
-	default:
-		break;
-	}
-
-	return -1;
-}
-
 static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 				      unsigned index,
 				      struct host1x_pixelbuffer *pixbuf,
 				      unsigned max_lod,
-				      unsigned wrap_mode,
-				      bool mip_filter,
-				      bool mag_filter,
-				      bool min_filter)
+				      bool wrap_t_clamp_to_edge,
+				      bool wrap_s_clamp_to_edge,
+				      bool wrap_t_mirrored_repeat,
+				      bool wrap_s_mirrored_repeat,
+				      bool mipmap_enabled,
+				      bool min_filter_enabled,
+				      bool mip_filter_enabled,
+				      bool mag_filter_enabled)
 {
-	int log2_width, log2_height;
+	int log2_width = log2_size(pixbuf->width);
+	int log2_height = log2_size(pixbuf->height);
 	unsigned pixel_format;
 	uint32_t value = 0;
 
@@ -717,31 +697,37 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_DESC1(index), 2));
 
-	value  = TGR3D_BOOL(TEXTURE_DESC1, MIPFILTER, mip_filter);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER, mag_filter);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER, min_filter);
-	value |= TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE, wrap_mode & 1);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE, wrap_mode & 2);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT, wrap_mode & 4);
-	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT, wrap_mode & 8);
+	value  = TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_WITHIN,
+			    min_filter_enabled);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_BETWEEN,
+			    mip_filter_enabled);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, MAGFILTER_LINEAR,
+			    mag_filter_enabled);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_CLAMP_TO_EDGE,
+			    wrap_t_clamp_to_edge);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_CLAMP_TO_EDGE,
+			    wrap_s_clamp_to_edge);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_T_MIRRORED_REPEAT,
+			    wrap_t_mirrored_repeat);
+	value |= TGR3D_BOOL(TEXTURE_DESC1, WRAP_S_MIRRORED_REPEAT,
+			    wrap_s_mirrored_repeat);
 // 	value |= 0x50;
 
 	host1x_pushbuf_push(pb, value);
 
-	log2_width = log2_size(pixbuf->width);
-	log2_height = log2_size(pixbuf->height);
+	value = TGR3D_BOOL(TEXTURE_DESC2, MIPMAP_DISABLE, !mipmap_enabled);
 
-	if (log2_width >= 0 && log2_height >= 0) {
-		value  = TGR3D_VAL(TEXTURE_DESC2, MAX_LOD, max_lod);
+	if (pixbuf->width == 1 << log2_width &&
+	    pixbuf->height == 1 << log2_height) {
+		value |= TGR3D_VAL(TEXTURE_DESC2, MAX_LOD, max_lod);
 		value |= TGR3D_VAL(TEXTURE_DESC2, WIDTH_LOG2, log2_width);
 		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT_LOG2, log2_height);
 	} else {
-		value  = TGR3D_BOOL(TEXTURE_DESC2, NOT_POW2_DIMENSIONS, 1);
+		value |= TGR3D_BOOL(TEXTURE_DESC2, NOT_POW2_DIMENSIONS, 1);
 		value |= TGR3D_VAL(TEXTURE_DESC2, WIDTH, pixbuf->width);
 		value |= TGR3D_VAL(TEXTURE_DESC2, HEIGHT, pixbuf->height);
 	}
-	value |= 0x80;
 
 	host1x_pushbuf_push(pb, value);
 }
@@ -753,21 +739,34 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 
 	for (i = 0; i < 16; i++) {
 		struct grate_texture *tex = ctx->textures[i];
+		struct host1x_pixelbuffer *pixbuf;
 
 		if (!tex)
 			continue;
 
+		if (tex->mipmap_enabled)
+			pixbuf = tex->mipmap_pixbuf;
+		else
+			pixbuf = tex->pixbuf;
+
+		if (!pixbuf)
+			continue;
+
 		grate_3d_relocate_texture(pb, i,
-					  tex->pixbuf->bo,
-					  tex->pixbuf->bo->offset);
+					  pixbuf->bo,
+					  pixbuf->bo->offset);
 
 		grate_3d_set_texture_desc(pb, i,
-					  tex->pixbuf,
+					  pixbuf,
 					  tex->max_lod,
-					  tex->wrap_mode,
-					  tex->mip_filter,
-					  tex->mag_filter,
-					  tex->min_filter);
+					  tex->wrap_t_clamp_to_edge,
+					  tex->wrap_s_clamp_to_edge,
+					  tex->wrap_t_mirrored_repeat,
+					  tex->wrap_s_mirrored_repeat,
+					  tex->mipmap_enabled,
+					  tex->min_filter_enabled,
+					  tex->mip_filter_enabled,
+					  tex->mag_filter_enabled);
 	}
 }
 
@@ -832,12 +831,12 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 	int err;
 
 	if (!ctx->program) {
-		grate_error("No program bound");
+		grate_error("No program bound\n");
 		return;
 	}
 
 	if (!ctx->program->vs || !ctx->program->fs || !ctx->program->linker) {
-		grate_error("Program wasn't compiled");
+		grate_error("Program wasn't compiled\n");
 		return;
 	}
 

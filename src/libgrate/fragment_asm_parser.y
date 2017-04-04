@@ -180,6 +180,10 @@ static uint32_t float_to_fx10(float f)
 
 %token T_MFU_UNK
 
+%token <u> T_TEX_SAMPLER_ID
+%token T_TEX_OPCODE
+%token T_TXB_OPCODE
+
 %token T_ALU_rB
 %token T_ALU_rC
 
@@ -203,11 +207,11 @@ static uint32_t float_to_fx10(float f)
 %token T_LOW
 %token T_HIGH
 
-%token T_ALU_OPCODE_MAD;
-%token T_ALU_OPCODE_MUL;
-%token T_ALU_OPCODE_MIN;
-%token T_ALU_OPCODE_MAX;
-%token T_ALU_OPCODE_CSEL;
+%token T_ALU_OPCODE_MAD
+%token T_ALU_OPCODE_MUL
+%token T_ALU_OPCODE_MIN
+%token T_ALU_OPCODE_MAX
+%token T_ALU_OPCODE_CSEL
 
 %token T_ALU_ACCUM_THIS
 %token T_ALU_ACCUM_OTHER
@@ -231,8 +235,6 @@ static uint32_t float_to_fx10(float f)
 %type <mfu_var> MFU_VAR
 %type <u> MFU_MUL_DST
 %type <u> MFU_MUL_SRC
-
-%token <u> T_TEX_SAMPLER_ID
 
 %type <aluX_instr> ALU_OPERATION
 %type <aluX_instr> ALU_OPERATIONS
@@ -725,34 +727,66 @@ MFU_VAR_PRECISION:
 	;
 
 TEX_INSTRUCTION:
-	T_TEX T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_TEX_SAMPLER_ID ',' T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_ROW_REGISTER
+	T_TEX T_TEX_OPCODE T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_TEX_SAMPLER_ID ',' T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_ROW_REGISTER
 	{
 		asm_tex_instructions[asm_fs_instructions_nb].enable = 1;
 
-		if ($2 == 0 && $4 == 1) {
+		if ($3 == 0 && $5 == 1) {
 			asm_tex_instructions[asm_fs_instructions_nb].sample_dst_regs_select = 0;
 		}
-		else if ($2 == 2 && $4 == 3) {
+		else if ($3 == 2 && $5 == 3) {
 			asm_tex_instructions[asm_fs_instructions_nb].sample_dst_regs_select = 1;
 		}
 		else {
 			PARSE_ERROR("TEX destination registers should be either \"r0,r1\" or \"r2,r3\"");
 		}
 
-		if ($6 > 15){
+		if ($7 > 15){
 			PARSE_ERROR("Invalid TEX sampler id, 15 is maximum");
 		}
 
-		asm_tex_instructions[asm_fs_instructions_nb].sampler_index = $6;
+		asm_tex_instructions[asm_fs_instructions_nb].sampler_index = $7;
 
-		if ($8 == 0 && $10 == 1 && $12 == 2) {
-			asm_tex_instructions[asm_fs_instructions_nb].tex_coord_regs_select = 0;
+		if ($9 == 0 && $11 == 1 && $13 == 2) {
+			asm_tex_instructions[asm_fs_instructions_nb].src_regs_select = TEX_SRC_R0_R1_R2_R3;
 		}
-		else if ($8 == 2 && $10 == 3 && $12 == 0) {
-			asm_tex_instructions[asm_fs_instructions_nb].tex_coord_regs_select = 1;
+		else if ($9 == 2 && $11 == 3 && $13 == 0) {
+			asm_tex_instructions[asm_fs_instructions_nb].src_regs_select = TEX_SRC_R2_R3_R0_R1;
 		}
 		else {
 			PARSE_ERROR("TEX source registers should be either \"r0,r1,r2\" or \"r2,r3,r0\"");
+		}
+	}
+	|
+	T_TEX T_TXB_OPCODE T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_TEX_SAMPLER_ID ',' T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_ROW_REGISTER
+	{
+		asm_tex_instructions[asm_fs_instructions_nb].enable = 1;
+
+		if ($3 == 0 && $5 == 1) {
+			asm_tex_instructions[asm_fs_instructions_nb].sample_dst_regs_select = 0;
+		}
+		else if ($3 == 2 && $5 == 3) {
+			asm_tex_instructions[asm_fs_instructions_nb].sample_dst_regs_select = 1;
+		}
+		else {
+			PARSE_ERROR("TEX destination registers should be either \"r0,r1\" or \"r2,r3\"");
+		}
+
+		if ($7 > 15){
+			PARSE_ERROR("Invalid TEX sampler id, 15 is maximum");
+		}
+
+		asm_tex_instructions[asm_fs_instructions_nb].sampler_index = $7;
+		asm_tex_instructions[asm_fs_instructions_nb].enable_bias = 1;
+
+		if ($9 == 0 && $11 == 1 && $13 == 2 && $15 == 3) {
+			asm_tex_instructions[asm_fs_instructions_nb].src_regs_select = TEX_SRC_R0_R1_R2_R3;
+		}
+		else if ($9 == 2 && $11 == 3 && $13 == 0 && $15 == 1) {
+			asm_tex_instructions[asm_fs_instructions_nb].src_regs_select = TEX_SRC_R2_R3_R0_R1;
+		}
+		else {
+			PARSE_ERROR("TXB source registers should be either \"r0,r1,r2,r3\" or \"r2,r3,r0,r1\"");
 		}
 	}
 	|

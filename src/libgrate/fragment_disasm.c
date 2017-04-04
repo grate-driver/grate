@@ -643,6 +643,12 @@ static const char * disassemble_tex(const tex_instr *tex)
 	static char ret[64];
 	char *buf = ret;
 
+	if (tex->enable_bias) {
+		buf += sprintf(buf, "tex ");
+	} else {
+		buf += sprintf(buf, "txb ");
+	}
+
 	if (tex->sample_dst_regs_select) {
 		buf += sprintf(buf, "r2, r3, ");
 	} else {
@@ -651,10 +657,14 @@ static const char * disassemble_tex(const tex_instr *tex)
 
 	buf += sprintf(buf, "tex%d, ", tex->sampler_index);
 
-	if (tex->tex_coord_regs_select) {
+	if (tex->src_regs_select == TEX_SRC_R2_R3_R0_R1) {
 		buf += sprintf(buf, "r2, r3, r0");
 	} else {
 		buf += sprintf(buf, "r0, r1, r2");
+	}
+
+	if (tex->enable_bias) {
+		buf += sprintf(buf, tex->src_regs_select ? ", r1" : ", r3");
 	}
 
 	if (tex->unk_6_9 || tex->unk_11 || tex->unk_13_31) {
@@ -672,7 +682,7 @@ const char * fragment_pipeline_disassemble(
 	const dw_instr *dw)
 {
 	static char ret[2048];
-	static char *locale;
+	char *locale;
 	char *buf = ret;
 	unsigned i;
 

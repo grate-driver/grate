@@ -5,6 +5,7 @@ noinst_PROGRAMS = \
 	cube-textured2 \
 	interactive \
 	quad \
+	texture-filter \
 	texture-wrap \
 	triangle \
 	triangle-rotate

@@ -49,6 +49,7 @@ struct host1x_bo_priv {
 			  size_t length);
 	int (*flush)(struct host1x_bo *bo, unsigned long offset, size_t length);
 	void (*free)(struct host1x_bo *bo);
+	struct host1x_bo* (*clone)(struct host1x_bo *bo);
 };
 
 static inline unsigned long host1x_bo_get_offset(struct host1x_bo *bo,

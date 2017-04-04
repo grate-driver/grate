@@ -255,12 +255,10 @@ int main(int argc, char *argv[])
 				       PIX_BUF_FMT_RGBA8888,
 				       PIX_BUF_LAYOUT_LINEAR);
 	grate_texture_load(grate, texture, "data/tegra.png");
-	grate_texture_set_max_lod(texture, 0);
 	grate_texture_set_wrap_s(texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_wrap_t(texture, GRATE_TEXTURE_CLAMP_TO_EDGE);
-	grate_texture_set_mip_filter(texture, false);
-	grate_texture_set_mag_filter(texture, false);
-	grate_texture_set_min_filter(texture, false);
+	grate_texture_set_min_filter(texture, GRATE_TEXTURE_NEAREST);
+	grate_texture_set_mag_filter(texture, GRATE_TEXTURE_NEAREST);
 
 	grate_3d_ctx_bind_texture(ctx, 0, texture);
 

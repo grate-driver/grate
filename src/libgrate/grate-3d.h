@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define log2_size(s)		(31 - __builtin_clz(s))
+
 struct host1x_bo;
 struct cgc_shader;
 
@@ -68,11 +70,16 @@ struct grate_vtx_attribute {
 
 struct grate_texture {
 	struct host1x_pixelbuffer *pixbuf;
-	unsigned wrap_mode;
+	struct host1x_pixelbuffer *mipmap_pixbuf;
+	bool wrap_t_clamp_to_edge;
+	bool wrap_s_clamp_to_edge;
+	bool wrap_t_mirrored_repeat;
+	bool wrap_s_mirrored_repeat;
 	unsigned max_lod;
-	bool mip_filter;
-	bool mag_filter;
-	bool min_filter;
+	bool mag_filter_enabled;
+	bool min_filter_enabled;
+	bool mip_filter_enabled;
+	bool mipmap_enabled;
 };
 
 struct grate_3d_ctx {

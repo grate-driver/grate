@@ -255,7 +255,7 @@ int grate_3d_ctx_set_vertex_uniform(struct grate_3d_ctx *ctx,
 		return -1;
 	}
 
-	if (location + nb > 256) {
+	if (location >= 256 || location + nb > 256) {
 		grate_error("Invalid location %u\n", location);
 		return -1;
 	}
@@ -283,6 +283,11 @@ int grate_3d_ctx_set_fragment_uniform(struct grate_3d_ctx *ctx,
 
 	if (!ctx->program) {
 		grate_error("No program bound\n");
+		return -1;
+	}
+
+	if (location == ~0u) {
+		grate_error("Invalid location %u\n", location);
 		return -1;
 	}
 

@@ -16,7 +16,7 @@ EXEC
 		mul1: bar, sfu, bar1
 		ipl: t0.fp20, t0.fp20, NOP, NOP
 
-	TEX:	r2, r3, tex11, r0, r1, r2
+	TEX:	tex r2, r3, tex11, r0, r1, r2
 
 	/*
 	 * cr0 = (-frag.r + 0.017) > 0;
