@@ -81,8 +81,11 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	return tex;
 }
 
-int grate_texture_load(struct grate *grate, struct grate_texture *tex,
-		       const char *path)
+static int grate_texture_load_internal(struct grate *grate,
+				       struct grate_texture **tex,
+				       const char *path, bool create,
+				       enum pixel_format format,
+				       enum layout_format layout)
 {
 	ILuint ImageTex;
 	int err;
@@ -94,7 +97,6 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 	ilBindImage(ImageTex);
 	ilLoadImage(path);
 	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
-	iluScale(tex->pixbuf->width, tex->pixbuf->height, 0);
 
 	err = ilGetError();
 	if (err != IL_NO_ERROR) {
@@ -102,7 +104,24 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 		goto out;
 	}
 
-	err = host1x_pixelbuffer_load_data(grate->host1x, tex->pixbuf,
+	if (create) {
+		*tex = grate_create_texture(grate,
+					    ilGetInteger(IL_IMAGE_WIDTH),
+					    ilGetInteger(IL_IMAGE_HEIGHT),
+					    format, layout);
+		if (!(*tex))
+			goto out;
+	} else {
+		iluScale((*tex)->pixbuf->width, (*tex)->pixbuf->height, 0);
+	}
+
+	err = ilGetError();
+	if (err != IL_NO_ERROR) {
+		grate_error("\"%s\" load failed 0x%04X\n", path, err);
+		goto out;
+	}
+
+	err = host1x_pixelbuffer_load_data(grate->host1x, (*tex)->pixbuf,
 					   ilGetData(),
 					   ilGetInteger(IL_IMAGE_WIDTH) * 4,
 					   ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
@@ -112,6 +131,30 @@ out:
 	ilDeleteImage(ImageTex);
 
 	return err;
+}
+
+int grate_texture_load(struct grate *grate, struct grate_texture *tex,
+		       const char *path)
+{
+	return grate_texture_load_internal(grate, &tex, path, false,
+					   PIX_BUF_FMT_RGBA8888,
+					   PIX_BUF_LAYOUT_LINEAR);
+}
+
+struct grate_texture *grate_create_texture2(struct grate *grate,
+					    const char *path,
+					    enum pixel_format format,
+					    enum layout_format layout)
+{
+	struct grate_texture *tex;
+	int err;
+
+	err = grate_texture_load_internal(grate, &tex, path, true,
+					  format, layout);
+	if (err)
+		return NULL;
+
+	return tex;
 }
 
 struct host1x_pixelbuffer *grate_texture_pixbuf(struct grate_texture *tex)

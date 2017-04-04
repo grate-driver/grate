@@ -166,6 +166,10 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 					   unsigned width, unsigned height,
 					   enum pixel_format format,
 					   enum layout_format layout);
+struct grate_texture *grate_create_texture2(struct grate *grate,
+					    const char *path,
+					    enum pixel_format format,
+					    enum layout_format layout);
 int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 		       const char *path);
 struct host1x_pixelbuffer *grate_texture_pixbuf(struct grate_texture *tex);
