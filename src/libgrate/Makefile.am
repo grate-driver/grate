@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libgrate.la
+lib_LTLIBRARIES = libgrate.la
 
 libgrate_la_CPPFLAGS = \
 	-I$(top_srcdir)/include
