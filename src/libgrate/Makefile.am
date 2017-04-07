@@ -8,6 +8,7 @@ libgrate_la_CFLAGS = \
 
 libgrate_la_SOURCES = \
 	display.c \
+	fragment_asm.h \
 	grate.c \
 	grate.h \
 	grate-asm.c \
@@ -15,12 +16,16 @@ libgrate_la_SOURCES = \
 	grate-texture.c \
 	grate-2d.c \
 	grate-3d.c \
+	grate-3d.h \
 	grate-3d-ctx.c \
+	grate-3d-ctx.h \
 	libgrate-private.h \
+	linker_asm.h \
 	matrix.c \
 	matrix.h \
 	profile.c \
-	shader-cgc.c
+	shader-cgc.c \
+	vpe_vliw.h
 
 libgrate_la_LIBADD = \
 	../libcgc/libcgc.la \
