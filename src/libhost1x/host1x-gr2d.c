@@ -218,6 +218,7 @@ int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
+	unsigned tiled = 0;
 	uint32_t fence;
 	int err;
 
@@ -236,6 +237,16 @@ int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
 
 	if (y + height > pixbuf->height)
 		return -EINVAL;
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		tiled = 1;
+	case PIX_BUF_LAYOUT_LINEAR:
+		break;
+	default:
+		host1x_error("Invalid layout %u\n", pixbuf->layout);
+		return -EINVAL;
+	}
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0, 0x01));
@@ -258,7 +269,7 @@ int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x35, 1));
 	host1x_pushbuf_push(pb, color);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x46, 1));
-	host1x_pushbuf_push(pb, 0x00100000);
+	host1x_pushbuf_push(pb, tiled << 20); /* tilemode */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x38, 5));
 	host1x_pushbuf_push(pb, height << 16 | width);
 	host1x_pushbuf_push(pb, y << 16 | x);
