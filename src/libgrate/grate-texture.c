@@ -468,3 +468,24 @@ out:
 
 	return err;
 }
+
+int grate_texture_blit(struct grate *grate,
+		       struct grate_texture *src_tex,
+		       struct grate_texture *dst_tex,
+		       unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		       unsigned dx, unsigned dy, unsigned dw, unsigned dh)
+{
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
+	struct host1x_pixelbuffer *src_pixbuf = src_tex->pixbuf;
+	struct host1x_pixelbuffer *dst_pixbuf = dst_tex->pixbuf;
+	int err;
+
+	if (sw == dw && sh == dh)
+		err = host1x_gr2d_blit(gr2d, src_pixbuf, dst_pixbuf,
+				       sx, sy, dx, dy, dw, dh);
+	else
+		err = host1x_gr2d_surface_blit(gr2d, src_pixbuf, dst_pixbuf,
+					       sx, sy, sw, sh, dx, dy, dw, dh);
+
+	return err;
+}
