@@ -82,3 +82,6 @@ libgrate_la_SOURCES += \
 	linker_disasm.c \
 	vertex_asm.tab.c \
 	vertex_disasm.c
+
+pkgconfigdir = ${libdir}/pkgconfig
+pkgconfig_DATA = libgrate.pc

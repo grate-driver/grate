@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libgrate
+Description: Open source Tegra 2D/3D user-space
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lgrate
+Cflags: -I${includedir} -I${includedir}/grate
