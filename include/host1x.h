@@ -370,6 +370,11 @@ struct host1x_gr3d;
 int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		      struct host1x_pixelbuffer *pixbuf,
 		      uint32_t color);
+int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
+		       struct host1x_pixelbuffer *pixbuf,
+		       uint32_t color,
+		       unsigned int x, unsigned int y,
+		       unsigned int width, unsigned int height);
 int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *src,
 		     struct host1x_pixelbuffer *dst,

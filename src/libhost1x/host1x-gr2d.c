@@ -205,6 +205,16 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		      struct host1x_pixelbuffer *pixbuf,
 		      uint32_t color)
 {
+	return host1x_gr2d_clear2(gr2d, pixbuf, color, 0, 0,
+				  pixbuf->width, pixbuf->height);
+}
+
+int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
+		       struct host1x_pixelbuffer *pixbuf,
+		       uint32_t color,
+		       unsigned int x, unsigned int y,
+		       unsigned int width, unsigned int height)
+{
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
@@ -220,6 +230,12 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		host1x_job_free(job);
 		return -ENOMEM;
 	}
+
+	if (x + width > pixbuf->width)
+		return -EINVAL;
+
+	if (y + height > pixbuf->height)
+		return -EINVAL;
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0, 0x01));
@@ -244,8 +260,8 @@ int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x46, 1));
 	host1x_pushbuf_push(pb, 0x00100000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x38, 5));
-	host1x_pushbuf_push(pb, pixbuf->height << 16 | pixbuf->width);
-	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, height << 16 | width);
+	host1x_pushbuf_push(pb, y << 16 | x);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(1, 1));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
