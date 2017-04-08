@@ -217,16 +217,21 @@ struct host1x *host1x_nvhost_open(void)
 	if (!nvhost->gr3d)
 		return NULL;
 
+	nvhost->base.gr2d = &nvhost->gr2d->base;
+	nvhost->base.gr3d = &nvhost->gr3d->base;
+	nvhost->base.framebuffer_init = nvhost_framebuffer_init;
+
+	return &nvhost->base;
+}
+
+void host1x_nvhost_display_init(struct host1x *host1x)
+{
+	struct nvhost *nvhost = to_nvhost(host1x);
+
 	nvhost->display = nvhost_display_create(nvhost);
 	if (!nvhost->display) {
 		host1x_error("nvhost_display_create() failed\n");
 	} else {
 		nvhost->base.display = &nvhost->display->base;
 	}
-
-	nvhost->base.gr2d = &nvhost->gr2d->base;
-	nvhost->base.gr3d = &nvhost->gr3d->base;
-	nvhost->base.framebuffer_init = nvhost_framebuffer_init;
-
-	return &nvhost->base;
 }

@@ -66,6 +66,7 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 struct grate_options {
 	unsigned int x, y, width, height;
 	bool fullscreen;
+	bool nodisplay;
 	bool vsync;
 };
 

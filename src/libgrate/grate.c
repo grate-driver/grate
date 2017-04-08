@@ -76,11 +76,13 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "width", 1, NULL, 'w' },
 		{ "height", 1, NULL, 'h' },
 		{ "vsync", 0, NULL, 'v' },
+		{ "nodisplay", 0, NULL, 'n' },
 	};
-	static const char opts[] = "fw:h:v";
+	static const char opts[] = "fw:h:vn";
 	int opt;
 
 	options->fullscreen = false;
+	options->nodisplay = false;
 	options->vsync = false;
 	options->x = 0;
 	options->y = 0;
@@ -105,6 +107,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->vsync = true;
 			break;
 
+		case 'n':
+			options->nodisplay = true;
+			break;
+
 		default:
 			return false;
 		}
@@ -121,13 +127,16 @@ struct grate *grate_init(struct grate_options *options)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open();
+	grate->host1x = host1x_open(!options->nodisplay);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;
 	}
 
 	grate->options = options;
+
+	if (grate->options->nodisplay)
+		return grate;
 
 	grate->display = grate_display_open(grate);
 	if (grate->display) {
