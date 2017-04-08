@@ -274,6 +274,19 @@ void grate_texture_clear(struct grate *grate, struct grate_texture *tex,
 		grate_error("host1x_gr2d_clear() failed: %d\n", err);
 }
 
+void grate_texture_clear_rect(struct grate *grate, struct grate_texture *tex,
+			      uint32_t color, unsigned x, unsigned y,
+			      unsigned width, unsigned height)
+{
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
+	int err;
+
+	err = host1x_gr2d_clear_rect(gr2d, tex->pixbuf, color,
+				     x, y, width, height);
+	if (err < 0)
+		grate_error("host1x_gr2d_clear() failed: %d\n", err);
+}
+
 static int alloc_mipmap(struct grate *grate, struct grate_texture *tex)
 {
 	struct host1x_pixelbuffer *pixbuf = tex->pixbuf;

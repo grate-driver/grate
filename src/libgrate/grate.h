@@ -186,6 +186,10 @@ void grate_texture_set_mag_filter(struct grate_texture *tex,
 				  enum grate_textute_filter filter);
 void grate_texture_clear(struct grate *grate, struct grate_texture *texture,
 			 uint32_t color);
+void grate_texture_clear_rect(struct grate *grate,
+			      struct grate_texture *texture,
+			      uint32_t color, unsigned x, unsigned y,
+			      unsigned width, unsigned height);
 int grate_texture_generate_mipmap(struct grate *grate,
 				  struct grate_texture *tex);
 int grate_texture_load_miplevel(struct grate *grate,
