@@ -73,6 +73,7 @@ struct grate_options {
 bool grate_parse_command_line(struct grate_options *options, int argc,
 			      char *argv[]);
 struct grate *grate_init(struct grate_options *options);
+struct grate *grate_init_with_fd(struct grate_options *options, int fd);
 void grate_exit(struct grate *grate);
 
 void grate_clear_color(struct grate *grate, float red, float green, float blue,

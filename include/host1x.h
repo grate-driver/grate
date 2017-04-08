@@ -133,7 +133,7 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 				 enum pixel_format data_format,
 				 enum layout_format data_layout);
 
-struct host1x *host1x_open(bool open_display);
+struct host1x *host1x_open(bool open_display, int fd);
 void host1x_close(struct host1x *host1x);
 
 struct host1x_display *host1x_get_display(struct host1x *host1x);
