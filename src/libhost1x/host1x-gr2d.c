@@ -303,11 +303,15 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     unsigned int dx, unsigned int dy,
 		     unsigned int width, unsigned int height)
 {
+	struct host1x_bo *src_orig = src->bo->wrapped ?: src->bo;
+	struct host1x_bo *dst_orig = dst->bo->wrapped ?: dst->bo;
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
 	unsigned src_tiled = 0;
 	unsigned dst_tiled = 0;
+	unsigned xdir = 0;
+	unsigned ydir = 0;
 	uint32_t fence;
 	int err;
 
@@ -338,6 +342,41 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
+	if (src_orig != dst_orig)
+		goto job_create;
+
+	/*
+	 * For now this should never fail as host1x_pixelbuffer_create()
+	 * allocates new BO. Keep that check just in case.
+	 */
+	if (src->bo->offset != dst->bo->offset ||
+	    src->width != dst->width ||
+	    src->pitch != dst->pitch ||
+	    src->height != dst->height||
+	    src->format != dst->format) {
+		host1x_error("Sub-allocations are forbidden\n");
+		return -EINVAL;
+	}
+
+	if (sx >= dx + width || sx + width <= dx)
+		goto job_create;
+
+	if (sy >= dy + height || sy + height <= dy)
+		goto job_create;
+
+	if (dx > sx) {
+		xdir = 1;
+		sx += width - 1;
+		dx += width - 1;
+	}
+
+	if (dy > sy) {
+		ydir = 1;
+		sy += height - 1;
+		dy += height - 1;
+	}
+
+job_create:
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
@@ -362,7 +401,8 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	 */
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 20 |
-			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16);
+			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16 |
+			ydir << 10 | xdir << 9);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
