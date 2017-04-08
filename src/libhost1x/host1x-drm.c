@@ -883,15 +883,21 @@ struct host1x *host1x_drm_open(void)
 		return NULL;
 	}
 
+	drm->base.gr2d = &drm->gr2d->base;
+	drm->base.gr3d = &drm->gr3d->base;
+
+	return &drm->base;
+}
+
+void host1x_drm_display_init(struct host1x *host1x)
+{
+	struct drm *drm = to_drm(host1x);
+	int err;
+
 	err = drm_display_create(&drm->display, drm);
 	if (err < 0) {
 		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {
 		drm->base.display = &drm->display->base;
 	}
-
-	drm->base.gr2d = &drm->gr2d->base;
-	drm->base.gr3d = &drm->gr3d->base;
-
-	return &drm->base;
 }
