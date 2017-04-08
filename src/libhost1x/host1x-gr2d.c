@@ -40,6 +40,9 @@
 #define FLOAT_TO_FIXED_0_8(fp) \
 	(((int32_t) (fp * 256.0f + 0.5f)) & ((1 << 8) - 1))
 
+#define SWAP(tmp__, p0__, p1__) \
+	({tmp__ = p1__; p1__ = p0__; p0__ = tmp__;})
+
 static int host1x_gr2d_test(struct host1x_gr2d *gr2d)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
@@ -296,6 +299,113 @@ int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
 	return 0;
 }
 
+/*
+ * Returned values:
+ * 	0 = not intersected
+ *
+ * 	1 = intersected and source pixbuf area starts lower in the memory than
+ * 	    the destination area
+ *
+ * 	2 = intersected and source pixbuf area starts higher in the memory than
+ * 	    the destination area
+ */
+static int pixbuf_areas_intersect(struct host1x_pixelbuffer *src,
+				  struct host1x_pixelbuffer *dst,
+				  unsigned int sx, unsigned int sy,
+				  unsigned int dx, unsigned int dy,
+				  unsigned int width, unsigned int height)
+{
+	struct host1x_bo *src_orig = src->bo->wrapped ?: src->bo;
+	struct host1x_bo *dst_orig = dst->bo->wrapped ?: dst->bo;
+	uint32_t p0_top_left, p0_bottom_right, p0_pitch, p0_bpp;
+	uint32_t p1_top_left, p1_bottom_right, p1_pitch, p1_bpp;
+	uint32_t tmp;
+	int ret = 2;
+
+	/*
+	 * Areas are *not* intersected if their BO isn't common.
+	 */
+	if (src_orig != dst_orig)
+		return 0;
+
+	/*
+	 * p0 for the destination area
+	 * p1 for the source area
+	 */
+	p0_bpp          = PIX_BUF_FORMAT_BYTES(dst->format);
+	p0_pitch        = dst->pitch;
+	p0_top_left     = dst->bo->offset + p0_pitch * dy + dx * p0_bpp;
+	p0_bottom_right = p0_top_left + p0_pitch * height;
+
+	p1_bpp          = PIX_BUF_FORMAT_BYTES(src->format);
+	p1_pitch        = src->pitch;
+	p1_top_left     = src->bo->offset + p1_pitch * sy + sx * p1_bpp;
+	p1_bottom_right = p1_top_left + p1_pitch * height;
+
+	/*
+	 * Areas are *not* intersected if bottom-right of one area
+	 * is lower in the memory than the other top-left.
+	 */
+	if (p1_bottom_right <= p0_top_left)
+		return 0;
+
+	if (p0_bottom_right <= p1_top_left)
+		return 0;
+
+	/*
+	 * Get start offset of an area lowest in memory.
+	 */
+	tmp = p0_top_left;
+
+	if (p1_top_left <= p0_top_left) {
+		tmp = p1_top_left;
+		ret = 1;
+	}
+
+	/*
+	 * Align areas to the start of the lowest area in memory
+	 * for simplicity.
+	 */
+	p0_top_left     -= tmp;
+	p0_bottom_right -= tmp;
+
+	p1_top_left     -= tmp;
+	p1_bottom_right -= tmp;
+
+	/*
+	 * Reduce amount of code a tad by assuming further that p0 is
+	 * lower in memory.
+	 */
+	if (p1_top_left == 0) {
+		SWAP(tmp, p0_top_left, p1_top_left);
+		SWAP(tmp, p0_bottom_right, p1_bottom_right);
+		SWAP(tmp, p0_pitch, p1_pitch);
+		SWAP(tmp, p0_bpp, p1_bpp);
+	}
+
+	/*
+	 * Check whether left of p1 is in the "pixels" area of p0.
+	 */
+	tmp = p1_top_left % p0_pitch;
+
+	if (tmp < width * p0_bpp)
+		return ret;
+
+	/*
+	 * Check whether right of p1 is in the "pixels" area of p0.
+	 */
+	tmp = (p1_top_left + width * p1_bpp) % p0_pitch;
+
+	if (tmp < width * p0_bpp)
+		return ret;
+
+	/*
+	 * Areas are *not* intersected if left and right of one area lays
+	 * in the pad of other area.
+	 */
+	return 0;
+}
+
 int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *src,
 		     struct host1x_pixelbuffer *dst,
@@ -308,7 +418,10 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	struct host1x_job *job;
 	unsigned src_tiled = 0;
 	unsigned dst_tiled = 0;
+	unsigned xdir = 0;
+	unsigned ydir = 0;
 	uint32_t fence;
+	int intersect;
 	int err;
 
 	if (PIX_BUF_FORMAT_BYTES(src->format) !=
@@ -348,6 +461,22 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		return -ENOMEM;
 	}
 
+	intersect = pixbuf_areas_intersect(src, dst, sx, sy, dx, dy,
+					   width, height);
+	if (intersect) {
+		if (dx > sx) {
+			xdir = 1;
+			sx += width - 1;
+			dx += width - 1;
+		}
+
+		if (dy > sy) {
+			ydir = 1;
+			sy += height - 1;
+			dy += height - 1;
+		}
+	}
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x009, 0x9));
@@ -362,7 +491,8 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	 */
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 20 |
-			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16);
+			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16 |
+			ydir << 10 | xdir << 9);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
