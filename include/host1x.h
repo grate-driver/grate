@@ -159,70 +159,90 @@ int host1x_overlay_set(struct host1x_overlay *overlay,
 		       unsigned int y, unsigned int width,
 		       unsigned int height, bool vsync);
 
-#define HOST1X_BO_CREATE(host1x, size, flags)				\
-({									\
-	struct host1x_bo *bo = host1x_bo_create(host1x, size, flags);	\
-	if (!bo)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_bo_create() failed\n",	\
-			__FILE__, __LINE__);				\
-	bo;								\
-})
-
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags);
-void host1x_bo_free(struct host1x_bo *bo);
-
-#define HOST1X_BO_INVALIDATE(bo, offset, length)			\
-({									\
-	int err = host1x_bo_invalidate(bo, offset, length);		\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_bo_invalidate() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
-
-int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
-			 size_t length);
-
-#define HOST1X_BO_FLUSH(bo, offset, length)				\
-({									\
-	int err = host1x_bo_flush(bo, offset, length);			\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_bo_flush() failed %d\n",	\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
-
-int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
-		    size_t length);
-
-#define HOST1X_BO_MMAP(bo, ptr)						\
-({									\
-	int err = host1x_bo_mmap(bo, ptr);				\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_bo_mmap() failed %d\n",	\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
-
-int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
-
-#define HOST1X_BO_WRAP(bo, offset, size)				\
-({									\
-	struct host1x_bo *wrap = host1x_bo_wrap(bo, offset, size);	\
-	if (!wrap)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_bo_wrap() failed\n",	\
-			__FILE__, __LINE__);				\
-	wrap;								\
-})
-
 struct host1x_bo *host1x_bo_wrap(struct host1x_bo *bo,
 				 unsigned long offset, size_t size);
+void host1x_bo_free(struct host1x_bo *bo);
+int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
+			 size_t length);
+int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
+		    size_t length);
+int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
+
+static inline struct host1x_bo *host1x_bo_create_helper(struct host1x *host1x,
+						size_t size, int flags,
+						const char *file, int line)
+{
+	struct host1x_bo *bo = host1x_bo_create(host1x, size, flags);
+	if (!bo)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_create() failed\n",
+			file, line);
+	return bo;
+}
+
+static inline struct host1x_bo *host1x_bo_wrap_helper(struct host1x_bo *bo,
+					unsigned long offset, size_t size,
+					const char *file, int line)
+{
+	struct host1x_bo *wrap = host1x_bo_wrap(bo, offset, size);
+	if (!wrap)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_wrap() failed\n",
+			file, line);
+	return wrap;
+}
+
+static inline int host1x_bo_invalidate_helper(struct host1x_bo *bo,
+					unsigned long offset, size_t length,
+					const char *file, int line)
+{
+	int err = host1x_bo_invalidate(bo, offset, length);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_invalidate() failed %d\n",
+			file, line, err);
+	return err;
+}
+
+static inline int host1x_bo_flush_helper(struct host1x_bo *bo,
+					 unsigned long offset, size_t length,
+					 const char *file, int line)
+{
+	int err = host1x_bo_flush(bo, offset, length);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_flush() failed %d\n",
+			file, line, err);
+	return err;
+}
+
+static inline int host1x_bo_mmap_helper(struct host1x_bo *bo, void **ptr,
+					const char *file, int line)
+{
+	int err = host1x_bo_mmap(bo, ptr);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_mmap() failed %d\n",
+			file, line, err);
+	return err;
+}
+
+#define HOST1X_BO_CREATE(host1x, size, flags) \
+	host1x_bo_create_helper(host1x, size, flags, __FILE__, __LINE__)
+
+#define HOST1X_BO_WRAP(bo, offset, size) \
+	host1x_bo_wrap_helper(bo, offset, size, __FILE__, __LINE__)
+
+#define HOST1X_BO_INVALIDATE(bo, offset, length) \
+	host1x_bo_invalidate_helper(bo, offset, length, __FILE__, __LINE__)
+
+#define HOST1X_BO_FLUSH(bo, offset, length) \
+	host1x_bo_flush_helper(bo, offset, length, __FILE__, __LINE__)
+
+#define HOST1X_BO_MMAP(bo, ptr) \
+	host1x_bo_mmap_helper(bo, ptr, __FILE__, __LINE__)
 
 #define HOST1X_OPCODE_SETCL(offset, classid, mask) \
 	((0x0 << 28) | (((offset) & 0xfff) << 16) | (((classid) & 0x3ff) << 6) | ((mask) & 0x3f))
@@ -266,33 +286,19 @@ struct host1x_job {
 	unsigned int num_pushbufs;
 };
 
-#define HOST1X_JOB_CREATE(syncpt, increments)				\
-({									\
-	struct host1x_job *job = host1x_job_create(syncpt, increments);	\
-	if (!job)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_job_create() failed\n",	\
-			__FILE__, __LINE__);				\
-	job;								\
-})
-
 struct host1x_job *host1x_job_create(uint32_t syncpt, uint32_t increments);
 void host1x_job_free(struct host1x_job *job);
-
-#define HOST1X_JOB_APPEND(job, bo, offset)				\
-({									\
-	struct host1x_pushbuf *pb = host1x_job_append(job, bo, offset);	\
-	if (!pb)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_job_append() failed\n",	\
-			__FILE__, __LINE__);				\
-	pb;								\
-})
-
 struct host1x_pushbuf *host1x_job_append(struct host1x_job *job,
 					 struct host1x_bo *bo,
 					 unsigned long offset);
 int host1x_pushbuf_push(struct host1x_pushbuf *pb, uint32_t word);
+int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
+			    unsigned long offset, unsigned long shift);
+int host1x_client_submit(struct host1x_client *client, struct host1x_job *job);
+int host1x_client_flush(struct host1x_client *client, uint32_t *fence);
+int host1x_client_wait(struct host1x_client *client, uint32_t fence,
+		       uint32_t timeout);
+
 static inline int host1x_pushbuf_push_float(struct host1x_pushbuf *pb, float f)
 {
 	union {
@@ -303,55 +309,100 @@ static inline int host1x_pushbuf_push_float(struct host1x_pushbuf *pb, float f)
 	return host1x_pushbuf_push(pb, value.u);
 }
 
-#define HOST1X_PUSHBUF_RELOCATE(pb, target, offset, shift)		\
-({									\
-	int err = host1x_pushbuf_relocate(pb, target, offset, shift);	\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_pushbuf_relocate() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
+static inline struct host1x_job *host1x_job_create_helper(
+					uint32_t syncpt, uint32_t increments,
+					const char *file, int line)
+{
+	struct host1x_job *job = host1x_job_create(syncpt, increments);
+	if (!job)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_job_create() failed\n",
+			file, line);
+	return job;
+}
 
-int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
-			    unsigned long offset, unsigned long shift);
+static inline struct host1x_pushbuf *host1x_job_append_helper(
+					struct host1x_job *job,
+					struct host1x_bo *bo,
+					unsigned long offset,
+					const char *file, int line)
+{
+	struct host1x_pushbuf *pb = host1x_job_append(job, bo, offset);
+	if (!pb)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_job_append() failed\n",
+			file, line);
+	return pb;
+}
 
-#define HOST1X_CLIENT_SUBMIT(client, job)				\
-({									\
-	int err = host1x_client_submit(client, job);			\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_client_submit() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
+static inline int host1x_pushbuf_relocate_helper(struct host1x_pushbuf *pb,
+						   struct host1x_bo *target,
+						   unsigned long offset,
+						   unsigned long shift,
+						   const char *file, int line)
+{
+	int err = host1x_pushbuf_relocate(pb, target, offset, shift);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_pushbuf_relocate() failed %d\n",
+			file, line, err);
+	return err;
+}
 
-int host1x_client_submit(struct host1x_client *client, struct host1x_job *job);
+static inline int host1x_client_submit_helper(struct host1x_client *client,
+					      struct host1x_job *job,
+					      const char *file, int line)
+{
+	int err = host1x_client_submit(client, job);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_client_submit() failed %d\n",
+			file, line, err);
+	return err;
+}
 
-#define HOST1X_CLIENT_FLUSH(client, fence)				\
-({									\
-	int err = host1x_client_flush(client, fence);			\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_client_flush() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
+static inline int host1x_client_flush_helper(struct host1x_client *client,
+					     uint32_t *fence,
+					     const char *file, int line)
+{
+	int err = host1x_client_flush(client, fence);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_client_flush() failed %d\n",
+			file, line, err);
+	return err;
+}
 
-int host1x_client_flush(struct host1x_client *client, uint32_t *fence);
+static inline int host1x_client_wait_helper(struct host1x_client *client,
+					    uint32_t fence, uint32_t timeout,
+					    const char *file, int line)
+{
+	int err = host1x_client_wait(client, fence, timeout);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_client_wait() failed %d\n",
+			file, line, err);
+	return err;
+}
 
-#define HOST1X_CLIENT_WAIT(client, fence, timeout)			\
-({									\
-	int err = host1x_client_wait(client, fence, timeout);		\
-	if (err)							\
-		fprintf(stderr,						\
-			"ERROR: %s:%d: host1x_client_wait() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
-})
+#define HOST1X_JOB_CREATE(syncpt, increments) \
+	host1x_job_create_helper(syncpt, increments, __FILE__, __LINE__)
 
-int host1x_client_wait(struct host1x_client *client, uint32_t fence,
-		       uint32_t timeout);
+#define HOST1X_JOB_APPEND(job, bo, offset) \
+	host1x_job_append_helper(job, bo, offset, __FILE__, __LINE__)
+
+#define HOST1X_PUSHBUF_RELOCATE(pb, target, offset, shift) \
+	host1x_pushbuf_relocate_helper(pb, target, offset, shift, \
+					__FILE__, __LINE__)
+
+#define HOST1X_CLIENT_SUBMIT(client, job) \
+	host1x_client_submit_helper(client, job, __FILE__, __LINE__)
+
+#define HOST1X_CLIENT_FLUSH(client, fence) \
+	host1x_client_flush_helper(client, fence, __FILE__, __LINE__)
+
+#define HOST1X_CLIENT_WAIT(client, fence, timeout) \
+	host1x_client_wait_helper(client, fence, timeout, __FILE__, __LINE__)
 
 struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 						     unsigned int width,
