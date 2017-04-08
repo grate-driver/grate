@@ -846,14 +846,16 @@ static void drm_close(struct host1x *host1x)
 	free(drm);
 }
 
-struct host1x *host1x_drm_open(void)
+struct host1x *host1x_drm_open(int fd)
 {
 	struct drm *drm;
-	int fd, err;
+	int err;
 
-	fd = open("/dev/dri/card0", O_RDWR);
-	if (fd < 0)
-		return NULL;
+	if (fd < 0) {
+		fd = open("/dev/dri/card0", O_RDWR);
+		if (fd < 0)
+			return NULL;
+	}
 
 	drm = calloc(1, sizeof(*drm));
 	if (!drm) {

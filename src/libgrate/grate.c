@@ -118,7 +118,7 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	return true;
 }
 
-struct grate *grate_init(struct grate_options *options)
+struct grate *grate_init2(struct grate_options *options, int fd)
 {
 	struct grate *grate;
 
@@ -126,7 +126,7 @@ struct grate *grate_init(struct grate_options *options)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open(!options->nodisplay);
+	grate->host1x = host1x_open(!options->nodisplay, fd);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;
@@ -149,6 +149,11 @@ struct grate *grate_init(struct grate_options *options)
 	}
 
 	return grate;
+}
+
+struct grate *grate_init(struct grate_options *options)
+{
+	return grate_init2(options, -1);
 }
 
 void grate_exit(struct grate *grate)
