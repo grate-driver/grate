@@ -5,6 +5,8 @@ noinst_PROGRAMS = \
 	fp20 \
 	fx10
 
+AM_LDFLAGS = -static
+
 assembler_CPPFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libgrate
