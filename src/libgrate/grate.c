@@ -43,23 +43,39 @@
 static bool termio_adjusted;
 static tcflag_t saved_c_lflag;
 
-struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
-					   unsigned long flags,
-					   const void *data)
+struct host1x_bo *grate_bo_create_and_map(struct grate *grate,
+					  unsigned long flags,
+					  size_t size, void **map)
 {
 	struct host1x_bo *bo;
-	void *map;
 	int err;
 
 	bo = HOST1X_BO_CREATE(grate->host1x, size, flags);
 	if (!bo)
 		return NULL;
 
-	err = HOST1X_BO_MMAP(bo, &map);
+	if (!map)
+		return bo;
+
+	err = HOST1X_BO_MMAP(bo, map);
 	if (err != 0) {
 		host1x_bo_free(bo);
 		return NULL;
 	}
+
+	return bo;
+}
+
+struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
+					    unsigned long flags,
+					    const void *data)
+{
+	struct host1x_bo *bo;
+	void *map;
+
+	bo = grate_bo_create_and_map(grate, flags, size, &map);
+	if (!bo)
+		return NULL;
 
 	memcpy(map, data, size);
 

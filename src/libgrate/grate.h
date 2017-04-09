@@ -55,6 +55,9 @@ void grate_framebuffer_save(struct grate *grate, struct grate_framebuffer *fb,
 			    const char *path);
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front);
 
+struct host1x_bo *grate_bo_create_and_map(struct grate *grate,
+					  unsigned long flags,
+					  size_t size, void **map);
 struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					    unsigned long flags,
 					    const void *data);
