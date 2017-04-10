@@ -431,14 +431,14 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *dst,
 		     unsigned int sx, unsigned int sy,
 		     unsigned int dx, unsigned int dy,
-		     unsigned int width, unsigned int height);
+		     unsigned int width, int height);
 int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 			     struct host1x_pixelbuffer *src,
 			     struct host1x_pixelbuffer *dst,
 			     unsigned int sx, unsigned int sy,
 			     unsigned int src_width, unsigned int src_height,
 			     unsigned int dx, unsigned int dy,
-			     unsigned int dst_width, unsigned int dst_height);
+			     unsigned int dst_width, int dst_height);
 void host1x_gr3d_viewport(struct host1x_pushbuf *pb, float x, float y,
 			  float width, float height);
 void host1x_gr3d_line_width(struct host1x_pushbuf *pb, float width);

@@ -301,7 +301,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *dst,
 		     unsigned int sx, unsigned int sy,
 		     unsigned int dx, unsigned int dy,
-		     unsigned int width, unsigned int height)
+		     unsigned int width, int height)
 {
 	struct host1x_bo *src_orig = src->bo->wrapped ?: src->bo;
 	struct host1x_bo *dst_orig = dst->bo->wrapped ?: dst->bo;
@@ -310,6 +310,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	struct host1x_job *job;
 	unsigned src_tiled = 0;
 	unsigned dst_tiled = 0;
+	unsigned yflip = 0;
 	unsigned xdir = 0;
 	unsigned ydir = 0;
 	uint32_t fence;
@@ -342,8 +343,13 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
+	if (height < 0) {
+		yflip = 1;
+		height = -height;
+	}
+
 	if (src_orig != dst_orig)
-		goto job_create;
+		goto yflip_setup;
 
 	/*
 	 * For now this should never fail as host1x_pixelbuffer_create()
@@ -359,10 +365,10 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	}
 
 	if (sx >= dx + width || sx + width <= dx)
-		goto job_create;
+		goto yflip_setup;
 
 	if (sy >= dy + height || sy + height <= dy)
-		goto job_create;
+		goto yflip_setup;
 
 	if (dx > sx) {
 		xdir = 1;
@@ -376,7 +382,10 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		dy += height - 1;
 	}
 
-job_create:
+yflip_setup:
+	if (yflip && !ydir)
+		dy += height - 1;
+
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
@@ -402,7 +411,7 @@ job_create:
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 20 |
 			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16 |
-			ydir << 10 | xdir << 9);
+			yflip << 14 | ydir << 10 | xdir << 9);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x046, 1));
@@ -473,7 +482,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 			     unsigned int sx, unsigned int sy,
 			     unsigned int src_width, unsigned int src_height,
 			     unsigned int dx, unsigned int dy,
-			     unsigned int dst_width, unsigned int dst_height)
+			     unsigned int dst_width, int dst_height)
 {
 	struct host1x_syncpt *syncpt = &gr2d->client->syncpts[0];
 	struct host1x_pushbuf *pb;
@@ -482,6 +491,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	float inv_scale_y;
 	unsigned src_tiled = 0;
 	unsigned dst_tiled = 0;
+	unsigned yflip = 0;
 	unsigned src_fmt;
 	unsigned dst_fmt;
 	unsigned hftype;
@@ -546,6 +556,11 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	}
 
 scale_check:
+	if (dst_height < 0) {
+		yflip = 1;
+		dst_height = -dst_height;
+	}
+
 	inv_scale_x = (src_width) / (float)(dst_width);
 	inv_scale_y = (src_height) / (float)(dst_height);
 
@@ -629,7 +644,8 @@ scale_check:
 	 */
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 28 | 1 << 27 |
-			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16);
+			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16 |
+			yflip << 14);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x046, 0xD));
 	/*
@@ -641,11 +657,13 @@ scale_check:
 				src->bo->offset + sb_offset(src, sx, sy), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba_sb_surfbase */
 	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
-				dst->bo->offset + sb_offset(dst, dx, dy), 0);
+				dst->bo->offset + sb_offset(dst, dx, dy) +
+				yflip * dst->pitch * (dst_height - 1), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba_sb_surfbase */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x3149));
-	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo, dst->bo->offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
+		dst->bo->offset + yflip * dst->pitch * (dst_height - 1), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
 	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, src->bo->offset, 0);
