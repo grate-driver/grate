@@ -43,10 +43,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	if (!pixbuf)
 		return NULL;
 
-	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
-		pitch = ALIGN(pitch, 256);
-
-	pixbuf->pitch = pitch;
+	pixbuf->pitch = ALIGN(pitch, 256);
 	pixbuf->width = width;
 	pixbuf->height = height;
 	pixbuf->format = format;

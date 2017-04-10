@@ -1,6 +1,8 @@
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/include
 
+AM_LDFLAGS = -static
+
 noinst_PROGRAMS = \
 	gr2d-clear \
 	gr3d-triangle

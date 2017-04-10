@@ -119,7 +119,10 @@ struct host1x {
 };
 
 struct host1x *host1x_nvhost_open(void);
-struct host1x *host1x_drm_open(void);
+void host1x_nvhost_display_init(struct host1x *host1x);
+
+struct host1x *host1x_drm_open(int fd);
+void host1x_drm_display_init(struct host1x *host1x);
 
 #define host1x_error(fmt, args...) \
 	fprintf(stderr, "ERROR: %s: %d: " fmt, __func__, __LINE__, ##args)

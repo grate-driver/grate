@@ -55,6 +55,9 @@ void grate_framebuffer_save(struct grate *grate, struct grate_framebuffer *fb,
 			    const char *path);
 void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front);
 
+struct host1x_bo *grate_bo_create_and_map(struct grate *grate,
+					  unsigned long flags,
+					  size_t size, void **map);
 struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 					    unsigned long flags,
 					    const void *data);
@@ -66,12 +69,14 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 struct grate_options {
 	unsigned int x, y, width, height;
 	bool fullscreen;
+	bool nodisplay;
 	bool vsync;
 };
 
 bool grate_parse_command_line(struct grate_options *options, int argc,
 			      char *argv[]);
 struct grate *grate_init(struct grate_options *options);
+struct grate *grate_init2(struct grate_options *options, int fd);
 void grate_exit(struct grate *grate);
 
 void grate_clear_color(struct grate *grate, float red, float green, float blue,
@@ -185,11 +190,19 @@ void grate_texture_set_mag_filter(struct grate_texture *tex,
 				  enum grate_textute_filter filter);
 void grate_texture_clear(struct grate *grate, struct grate_texture *texture,
 			 uint32_t color);
+void grate_texture_clear2(struct grate *grate, struct grate_texture *texture,
+			 uint32_t color, unsigned x, unsigned y,
+			 unsigned width, unsigned height);
 int grate_texture_generate_mipmap(struct grate *grate,
 				  struct grate_texture *tex);
 int grate_texture_load_miplevel(struct grate *grate,
 				struct grate_texture *tex,
 				unsigned level, const char *path);
+int grate_texture_blit(struct grate *grate,
+		       struct grate_texture *src_tex,
+		       struct grate_texture *dst_tex,
+		       unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+		       unsigned dx, unsigned dy, unsigned dw, unsigned dh);
 
 struct grate_font;
 

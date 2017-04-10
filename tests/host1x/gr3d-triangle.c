@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	struct host1x *host1x;
 	int err;
 
-	host1x = host1x_open();
+	host1x = host1x_open(true, -1);
 	if (!host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		return 1;

@@ -133,7 +133,7 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 				 enum pixel_format data_format,
 				 enum layout_format data_layout);
 
-struct host1x *host1x_open(void);
+struct host1x *host1x_open(bool open_display, int fd);
 void host1x_close(struct host1x *host1x);
 
 struct host1x_display *host1x_get_display(struct host1x *host1x);
@@ -161,12 +161,12 @@ int host1x_overlay_set(struct host1x_overlay *overlay,
 
 #define HOST1X_BO_CREATE(host1x, size, flags)				\
 ({									\
-	struct host1x_bo *bo = host1x_bo_create(host1x, size, flags);	\
-	if (!bo)							\
+	struct host1x_bo *_bo_ = host1x_bo_create(host1x, size, flags);	\
+	if (!_bo_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_bo_create() failed\n",	\
 			__FILE__, __LINE__);				\
-	bo;								\
+	_bo_;								\
 })
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
@@ -175,12 +175,12 @@ void host1x_bo_free(struct host1x_bo *bo);
 
 #define HOST1X_BO_INVALIDATE(bo, offset, length)			\
 ({									\
-	int err = host1x_bo_invalidate(bo, offset, length);		\
-	if (err)							\
+	int _err_ = host1x_bo_invalidate(bo, offset, length);		\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_bo_invalidate() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
@@ -188,12 +188,12 @@ int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 
 #define HOST1X_BO_FLUSH(bo, offset, length)				\
 ({									\
-	int err = host1x_bo_flush(bo, offset, length);			\
-	if (err)							\
+	int _err_ = host1x_bo_flush(bo, offset, length);		\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_bo_flush() failed %d\n",	\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
@@ -201,24 +201,24 @@ int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
 
 #define HOST1X_BO_MMAP(bo, ptr)						\
 ({									\
-	int err = host1x_bo_mmap(bo, ptr);				\
-	if (err)							\
+	int _err_ = host1x_bo_mmap(bo, ptr);				\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_bo_mmap() failed %d\n",	\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
 
 #define HOST1X_BO_WRAP(bo, offset, size)				\
 ({									\
-	struct host1x_bo *wrap = host1x_bo_wrap(bo, offset, size);	\
-	if (!wrap)							\
+	struct host1x_bo *_wrap_ = host1x_bo_wrap(bo, offset, size);	\
+	if (!_wrap_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_bo_wrap() failed\n",	\
 			__FILE__, __LINE__);				\
-	wrap;								\
+	_wrap_;								\
 })
 
 struct host1x_bo *host1x_bo_wrap(struct host1x_bo *bo,
@@ -268,12 +268,12 @@ struct host1x_job {
 
 #define HOST1X_JOB_CREATE(syncpt, increments)				\
 ({									\
-	struct host1x_job *job = host1x_job_create(syncpt, increments);	\
-	if (!job)							\
+	struct host1x_job *_job_ = host1x_job_create(syncpt, increments);\
+	if (!_job_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_job_create() failed\n",	\
 			__FILE__, __LINE__);				\
-	job;								\
+	_job_;								\
 })
 
 struct host1x_job *host1x_job_create(uint32_t syncpt, uint32_t increments);
@@ -281,12 +281,12 @@ void host1x_job_free(struct host1x_job *job);
 
 #define HOST1X_JOB_APPEND(job, bo, offset)				\
 ({									\
-	struct host1x_pushbuf *pb = host1x_job_append(job, bo, offset);	\
-	if (!pb)							\
+	struct host1x_pushbuf *_pb_ = host1x_job_append(job, bo, offset);\
+	if (!_pb_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_job_append() failed\n",	\
 			__FILE__, __LINE__);				\
-	pb;								\
+	_pb_;								\
 })
 
 struct host1x_pushbuf *host1x_job_append(struct host1x_job *job,
@@ -305,12 +305,12 @@ static inline int host1x_pushbuf_push_float(struct host1x_pushbuf *pb, float f)
 
 #define HOST1X_PUSHBUF_RELOCATE(pb, target, offset, shift)		\
 ({									\
-	int err = host1x_pushbuf_relocate(pb, target, offset, shift);	\
-	if (err)							\
+	int _err_ = host1x_pushbuf_relocate(pb, target, offset, shift);	\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_pushbuf_relocate() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
@@ -318,36 +318,36 @@ int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
 
 #define HOST1X_CLIENT_SUBMIT(client, job)				\
 ({									\
-	int err = host1x_client_submit(client, job);			\
-	if (err)							\
+	int _err_ = host1x_client_submit(client, job);			\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_client_submit() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_client_submit(struct host1x_client *client, struct host1x_job *job);
 
 #define HOST1X_CLIENT_FLUSH(client, fence)				\
 ({									\
-	int err = host1x_client_flush(client, fence);			\
-	if (err)							\
+	int _err_ = host1x_client_flush(client, fence);			\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_client_flush() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_client_flush(struct host1x_client *client, uint32_t *fence);
 
 #define HOST1X_CLIENT_WAIT(client, fence, timeout)			\
 ({									\
-	int err = host1x_client_wait(client, fence, timeout);		\
-	if (err)							\
+	int _err_ = host1x_client_wait(client, fence, timeout);		\
+	if (_err_)							\
 		fprintf(stderr,						\
 			"ERROR: %s:%d: host1x_client_wait() failed %d\n",\
-			__FILE__, __LINE__, err);			\
-	err;								\
+			__FILE__, __LINE__, _err_);			\
+	_err_;								\
 })
 
 int host1x_client_wait(struct host1x_client *client, uint32_t fence,
@@ -370,6 +370,11 @@ struct host1x_gr3d;
 int host1x_gr2d_clear(struct host1x_gr2d *gr2d,
 		      struct host1x_pixelbuffer *pixbuf,
 		      uint32_t color);
+int host1x_gr2d_clear2(struct host1x_gr2d *gr2d,
+		       struct host1x_pixelbuffer *pixbuf,
+		       uint32_t color,
+		       unsigned int x, unsigned int y,
+		       unsigned int width, unsigned int height);
 int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		     struct host1x_pixelbuffer *src,
 		     struct host1x_pixelbuffer *dst,

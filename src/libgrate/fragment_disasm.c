@@ -644,9 +644,9 @@ static const char * disassemble_tex(const tex_instr *tex)
 	char *buf = ret;
 
 	if (tex->enable_bias) {
-		buf += sprintf(buf, "tex ");
-	} else {
 		buf += sprintf(buf, "txb ");
+	} else {
+		buf += sprintf(buf, "tex ");
 	}
 
 	if (tex->sample_dst_regs_select) {
