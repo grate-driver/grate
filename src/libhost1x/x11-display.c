@@ -69,9 +69,6 @@ static void *fbdata(struct xcb_stuff *stuff, struct host1x_framebuffer *fb)
 	struct host1x_pixelbuffer *pixbuf = fb->pixbuf;
 	int err;
 
-	if (pixbuf->layout == PIX_BUF_LAYOUT_LINEAR)
-		return mmap_fb(pixbuf);
-
 	if (!stuff->pixbuf)
 		stuff->pixbuf = host1x_pixelbuffer_create(
 						stuff->host1x,
@@ -86,7 +83,7 @@ static void *fbdata(struct xcb_stuff *stuff, struct host1x_framebuffer *fb)
 	err = host1x_gr2d_blit(stuff->host1x->gr2d,
 			       pixbuf, stuff->pixbuf,
 			       0, 0, 0, 0,
-			       WIN_WIDTH, WIN_HEIGHT);
+			       WIN_WIDTH, -WIN_HEIGHT);
 	if (err < 0)
 		return NULL;
 
