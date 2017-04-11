@@ -275,9 +275,6 @@ struct host1x_pushbuf {
 	uint32_t *ptr;
 };
 
-struct host1x_pushbuf *host1x_pushbuf_create(struct host1x_bo *bo,
-					     unsigned long offset);
-
 struct host1x_job {
 	uint32_t syncpt;
 	uint32_t syncpt_incrs;

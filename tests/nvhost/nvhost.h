@@ -65,9 +65,6 @@ struct nvhost_pushbuf {
 	uint32_t *ptr;
 };
 
-struct nvhost_pushbuf *nvhost_pushbuf_create(struct nvmap_handle *handle,
-					     unsigned long offset);
-
 struct nvhost_job {
 	uint32_t syncpt;
 	uint32_t syncpt_incrs;
