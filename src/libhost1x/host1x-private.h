@@ -62,6 +62,7 @@ struct host1x_display {
 	unsigned int width;
 	unsigned int height;
 	void *priv;
+	bool needs_explicit_vsync;
 
 	int (*create_overlay)(struct host1x_display *display,
 			      struct host1x_overlay **overlayp);

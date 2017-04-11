@@ -167,6 +167,7 @@ int x11_display_create(struct host1x *host1x, struct host1x_display *base)
 	base->create_overlay = x11_overlay_create;
 	base->set = x11_display_set;
 	base->priv = stuff;
+	base->needs_explicit_vsync = true;
 
 	return 0;
 }
