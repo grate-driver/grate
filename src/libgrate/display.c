@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include "../libhost1x/host1x-private.h"
 #include "libgrate-private.h"
-#include "host1x.h"
 
 struct grate_display {
 	struct host1x_display *base;
@@ -47,6 +47,9 @@ struct grate_display *grate_display_open(struct grate *grate)
 		free(display);
 		return NULL;
 	}
+
+	if (display->base->needs_explicit_vsync)
+		grate->options->vsync = true;
 
 	return display;
 }

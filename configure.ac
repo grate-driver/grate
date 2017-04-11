@@ -14,6 +14,7 @@ AM_PROG_CC_C_O
 AC_PROG_INSTALL
 AM_PROG_LEX
 AC_PROG_YACC
+PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES(DevIL, ILU)
 PKG_CHECK_MODULES(PNG, libpng)
@@ -57,6 +58,10 @@ AM_CONDITIONAL([ENABLE_CGC], [test "x$enable_cgc" = "xyes"])
 AC_CHECK_HEADER([envytools/rnn.h],
 	[AC_CHECK_LIB([rnn], [rnn_init], [enable_rnn=yes], [enable_rnn=no], [-lenvyutil -lxml2])])
 AM_CONDITIONAL([ENABLE_RNN], [test "x$enable_rnn" = "xyes"])
+
+AC_CONFIG_FILES([
+	src/libgrate/libgrate.pc
+])
 
 AC_OUTPUT([
 	Makefile

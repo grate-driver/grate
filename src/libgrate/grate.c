@@ -43,23 +43,39 @@
 static bool termio_adjusted;
 static tcflag_t saved_c_lflag;
 
-struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
-					   unsigned long flags,
-					   const void *data)
+struct host1x_bo *grate_bo_create_and_map(struct grate *grate,
+					  unsigned long flags,
+					  size_t size, void **map)
 {
 	struct host1x_bo *bo;
-	void *map;
 	int err;
 
 	bo = HOST1X_BO_CREATE(grate->host1x, size, flags);
 	if (!bo)
 		return NULL;
 
-	err = HOST1X_BO_MMAP(bo, &map);
+	if (!map)
+		return bo;
+
+	err = HOST1X_BO_MMAP(bo, map);
 	if (err != 0) {
 		host1x_bo_free(bo);
 		return NULL;
 	}
+
+	return bo;
+}
+
+struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
+					    unsigned long flags,
+					    const void *data)
+{
+	struct host1x_bo *bo;
+	void *map;
+
+	bo = grate_bo_create_and_map(grate, flags, size, &map);
+	if (!bo)
+		return NULL;
 
 	memcpy(map, data, size);
 
@@ -76,11 +92,13 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "width", 1, NULL, 'w' },
 		{ "height", 1, NULL, 'h' },
 		{ "vsync", 0, NULL, 'v' },
+		{ "nodisplay", 0, NULL, 'n' },
 	};
-	static const char opts[] = "fw:h:v";
+	static const char opts[] = "fw:h:vn";
 	int opt;
 
 	options->fullscreen = false;
+	options->nodisplay = false;
 	options->vsync = false;
 	options->x = 0;
 	options->y = 0;
@@ -105,6 +123,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->vsync = true;
 			break;
 
+		case 'n':
+			options->nodisplay = true;
+			break;
+
 		default:
 			return false;
 		}
@@ -113,7 +135,7 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	return true;
 }
 
-struct grate *grate_init(struct grate_options *options)
+struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 {
 	struct grate *grate;
 
@@ -121,13 +143,16 @@ struct grate *grate_init(struct grate_options *options)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open();
+	grate->host1x = host1x_open(!options->nodisplay, fd);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;
 	}
 
 	grate->options = options;
+
+	if (grate->options->nodisplay)
+		return grate;
 
 	grate->display = grate_display_open(grate);
 	if (grate->display) {
@@ -141,6 +166,11 @@ struct grate *grate_init(struct grate_options *options)
 	}
 
 	return grate;
+}
+
+struct grate *grate_init(struct grate_options *options)
+{
+	return grate_init_with_fd(options, -1);
 }
 
 void grate_exit(struct grate *grate)

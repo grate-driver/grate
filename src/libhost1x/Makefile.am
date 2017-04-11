@@ -25,6 +25,9 @@ libhost1x_la_SOURCES = \
 	nvhost.h \
 	nvhost-nvmap.c \
 	nvhost-nvmap.h \
+	nvhost-nvmap.h \
+	tegra_dc_ext.h \
+	tegra_drm.h \
 	x11-display.c \
 	x11-display.h
 
