@@ -203,7 +203,7 @@ int grate_texture_blit(struct grate *grate,
 		       struct grate_texture *src_tex,
 		       struct grate_texture *dst_tex,
 		       unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		       unsigned dx, unsigned dy, unsigned dw, unsigned dh);
+		       unsigned dx, unsigned dy, unsigned dw, signed dh);
 
 struct grate_font;
 
