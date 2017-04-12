@@ -348,6 +348,14 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 		height = -height;
 	}
 
+	if (sx + width > src->width ||
+	    dx + width > dst->width ||
+	    sy + height > src->height ||
+	    dy + height > dst->height) {
+		host1x_error("Coords out of range\n");
+		return -EINVAL;
+	}
+
 	if (src_orig != dst_orig)
 		goto yflip_setup;
 
@@ -528,7 +536,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	    src->format == PIX_BUF_FMT_RGBA8888) {
 		src_fmt = 14;
 		dst_fmt = 14;
-		goto scale_check;
+		goto coords_check;
 	}
 
 	switch (src->format) {
@@ -555,10 +563,18 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-scale_check:
+coords_check:
 	if (dst_height < 0) {
 		yflip = 1;
 		dst_height = -dst_height;
+	}
+
+	if (sx + src_width > src->width ||
+	    dx + dst_width > dst->width ||
+	    sy + src_height > src->height ||
+	    dy + dst_height > dst->height) {
+		host1x_error("Coords out of range\n");
+		return -EINVAL;
 	}
 
 	inv_scale_x = (src_width) / (float)(dst_width);
