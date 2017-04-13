@@ -31,7 +31,8 @@ noinst_PROGRAMS = \
 	gles-pbuffer-vertex-offset \
 	gles-quad-textured \
 	gles-quad-textured2 \
-	gles-shader-fill
+	gles-shader-fill \
+	gles-stencil
 
 gles_cube_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
@@ -54,5 +55,9 @@ gles_quad_textured_LDADD = \
 	libcommon.la
 
 gles_quad_textured2_LDADD = \
+	$(top_builddir)/src/libgrate/libgrate.la \
+	libcommon.la
+
+gles_stencil_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
 	libcommon.la
