@@ -282,6 +282,10 @@ void grate_framebuffer_save(struct grate *grate,
 			    struct grate_framebuffer *fb,
 			    const char *path)
 {
+	char dir[1024];
+
+	grate_info("Saving to \"%s/%s\"\n", getcwd(dir, sizeof(dir)), path);
+
 	host1x_framebuffer_save(grate->host1x, fb->front, path);
 }
 
