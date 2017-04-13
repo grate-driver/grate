@@ -10,6 +10,8 @@ libnvhost_la_SOURCES = \
 	nvmap.c \
 	nvmap.h
 
+AM_CFLAGS = $(PNG_CFLAGS)
+
 noinst_PROGRAMS = \
 	gr2d-fill \
 	gr3d-triangle
