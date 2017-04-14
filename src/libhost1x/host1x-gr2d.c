@@ -255,12 +255,10 @@ int host1x_gr2d_clear_rect(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x1e, 7));
 	host1x_pushbuf_push(pb, 0x00000000);
-
-	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16)
-		host1x_pushbuf_push(pb, 0x00010044); /* 16-bit depth */
-	else
-		host1x_pushbuf_push(pb, 0x00020044); /* 32-bit depth */
-
+	host1x_pushbuf_push(pb, /* controlmain */
+			(PIX_BUF_FORMAT_BYTES(pixbuf->format) >> 1) << 16 |
+			1 << 6 | /* srcsld */
+			1 << 2 /* turbofill */);
 	host1x_pushbuf_push(pb, 0x000000cc);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
 	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, pixbuf->bo->offset, 0);
