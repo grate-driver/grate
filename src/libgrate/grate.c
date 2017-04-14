@@ -93,10 +93,12 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "height", 1, NULL, 'h' },
 		{ "vsync", 0, NULL, 'v' },
 		{ "nodisplay", 0, NULL, 'n' },
+		{ "singlebuffered", 0, NULL, 's' },
 	};
-	static const char opts[] = "fw:h:vn";
+	static const char opts[] = "fw:h:vns";
 	int opt;
 
+	options->singlebuffered = false;
 	options->fullscreen = false;
 	options->nodisplay = false;
 	options->vsync = false;
@@ -125,6 +127,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 
 		case 'n':
 			options->nodisplay = true;
+			break;
+
+		case 's':
+			options->singlebuffered = true;
 			break;
 
 		default:
@@ -245,7 +251,8 @@ struct grate_framebuffer *grate_framebuffer_create(struct grate *grate,
 		return NULL;
 	}
 
-	if (flags & GRATE_DOUBLE_BUFFERED) {
+	if ((flags & GRATE_DOUBLE_BUFFERED) &&
+	    !grate->options->singlebuffered) {
 		fb->back = host1x_framebuffer_create(grate->host1x, width,
 						     height, format, layout, 0);
 		if (!fb->back) {
