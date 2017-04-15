@@ -214,6 +214,7 @@ struct grate_font *grate_create_font(struct grate *grate,
 void grate_3d_printf(struct grate *grate,
 		     const struct grate_3d_ctx *ctx,
 		     struct grate_font *font,
+		     unsigned render_target,
 		     float x, float y, float scale,
 		     const char *fmt, ...);
 

@@ -103,14 +103,14 @@ static void test1_lod_bias(enum grate_textute_filter min_filter,
 			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
 	grate_flush(grate);
 
-	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
 			"LOD BIAS: %f\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
 			bias, max_lod,
 			texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
-	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale, "Test #1");
+	grate_3d_printf(grate, ctx, font, 1, 0.55f, 0.85f, font_scale, "Test #1");
 }
 
 static void test2_scale(enum grate_textute_filter min_filter,
@@ -139,13 +139,13 @@ static void test2_scale(enum grate_textute_filter min_filter,
 			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
 	grate_flush(grate);
 
-	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
 			"LOD BIAS: 0\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
 			max_lod, texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
-	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, 0.55f, 0.85f, font_scale,
 			"Test #2");
 }
 
@@ -175,13 +175,13 @@ static void test3_mag(enum grate_textute_filter min_filter,
 			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
 	grate_flush(grate);
 
-	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
 			"LOD BIAS: 0\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
 			max_lod, texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
-	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, 0.55f, 0.85f, font_scale,
 			"Test #3");
 }
 
@@ -209,14 +209,15 @@ static void test4_max_lod(enum grate_textute_filter min_filter,
 			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
 	grate_flush(grate);
 
-	grate_3d_printf(grate, ctx, font, -0.85f, 0.85f, font_scale,
+	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
 			"LOD BIAS: %f\nMAX LOD: %d\nMIN: %s\nMAG: %s\nMIPMAP: %s\n"
 			"Texture id: %d",
 			bias, max_lod,
 			texfilter[min_filter], texfilter[mag_filter],
 			mipdesc[active_tex], active_tex);
 
-	grate_3d_printf(grate, ctx, font, 0.55f, 0.85f, font_scale, "Test #4");
+	grate_3d_printf(grate, ctx, font, 1, 0.55f, 0.85f, font_scale,
+			"Test #4");
 }
 
 int main(int argc, char *argv[])
