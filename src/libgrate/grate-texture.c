@@ -46,6 +46,7 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	unsigned pitch;
 
 	switch (format) {
+	case PIX_BUF_FMT_S8:
 	case PIX_BUF_FMT_RGBA8888:
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:

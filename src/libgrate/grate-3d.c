@@ -209,6 +209,7 @@ static void grate_3d_set_scissor(struct host1x_pushbuf *pb,
 static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 					     unsigned index,
 					     bool depth_test,
+					     bool stencil_test,
 					     bool enable_dither,
 					     struct host1x_pixelbuffer *pixbuf)
 {
@@ -261,6 +262,17 @@ static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 			break;
 		default:
 			grate_error("Invalid depth buffer format %u\n",
+				    pixbuf->format);
+			return -1;
+		}
+	}
+
+	if (index == 2 && stencil_test) {
+		switch (pixel_format) {
+		case PIXEL_FORMAT_S8:
+			break;
+		default:
+			grate_error("Invalid stencil buffer format %u\n",
 				    pixbuf->format);
 			return -1;
 		}
@@ -502,6 +514,18 @@ static unsigned get_depth_func(struct grate_3d_ctx *ctx)
 	abort();
 }
 
+static void grate_3d_set_late_test(struct host1x_pushbuf *pb,
+				   struct grate_3d_ctx *ctx)
+{
+	bool discard = ctx->program->fs->discards_fragment;
+	uint32_t value = 0x48;
+
+	if (discard && ctx->stencil_test)
+		value = 0x60;
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40f, value));
+}
+
 static void grate_3d_set_depth_buffer(struct host1x_pushbuf *pb,
 				      struct grate_3d_ctx *ctx)
 {
@@ -513,6 +537,120 @@ static void grate_3d_set_depth_buffer(struct host1x_pushbuf *pb,
 	value |= 0x200;
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_TEST_PARAMS, 1));
+	host1x_pushbuf_push(pb, value);
+}
+
+static unsigned get_stencil_func(enum grate_3d_ctx_stencil_test_func func)
+{
+	switch (func) {
+	case GRATE_3D_CTX_STENCIL_TEST_NEVER:
+		return STENCIL_FUNC_NEVER;
+
+	case GRATE_3D_CTX_STENCIL_TEST_ALWAYS:
+		return STENCIL_FUNC_ALWAYS;
+
+	case GRATE_3D_CTX_STENCIL_TEST_EQUAL:
+		return STENCIL_FUNC_EQUAL;
+
+	case GRATE_3D_CTX_STENCIL_TEST_NOTEQUAL:
+		return STENCIL_FUNC_NOTEQUAL;
+
+	case GRATE_3D_CTX_STENCIL_TEST_LEQUAL:
+		return STENCIL_FUNC_LESS_EQUAL;
+
+	case GRATE_3D_CTX_STENCIL_TEST_GEQUAL:
+		return STENCIL_FUNC_GREATER_EQUAL;
+
+	case GRATE_3D_CTX_STENCIL_TEST_GREATER:
+		return STENCIL_FUNC_GREATER;
+
+	case GRATE_3D_CTX_STENCIL_TEST_LESS:
+		return STENCIL_FUNC_LESS;
+	}
+
+	grate_error("Something gone horribly wrong\n");
+	abort();
+}
+
+static unsigned get_stencil_op(enum grate_3d_ctx_stencil_operation op)
+{
+	switch (op) {
+	case GRATE_3D_CTX_STENCIL_OP_ZERO:
+		return STENCIL_OP_ZERO;
+
+	case GRATE_3D_CTX_STENCIL_OP_KEEP:
+		return STENCIL_OP_KEEP;
+
+	case GRATE_3D_CTX_STENCIL_OP_INVERT:
+		return STENCIL_OP_INVERT;
+
+	case GRATE_3D_CTX_STENCIL_OP_REPLACE:
+		return STENCIL_OP_REPLACE;
+
+	case GRATE_3D_CTX_STENCIL_OP_INCR:
+		return STENCIL_OP_INCR;
+
+	case GRATE_3D_CTX_STENCIL_OP_DECR:
+		return STENCIL_OP_DECR;
+
+	case GRATE_3D_CTX_STENCIL_OP_INCR_WRAP:
+		return STENCIL_OP_INCR_WRAP;
+
+	case GRATE_3D_CTX_STENCIL_OP_DECR_WRAP:
+		return STENCIL_OP_DECR_WRAP;
+	}
+
+	grate_error("Something gone horribly wrong\n");
+	abort();
+}
+
+static void grate_3d_set_stencil_test(struct host1x_pushbuf *pb,
+				      struct grate_3d_ctx *ctx)
+{
+	uint32_t value;
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_STENCIL_FRONT1, 3));
+
+	value  = TGR3D_VAL(STENCIL_FRONT1, MASK,
+			   ctx->stencil_mask_front);
+	value |= TGR3D_VAL(STENCIL_FRONT1, FUNC,
+			   get_stencil_func(ctx->stencil_func_front));
+	host1x_pushbuf_push(pb, value);
+
+	value  = TGR3D_VAL(STENCIL_BACK1, MASK,
+			   ctx->stencil_mask_back);
+	value |= TGR3D_VAL(STENCIL_BACK1, FUNC,
+			   get_stencil_func(ctx->stencil_func_back));
+	host1x_pushbuf_push(pb, value);
+
+	value  = TGR3D_BOOL(STENCIL_PARAMS, STENCIL_TEST, ctx->stencil_test);
+	value |= TGR3D_BOOL(STENCIL_PARAMS, STENCIL_WRITE_EARLY,
+			    !ctx->program->fs->discards_fragment);
+	value |= 0x8;
+	host1x_pushbuf_push(pb, value);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_STENCIL_FRONT2, 2));
+
+	value  = TGR3D_VAL(STENCIL_FRONT2, REF,
+			   ctx->stencil_ref_front);
+	value |= TGR3D_VAL(STENCIL_FRONT2, OP_FAIL,
+			   get_stencil_op(ctx->stencil_fail_op_front));
+	value |= TGR3D_VAL(STENCIL_FRONT2, OP_ZFAIL,
+			   get_stencil_op(ctx->stencil_zfail_op_front));
+	value |= TGR3D_VAL(STENCIL_FRONT2, OP_ZPASS,
+			   get_stencil_op(ctx->stencil_zpass_op_front));
+	value |= 0x1fe00;
+	host1x_pushbuf_push(pb, value);
+
+	value  = TGR3D_VAL(STENCIL_BACK2, REF,
+			   ctx->stencil_ref_back);
+	value |= TGR3D_VAL(STENCIL_BACK2, OP_FAIL,
+			   get_stencil_op(ctx->stencil_fail_op_back));
+	value |= TGR3D_VAL(STENCIL_BACK2, OP_ZFAIL,
+			   get_stencil_op(ctx->stencil_zfail_op_back));
+	value |= TGR3D_VAL(STENCIL_BACK2, OP_ZPASS,
+			   get_stencil_op(ctx->stencil_zpass_op_back));
+	value |= 0x1fe00;
 	host1x_pushbuf_push(pb, value);
 }
 
@@ -593,6 +731,9 @@ static void grate_3d_setup_render_targets(struct host1x_pushbuf *pb,
 		if (i == 0 && ctx->depth_test)
 			goto pixbuf_check;
 
+		if (i == 2 && ctx->stencil_test)
+			goto pixbuf_check;
+
 		if (!(ctx->render_targets_enable_mask & (1u << i)))
 			continue;
 pixbuf_check:
@@ -601,6 +742,7 @@ pixbuf_check:
 
 		if (grate_3d_set_render_target_params(pb, i,
 						      ctx->depth_test,
+						      ctx->stencil_test,
 						      rt->dither_enabled,
 						      rt->pixbuf))
 			continue;
@@ -789,6 +931,7 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 	grate_3d_set_dither(pb, ctx);
 	grate_3d_set_scissor(pb, ctx);
 	grate_3d_set_guardband(pb, ctx);
+	grate_3d_set_late_test(pb, ctx);
 	grate_3d_set_point_size(pb, ctx);
 	grate_3d_set_line_width(pb, ctx);
 	grate_3d_set_line_params(pb, ctx);
@@ -796,6 +939,7 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 	grate_3d_set_depth_range(pb, ctx);
 	grate_3d_set_point_params(pb, ctx);
 	grate_3d_set_depth_buffer(pb, ctx);
+	grate_3d_set_stencil_test(pb, ctx);
 	grate_3d_set_polygon_offset(pb, ctx);
 	grate_3d_set_alu_buffer_size(pb, ctx);
 	grate_3d_startup_pseq_engine(pb, ctx);

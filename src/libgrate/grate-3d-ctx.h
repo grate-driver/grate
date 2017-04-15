@@ -51,6 +51,34 @@ enum grate_3d_ctx_depth_function {
 	GRATE_3D_CTX_DEPTH_FUNC_ALWAYS,
 };
 
+enum grate_3d_ctx_stencil_test_face {
+	GRATE_3D_CTX_STENCIL_TEST_FRONT,
+	GRATE_3D_CTX_STENCIL_TEST_BACK,
+	GRATE_3D_CTX_STENCIL_TEST_BOTH,
+};
+
+enum grate_3d_ctx_stencil_test_func {
+	GRATE_3D_CTX_STENCIL_TEST_NEVER,
+	GRATE_3D_CTX_STENCIL_TEST_ALWAYS,
+	GRATE_3D_CTX_STENCIL_TEST_EQUAL,
+	GRATE_3D_CTX_STENCIL_TEST_NOTEQUAL,
+	GRATE_3D_CTX_STENCIL_TEST_LEQUAL,
+	GRATE_3D_CTX_STENCIL_TEST_GEQUAL,
+	GRATE_3D_CTX_STENCIL_TEST_GREATER,
+	GRATE_3D_CTX_STENCIL_TEST_LESS,
+};
+
+enum grate_3d_ctx_stencil_operation {
+	GRATE_3D_CTX_STENCIL_OP_ZERO,
+	GRATE_3D_CTX_STENCIL_OP_KEEP,
+	GRATE_3D_CTX_STENCIL_OP_INVERT,
+	GRATE_3D_CTX_STENCIL_OP_REPLACE,
+	GRATE_3D_CTX_STENCIL_OP_INCR,
+	GRATE_3D_CTX_STENCIL_OP_DECR,
+	GRATE_3D_CTX_STENCIL_OP_INCR_WRAP,
+	GRATE_3D_CTX_STENCIL_OP_DECR_WRAP,
+};
+
 struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate);
 
 int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
@@ -153,5 +181,21 @@ void grate_3d_ctx_perform_depth_write(struct grate_3d_ctx *ctx, bool enable);
 
 int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
 				   struct host1x_pixelbuffer *pixbuf);
+
+void grate_3d_ctx_perform_stencil_test(struct grate_3d_ctx *ctx, bool enable);
+
+void grate_3d_ctx_set_stencil_func(struct grate_3d_ctx *ctx,
+				   enum grate_3d_ctx_stencil_test_face face,
+				   enum grate_3d_ctx_stencil_test_func func,
+				   unsigned ref, unsigned mask);
+
+void grate_3d_ctx_set_stencil_ops(struct grate_3d_ctx *ctx,
+				enum grate_3d_ctx_stencil_test_face face,
+				enum grate_3d_ctx_stencil_operation fail_op,
+				enum grate_3d_ctx_stencil_operation zfail_op,
+				enum grate_3d_ctx_stencil_operation zpass_op);
+
+int grate_3d_ctx_bind_stencil_buffer(struct grate_3d_ctx *ctx,
+				     struct host1x_pixelbuffer *pixbuf);
 
 #endif

@@ -485,6 +485,8 @@ void grate_3d_ctx_perform_depth_write(struct grate_3d_ctx *ctx, bool enable)
 int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
 				   struct host1x_pixelbuffer *pixbuf)
 {
+	ctx->render_targets[0].pixbuf = NULL;
+
 	switch (pixbuf->format) {
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:
@@ -504,6 +506,85 @@ int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
 	}
 
 	ctx->render_targets[0].pixbuf = pixbuf;
+
+	return 0;
+}
+
+void grate_3d_ctx_perform_stencil_test(struct grate_3d_ctx *ctx, bool enable)
+{
+	ctx->stencil_test = enable;
+}
+
+void grate_3d_ctx_set_stencil_func(struct grate_3d_ctx *ctx,
+				   enum grate_3d_ctx_stencil_test_face face,
+				   enum grate_3d_ctx_stencil_test_func func,
+				   unsigned ref, unsigned mask)
+{
+	if (mask > 255)
+		grate_error("Invalid mask %u, max 255\n", mask);
+
+	if (ref > 255)
+		grate_error("Invalid ref %u, max 255\n", ref);
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_FRONT ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_func_front = func;
+		ctx->stencil_mask_front = mask;
+		ctx->stencil_ref_front  = ref;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_BACK ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_func_back = func;
+		ctx->stencil_mask_back = mask;
+		ctx->stencil_ref_back  = ref;
+	}
+}
+
+void grate_3d_ctx_set_stencil_ops(struct grate_3d_ctx *ctx,
+				enum grate_3d_ctx_stencil_test_face face,
+				enum grate_3d_ctx_stencil_operation fail_op,
+				enum grate_3d_ctx_stencil_operation zfail_op,
+				enum grate_3d_ctx_stencil_operation zpass_op)
+{
+	if (face == GRATE_3D_CTX_STENCIL_TEST_FRONT ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_fail_op_front  = fail_op;
+		ctx->stencil_zfail_op_front = zfail_op;
+		ctx->stencil_zpass_op_front = zpass_op;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_BACK ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_fail_op_back  = fail_op;
+		ctx->stencil_zfail_op_back = zfail_op;
+		ctx->stencil_zpass_op_back = zpass_op;
+	}
+}
+
+int grate_3d_ctx_bind_stencil_buffer(struct grate_3d_ctx *ctx,
+				     struct host1x_pixelbuffer *pixbuf)
+{
+	ctx->render_targets[2].pixbuf = NULL;
+
+	switch (pixbuf->format) {
+	case PIX_BUF_FMT_S8:
+		break;
+	default:
+		grate_error("Invalid format %u\n", pixbuf->format);
+		return -1;
+	}
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		grate_error("Invalid layout %u\n", pixbuf->layout);
+		return -1;
+	}
+
+	ctx->render_targets[2].pixbuf = pixbuf;
 
 	return 0;
 }
