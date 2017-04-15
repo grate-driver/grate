@@ -439,6 +439,7 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 		return NULL;
 	}
 
+	shader->discards_fragment = !!asm_discards_fragment;
 	shader->pseq_to_dw_nb = asm_pseq_to_dw_exec_nb;
 	shader->pseq_inst_nb = asm_fs_instructions_nb;
 	shader->alu_buf_size = asm_alu_buffer_size;

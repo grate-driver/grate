@@ -97,6 +97,8 @@ const char * fragment_pipeline_disassemble(
 	const alu_instr *alu, unsigned alu_nb,
 	const dw_instr *dw);
 
+extern int asm_discards_fragment;
+
 extern struct yy_buffer_state *linker_asm_scan_string(const char *);
 extern int linker_asmparse(void);
 extern int linker_asmlex_destroy(void);

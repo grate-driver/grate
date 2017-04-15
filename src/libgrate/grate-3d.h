@@ -28,6 +28,7 @@ struct grate_shader {
 			unsigned alu_buf_size;
 			unsigned pseq_inst_nb;
 			unsigned pseq_to_dw_nb;
+			bool discards_fragment;
 		};
 
 		struct {
