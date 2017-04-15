@@ -1,0 +1,39 @@
+/*
+ * Fragment shader for /grate/tests/stencil
+ */
+
+pseq_to_dw_exec_nb = 1
+alu_buffer_size = 1
+
+.constants
+	[0] = 0.017; // color components threshold
+
+.asm
+
+EXEC
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, NOP, NOP
+
+	TEX:	tex r2, r3, tex0, r0, r1, r2
+
+	/*
+	 * cr0 = (-frag.r + 0.017) > 0;
+	 * cr1 = (-frag.g + 0.017) > 0;
+	 * cr2 = (-frag.b + 0.017) > 0;
+	 *
+	 * if (cr0 * cr1 * cr2 == 1)
+	 *	discard;
+	 */
+	ALU:
+		ALU0:	MAD cr0, -r2.l, #1, u0, #1 (gt)
+		ALU1:	MAD cr1, -r2.h, #1, u0, #1 (gt)
+		ALU2:	MAD cr2, -r3.l, #1, u0, #1 (gt)
+		ALU3:	MAD cr0, alu0, alu1, #0
+;
+
+EXEC
+	ALU:	ALU0:	MAD kill, cr0, cr2, #0
+	DW:	0x00028409
+;
