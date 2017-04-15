@@ -71,6 +71,17 @@ struct grate_3d_ctx * grate_3d_alloc_ctx(struct grate *grate)
 
 	ctx->grate = grate;
 
+	ctx->cull_face			= GRATE_3D_CTX_CULL_FACE_NONE;
+	ctx->depth_func			= GRATE_3D_CTX_DEPTH_FUNC_ALWAYS;
+	ctx->stencil_func_front		= GRATE_3D_CTX_STENCIL_TEST_NEVER;
+	ctx->stencil_fail_op_front	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+	ctx->stencil_zfail_op_front	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+	ctx->stencil_zpass_op_front	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+	ctx->stencil_func_back		= GRATE_3D_CTX_STENCIL_TEST_NEVER;
+	ctx->stencil_fail_op_back	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+	ctx->stencil_zfail_op_back	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+	ctx->stencil_zpass_op_back	= GRATE_3D_CTX_STENCIL_OP_KEEP;
+
 	return ctx;
 }
 
