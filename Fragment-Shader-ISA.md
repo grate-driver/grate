@@ -320,3 +320,28 @@ The sampled RGBA data is stored in the two registers as four fx10's.
 |-------:|:--------|
 |      1 | R2-R3   |
 |      0 | R0-R1   |
+
+## DW instruction word encoding
+
+Data write instruction writes values contained in the row registers R0-R1 / R2-R3 to the destination render target.
+
+|   Bits | Meaning                 |
+|-------:|:------------------------|
+| 17..31 | ???                     |
+|     16 | depth write             |
+|     15 | source registers select |
+| 11..14 | ???                     |
+|     10 | stencil write           |
+|   6..9 | ???                     |
+|   2..5 | render target index     |
+|      1 | ???                     |
+|      0 | enable                  |
+
+#### Source registers select:
+
+Seems have no effect when the depth or stencil write enabled.
+
+|  Value | Meaning |
+|-------:|:--------|
+|      1 | R2-R3   |
+|      0 | R0-R1   |
