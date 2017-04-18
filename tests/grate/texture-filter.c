@@ -99,8 +99,9 @@ static void test1_lod_bias(enum grate_textute_filter min_filter,
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
 	grate_3d_ctx_set_fragment_float_uniform(ctx, location, bias);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       idx_bo, TGR3D_INDEX_MODE_UINT16,
+			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
@@ -135,8 +136,9 @@ static void test2_scale(enum grate_textute_filter min_filter,
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
 	grate_3d_ctx_set_fragment_float_uniform(ctx, location, 0.0f);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       idx_bo, TGR3D_INDEX_MODE_UINT16,
+			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
@@ -171,8 +173,9 @@ static void test3_mag(enum grate_textute_filter min_filter,
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
 	grate_3d_ctx_set_fragment_float_uniform(ctx, location, 0.0f);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       idx_bo, TGR3D_INDEX_MODE_UINT16,
+			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,
@@ -205,8 +208,9 @@ static void test4_max_lod(enum grate_textute_filter min_filter,
 	location = grate_get_fragment_uniform_location(quad_program, "lod_bias");
 	grate_3d_ctx_set_fragment_float_uniform(ctx, location, bias);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       idx_bo, INDEX_MODE_UINT16, ARRAY_SIZE(indices));
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       idx_bo, TGR3D_INDEX_MODE_UINT16,
+			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
 	grate_3d_printf(grate, ctx, font, 1, -0.85f, 0.85f, font_scale,

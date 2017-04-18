@@ -370,8 +370,10 @@ void grate_3d_printf(struct grate *grate,
 		HOST1X_BO_FLUSH(font->vertices_bo, font->vertices_bo->offset,
 				chars_nb_to_draw * 32);
 
-		grate_3d_draw_elements(&ctx_copy, PRIMITIVE_TYPE_TRIANGLES,
-				       font->indices_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(&ctx_copy,
+				       TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       font->indices_bo,
+				       TGR3D_INDEX_MODE_UINT16,
 				       chars_nb_to_draw * 6);
 		grate_flush(grate);
 

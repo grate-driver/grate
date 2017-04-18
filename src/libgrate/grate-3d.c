@@ -198,37 +198,37 @@ static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 
 	switch (pixbuf->format) {
 	case PIX_BUF_FMT_A8:
-		pixel_format = PIXEL_FORMAT_A8;
+		pixel_format = TGR3D_PIXEL_FORMAT_A8;
 		break;
 	case PIX_BUF_FMT_L8:
-		pixel_format = PIXEL_FORMAT_L8;
+		pixel_format = TGR3D_PIXEL_FORMAT_L8;
 		break;
 	case PIX_BUF_FMT_S8:
-		pixel_format = PIXEL_FORMAT_S8;
+		pixel_format = TGR3D_PIXEL_FORMAT_S8;
 		break;
 	case PIX_BUF_FMT_LA88:
-		pixel_format = PIXEL_FORMAT_LA88;
+		pixel_format = TGR3D_PIXEL_FORMAT_LA88;
 		break;
 	case PIX_BUF_FMT_RGB565:
-		pixel_format = PIXEL_FORMAT_RGB565;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGB565;
 		break;
 	case PIX_BUF_FMT_RGBA5551:
-		pixel_format = PIXEL_FORMAT_RGBA5551;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA5551;
 		break;
 	case PIX_BUF_FMT_RGBA4444:
-		pixel_format = PIXEL_FORMAT_RGBA4444;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA4444;
 		break;
 	case PIX_BUF_FMT_D16_LINEAR:
-		pixel_format = PIXEL_FORMAT_D16_LINEAR;
+		pixel_format = TGR3D_PIXEL_FORMAT_D16_LINEAR;
 		break;
 	case PIX_BUF_FMT_D16_NONLINEAR:
-		pixel_format = PIXEL_FORMAT_D16_NONLINEAR;
+		pixel_format = TGR3D_PIXEL_FORMAT_D16_NONLINEAR;
 		break;
 	case PIX_BUF_FMT_RGBA8888:
-		pixel_format = PIXEL_FORMAT_RGBA8888;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA8888;
 		break;
 	case PIX_BUF_FMT_RGBA_FP32:
-		pixel_format = PIXEL_FORMAT_RGBA_FP32;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA_FP32;
 		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
@@ -237,8 +237,8 @@ static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 
 	if (index == 0 && depth_test) {
 		switch (pixel_format) {
-		case PIXEL_FORMAT_D16_LINEAR:
-		case PIXEL_FORMAT_D16_NONLINEAR:
+		case TGR3D_PIXEL_FORMAT_D16_LINEAR:
+		case TGR3D_PIXEL_FORMAT_D16_NONLINEAR:
 			break;
 		default:
 			grate_error("Invalid depth buffer format %u\n",
@@ -249,7 +249,7 @@ static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 
 	if (index == 2 && stencil_test) {
 		switch (pixel_format) {
-		case PIXEL_FORMAT_S8:
+		case TGR3D_PIXEL_FORMAT_S8:
 			break;
 		default:
 			grate_error("Invalid stencil buffer format %u\n",
@@ -663,37 +663,37 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 
 	switch (pixbuf->format) {
 	case PIX_BUF_FMT_A8:
-		pixel_format = PIXEL_FORMAT_A8;
+		pixel_format = TGR3D_PIXEL_FORMAT_A8;
 		break;
 	case PIX_BUF_FMT_L8:
-		pixel_format = PIXEL_FORMAT_L8;
+		pixel_format = TGR3D_PIXEL_FORMAT_L8;
 		break;
 	case PIX_BUF_FMT_S8:
-		pixel_format = PIXEL_FORMAT_S8;
+		pixel_format = TGR3D_PIXEL_FORMAT_S8;
 		break;
 	case PIX_BUF_FMT_LA88:
-		pixel_format = PIXEL_FORMAT_LA88;
+		pixel_format = TGR3D_PIXEL_FORMAT_LA88;
 		break;
 	case PIX_BUF_FMT_RGB565:
-		pixel_format = PIXEL_FORMAT_RGB565;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGB565;
 		break;
 	case PIX_BUF_FMT_RGBA5551:
-		pixel_format = PIXEL_FORMAT_RGBA5551;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA5551;
 		break;
 	case PIX_BUF_FMT_RGBA4444:
-		pixel_format = PIXEL_FORMAT_RGBA4444;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA4444;
 		break;
 	case PIX_BUF_FMT_D16_LINEAR:
-		pixel_format = PIXEL_FORMAT_D16_LINEAR;
+		pixel_format = TGR3D_PIXEL_FORMAT_D16_LINEAR;
 		break;
 	case PIX_BUF_FMT_D16_NONLINEAR:
-		pixel_format = PIXEL_FORMAT_D16_NONLINEAR;
+		pixel_format = TGR3D_PIXEL_FORMAT_D16_NONLINEAR;
 		break;
 	case PIX_BUF_FMT_RGBA8888:
-		pixel_format = PIXEL_FORMAT_RGBA8888;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA8888;
 		break;
 	case PIX_BUF_FMT_RGBA_FP32:
-		pixel_format = PIXEL_FORMAT_RGBA_FP32;
+		pixel_format = TGR3D_PIXEL_FORMAT_RGBA_FP32;
 		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
@@ -788,7 +788,7 @@ static void grate_3d_setup_indices(struct host1x_pushbuf *pb,
 				   struct host1x_bo *bo,
 				   unsigned index_mode)
 {
-	if (index_mode == INDEX_MODE_NONE)
+	if (index_mode == TGR3D_INDEX_MODE_NONE)
 		return;
 
 	grate_3d_relocate_primitive_indices(pb, bo, bo->offset);
@@ -857,13 +857,13 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 	}
 
 	switch (primitive_type) {
-	case PRIMITIVE_TYPE_POINTS:
-	case PRIMITIVE_TYPE_LINES:
-	case PRIMITIVE_TYPE_LINE_STRIP:
-	case PRIMITIVE_TYPE_LINE_LOOP:
-	case PRIMITIVE_TYPE_TRIANGLES:
-	case PRIMITIVE_TYPE_TRIANGLE_STRIP:
-	case PRIMITIVE_TYPE_TRIANGLE_FAN:
+	case TGR3D_PRIMITIVE_TYPE_POINTS:
+	case TGR3D_PRIMITIVE_TYPE_LINES:
+	case TGR3D_PRIMITIVE_TYPE_LINE_STRIP:
+	case TGR3D_PRIMITIVE_TYPE_LINE_LOOP:
+	case TGR3D_PRIMITIVE_TYPE_TRIANGLES:
+	case TGR3D_PRIMITIVE_TYPE_TRIANGLE_STRIP:
+	case TGR3D_PRIMITIVE_TYPE_TRIANGLE_FAN:
 		break;
 	default:
 		grate_error("Unsupported primitive type: %d\n", primitive_type);
@@ -871,9 +871,9 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 	}
 
 	switch (index_mode) {
-	case INDEX_MODE_NONE:
-	case INDEX_MODE_UINT8:
-	case INDEX_MODE_UINT16:
+	case TGR3D_INDEX_MODE_NONE:
+	case TGR3D_INDEX_MODE_UINT8:
+	case TGR3D_INDEX_MODE_UINT16:
 		break;
 	default:
 		grate_error("Invalid index buffer mode: %u\n", index_mode);

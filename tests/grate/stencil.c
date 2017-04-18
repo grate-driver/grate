@@ -30,8 +30,8 @@
 #define CHECK(idx_bo, chk_value)				\
 	if (idx_bo) {						\
 		grate_3d_draw_elements(ctx,			\
-				PRIMITIVE_TYPE_TRIANGLES,	\
-				idx_bo, INDEX_MODE_UINT16,	\
+				TGR3D_PRIMITIVE_TYPE_TRIANGLES,	\
+				idx_bo, TGR3D_INDEX_MODE_UINT16,\
 				ARRAY_SIZE(indices));		\
 		grate_flush(grate);				\
 		grate_swap_buffers(grate);			\
@@ -416,8 +416,8 @@ int main(int argc, char *argv[])
 
 	grate_3d_ctx_bind_texture(ctx, 0, text);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       indices_bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       indices_bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
@@ -436,8 +436,8 @@ int main(int argc, char *argv[])
 				      GRATE_3D_CTX_STENCIL_TEST_EQUAL,
 				      0xAB, 0xff);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       indices_bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       indices_bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 

@@ -82,21 +82,21 @@ int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 	struct grate_vtx_attribute *attr;
 
 	switch (type) {
-	case ATTRIB_TYPE_UBYTE:
-	case ATTRIB_TYPE_UBYTE_NORM:
-	case ATTRIB_TYPE_SBYTE:
-	case ATTRIB_TYPE_SBYTE_NORM:
-	case ATTRIB_TYPE_USHORT:
-	case ATTRIB_TYPE_USHORT_NORM:
-	case ATTRIB_TYPE_SSHORT:
-	case ATTRIB_TYPE_SSHORT_NORM:
-	case ATTRIB_TYPE_FIXED16:
-	case ATTRIB_TYPE_FLOAT16:
-	case ATTRIB_TYPE_UINT:
-	case ATTRIB_TYPE_UINT_NORM:
-	case ATTRIB_TYPE_SINT:
-	case ATTRIB_TYPE_SINT_NORM:
-	case ATTRIB_TYPE_FLOAT32:
+	case TGR3D_ATTRIB_TYPE_UBYTE:
+	case TGR3D_ATTRIB_TYPE_UBYTE_NORM:
+	case TGR3D_ATTRIB_TYPE_SBYTE:
+	case TGR3D_ATTRIB_TYPE_SBYTE_NORM:
+	case TGR3D_ATTRIB_TYPE_USHORT:
+	case TGR3D_ATTRIB_TYPE_USHORT_NORM:
+	case TGR3D_ATTRIB_TYPE_SSHORT:
+	case TGR3D_ATTRIB_TYPE_SSHORT_NORM:
+	case TGR3D_ATTRIB_TYPE_FIXED16:
+	case TGR3D_ATTRIB_TYPE_FLOAT16:
+	case TGR3D_ATTRIB_TYPE_UINT:
+	case TGR3D_ATTRIB_TYPE_UINT_NORM:
+	case TGR3D_ATTRIB_TYPE_SINT:
+	case TGR3D_ATTRIB_TYPE_SINT_NORM:
+	case TGR3D_ATTRIB_TYPE_FLOAT32:
 		break;
 	default:
 		grate_error("Invalid type %u\n", type);
@@ -412,18 +412,18 @@ void grate_3d_ctx_set_front_direction_is_cw(struct grate_3d_ctx *ctx,
 					    bool front_cw)
 {
 	switch (ctx->cull_face) {
-	case CULL_FACE_NONE:
-	case CULL_FACE_BOTH:
+	case TGR3D_CULL_FACE_NONE:
+	case TGR3D_CULL_FACE_BOTH:
 		break;
 
-	case CULL_FACE_CW:
+	case TGR3D_CULL_FACE_CW:
 		if (ctx->tri_face_front_cw != front_cw)
-			ctx->cull_face = CULL_FACE_CCW;
+			ctx->cull_face = TGR3D_CULL_FACE_CCW;
 		break;
 
-	case CULL_FACE_CCW:
+	case TGR3D_CULL_FACE_CCW:
 		if (ctx->tri_face_front_cw != front_cw)
-			ctx->cull_face = CULL_FACE_CW;
+			ctx->cull_face = TGR3D_CULL_FACE_CW;
 		break;
 
 	default:
@@ -441,19 +441,21 @@ void grate_3d_ctx_set_cull_face(struct grate_3d_ctx *ctx,
 
 	switch (cull_face) {
 	case GRATE_3D_CTX_CULL_FACE_NONE:
-		ctx->cull_face = CULL_FACE_NONE;
+		ctx->cull_face = TGR3D_CULL_FACE_NONE;
 		break;
 
 	case GRATE_3D_CTX_CULL_FACE_FRONT:
-		ctx->cull_face = front_cw ? CULL_FACE_CW : CULL_FACE_CCW;
+		ctx->cull_face =
+			front_cw ? TGR3D_CULL_FACE_CW : TGR3D_CULL_FACE_CCW;
 		break;
 
 	case GRATE_3D_CTX_CULL_FACE_BACK:
-		ctx->cull_face = front_cw ? CULL_FACE_CCW : CULL_FACE_CW;
+		ctx->cull_face =
+			front_cw ?TGR3D_CULL_FACE_CCW : TGR3D_CULL_FACE_CW;
 		break;
 
 	case GRATE_3D_CTX_CULL_FACE_BOTH:
-		ctx->cull_face = CULL_FACE_BOTH;
+		ctx->cull_face = TGR3D_CULL_FACE_BOTH;
 		break;
 
 	default:
@@ -512,35 +514,35 @@ void grate_3d_ctx_set_depth_func(struct grate_3d_ctx *ctx,
 {
 	switch (func) {
 	case GRATE_3D_CTX_DEPTH_FUNC_NEVER:
-		ctx->depth_func = DEPTH_FUNC_NEVER;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_NEVER;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_LESS:
-		ctx->depth_func = DEPTH_FUNC_LESS;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_LESS;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_EQUAL:
-		ctx->depth_func = DEPTH_FUNC_EQUAL;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_LEQUAL:
-		ctx->depth_func = DEPTH_FUNC_LEQUAL;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_LEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_GREATER:
-		ctx->depth_func = DEPTH_FUNC_GREATER;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_GREATER;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL:
-		ctx->depth_func = DEPTH_FUNC_NOTEQUAL;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_NOTEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_GEQUAL:
-		ctx->depth_func = DEPTH_FUNC_GEQUAL;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_GEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_ALWAYS:
-		ctx->depth_func = DEPTH_FUNC_ALWAYS;
+		ctx->depth_func = TGR3D_DEPTH_FUNC_ALWAYS;
 		break;
 	default:
 		grate_error("Invalid depth function %u\n", func);
@@ -605,35 +607,35 @@ void grate_3d_ctx_set_stencil_func(struct grate_3d_ctx *ctx,
 
 	switch (func) {
 	case GRATE_3D_CTX_STENCIL_TEST_NEVER:
-		stencil_func = STENCIL_FUNC_NEVER;
+		stencil_func = TGR3D_STENCIL_FUNC_NEVER;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_ALWAYS:
-		stencil_func = STENCIL_FUNC_ALWAYS;
+		stencil_func = TGR3D_STENCIL_FUNC_ALWAYS;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_EQUAL:
-		stencil_func = STENCIL_FUNC_EQUAL;
+		stencil_func = TGR3D_STENCIL_FUNC_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_NOTEQUAL:
-		stencil_func = STENCIL_FUNC_NOTEQUAL;
+		stencil_func = TGR3D_STENCIL_FUNC_NOTEQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_LEQUAL:
-		stencil_func = STENCIL_FUNC_LESS_EQUAL;
+		stencil_func = TGR3D_STENCIL_FUNC_LESS_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_GEQUAL:
-		stencil_func = STENCIL_FUNC_GREATER_EQUAL;
+		stencil_func = TGR3D_STENCIL_FUNC_GREATER_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_GREATER:
-		stencil_func = STENCIL_FUNC_GREATER;
+		stencil_func = TGR3D_STENCIL_FUNC_GREATER;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_LESS:
-		stencil_func = STENCIL_FUNC_LESS;
+		stencil_func = TGR3D_STENCIL_FUNC_LESS;
 		break;
 	default:
 		grate_error("Invalid stencil function %u\n", func);
@@ -659,28 +661,28 @@ static int get_stencil_op(enum grate_3d_ctx_stencil_operation op)
 {
 	switch (op) {
 	case GRATE_3D_CTX_STENCIL_OP_ZERO:
-		return STENCIL_OP_ZERO;
+		return TGR3D_STENCIL_OP_ZERO;
 
 	case GRATE_3D_CTX_STENCIL_OP_KEEP:
-		return STENCIL_OP_KEEP;
+		return TGR3D_STENCIL_OP_KEEP;
 
 	case GRATE_3D_CTX_STENCIL_OP_INVERT:
-		return STENCIL_OP_INVERT;
+		return TGR3D_STENCIL_OP_INVERT;
 
 	case GRATE_3D_CTX_STENCIL_OP_REPLACE:
-		return STENCIL_OP_REPLACE;
+		return TGR3D_STENCIL_OP_REPLACE;
 
 	case GRATE_3D_CTX_STENCIL_OP_INCR:
-		return STENCIL_OP_INCR;
+		return TGR3D_STENCIL_OP_INCR;
 
 	case GRATE_3D_CTX_STENCIL_OP_DECR:
-		return STENCIL_OP_DECR;
+		return TGR3D_STENCIL_OP_DECR;
 
 	case GRATE_3D_CTX_STENCIL_OP_INCR_WRAP:
-		return STENCIL_OP_INCR_WRAP;
+		return TGR3D_STENCIL_OP_INCR_WRAP;
 
 	case GRATE_3D_CTX_STENCIL_OP_DECR_WRAP:
-		return STENCIL_OP_DECR_WRAP;
+		return TGR3D_STENCIL_OP_DECR_WRAP;
 	}
 
 	return -1;

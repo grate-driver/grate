@@ -88,7 +88,7 @@ int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 
 #define grate_3d_ctx_vertex_attrib_float_pointer(ctx, location, size, bo)\
 	grate_3d_ctx_vertex_attrib_pointer(ctx, location, size,		\
-					   ATTRIB_TYPE_FLOAT32,		\
+					   TGR3D_ATTRIB_TYPE_FLOAT32,	\
 				           size * sizeof(float), bo)	\
 
 int grate_3d_ctx_enable_vertex_attrib_array(struct grate_3d_ctx *ctx,
