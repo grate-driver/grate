@@ -323,7 +323,7 @@ The sampled RGBA data is stored in the two registers as four fx10's.
 
 ## DW instruction word encoding
 
-Data write instruction writes values contained in the row registers R0-R1 / R2-R3 to the destination render target.
+Data write instruction controls write of values contained in the row registers R0-R1 / R2-R3 to the destination render target.
 
 |   Bits | Meaning                 |
 |-------:|:------------------------|
