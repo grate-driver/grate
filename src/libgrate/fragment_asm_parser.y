@@ -63,6 +63,8 @@ unsigned asm_alu_instructions_nb;
 unsigned asm_alu_buffer_size;
 unsigned asm_pseq_to_dw_exec_nb;
 
+int asm_discards_fragment;
+
 static void reset_fragment_asm_parser_state(void)
 {
 	int i, k;
@@ -88,6 +90,8 @@ static void reset_fragment_asm_parser_state(void)
 	asm_alu_instructions_nb = 0;
 	asm_alu_buffer_size = 1;
 	asm_pseq_to_dw_exec_nb = 1;
+
+	asm_discards_fragment = 0;
 
 	fragment_asmlineno = 1;
 }
@@ -1141,6 +1145,8 @@ ALU_DST:
 		yyval.alu_dst.index	= FRAGMENT_KILL_REG;
 		yyval.alu_dst.low	= 1;
 		yyval.alu_dst.high	= 1;
+
+		asm_discards_fragment = 1;
 	}
 	;
 

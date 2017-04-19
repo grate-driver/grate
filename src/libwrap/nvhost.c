@@ -590,18 +590,18 @@ static void nvhost_dump_register_write(int offset, uint32_t value)
 			printf("        %s <= %s\n", info->name,
 			    rnndec_decodeval(vc, info->typeinfo, value, info->width));
 		else if (info)
-			printf("        %s <= %08x\n", info->name, value);
+			printf("        %s <= 0x%08x\n", info->name, value);
 		else
-			printf("        %03x <= %08x\n", offset, value);
+			printf("        %03x <= 0x%08x\n", offset, value);
 	} else
-		printf("        %03x <= %08x\n", offset, value);
+		printf("        %03x <= 0x%08x\n", offset, value);
 }
 
 #else
 
 static void nvhost_dump_register_write(int offset, int value)
 {
-	printf("        %03x <= %08x\n", offset, value);
+	printf("        %03x <= 0x%08x\n", offset, value);
 }
 
 #endif

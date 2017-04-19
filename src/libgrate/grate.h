@@ -68,6 +68,7 @@ struct host1x_bo *grate_bo_create_from_data(struct grate *grate, size_t size,
 
 struct grate_options {
 	unsigned int x, y, width, height;
+	bool singlebuffered;
 	bool fullscreen;
 	bool nodisplay;
 	bool vsync;
@@ -203,7 +204,7 @@ int grate_texture_blit(struct grate *grate,
 		       struct grate_texture *src_tex,
 		       struct grate_texture *dst_tex,
 		       unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		       unsigned dx, unsigned dy, unsigned dw, unsigned dh);
+		       unsigned dx, unsigned dy, unsigned dw, signed dh);
 
 struct grate_font;
 
@@ -213,6 +214,7 @@ struct grate_font *grate_create_font(struct grate *grate,
 void grate_3d_printf(struct grate *grate,
 		     const struct grate_3d_ctx *ctx,
 		     struct grate_font *font,
+		     unsigned render_target,
 		     float x, float y, float scale,
 		     const char *fmt, ...);
 

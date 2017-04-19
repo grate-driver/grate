@@ -1,0 +1,19 @@
+/*
+ * Vertex shader for /grate/tests/stencil
+ */
+
+.exports
+	[0] = "position";
+	[7] = "texcoord";
+
+.attributes
+	[0] = "position";
+	[1] = "texcoord";
+
+.asm
+
+/* Position */
+EXEC(export[0]=vector) MOVv r63.xy**, a[0].xyzw;
+
+/* texcoord export */
+EXEC(export[7]=vector) MOVv r63.xy**, a[1].xyzw;

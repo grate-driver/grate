@@ -6,7 +6,8 @@ libcommon_la_SOURCES = \
 
 libcommon_la_LIBADD = $(X11_LIBS) $(GLES1_LIBS) $(PNG_LIBS)
 
-AM_CPPFLAGS = -I$(top_srcdir)/src/libgrate $(GLES1_CFLAGS)
+AM_CFLAGS = -I$(top_srcdir)/src/libgrate $(GLES1_CFLAGS) $(PNG_CFLAGS)
+AM_LDFLAGS = -static
 LDADD = libcommon.la
 
 noinst_PROGRAMS = \

@@ -255,12 +255,10 @@ int host1x_gr2d_clear_rect(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x1e, 7));
 	host1x_pushbuf_push(pb, 0x00000000);
-
-	if (PIX_BUF_FORMAT_BITS(pixbuf->format) == 16)
-		host1x_pushbuf_push(pb, 0x00010044); /* 16-bit depth */
-	else
-		host1x_pushbuf_push(pb, 0x00020044); /* 32-bit depth */
-
+	host1x_pushbuf_push(pb, /* controlmain */
+			(PIX_BUF_FORMAT_BYTES(pixbuf->format) >> 1) << 16 |
+			1 << 6 | /* srcsld */
+			1 << 2 /* turbofill */);
 	host1x_pushbuf_push(pb, 0x000000cc);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x2b, 9));
 	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, pixbuf->bo->offset, 0);
@@ -346,6 +344,14 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	if (height < 0) {
 		yflip = 1;
 		height = -height;
+	}
+
+	if (sx + width > src->width ||
+	    dx + width > dst->width ||
+	    sy + height > src->height ||
+	    dy + height > dst->height) {
+		host1x_error("Coords out of range\n");
+		return -EINVAL;
 	}
 
 	if (src_orig != dst_orig)
@@ -528,7 +534,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	    src->format == PIX_BUF_FMT_RGBA8888) {
 		src_fmt = 14;
 		dst_fmt = 14;
-		goto scale_check;
+		goto coords_check;
 	}
 
 	switch (src->format) {
@@ -555,10 +561,18 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-scale_check:
+coords_check:
 	if (dst_height < 0) {
 		yflip = 1;
 		dst_height = -dst_height;
+	}
+
+	if (sx + src_width > src->width ||
+	    dx + dst_width > dst->width ||
+	    sy + src_height > src->height ||
+	    dy + dst_height > dst->height) {
+		host1x_error("Coords out of range\n");
+		return -EINVAL;
 	}
 
 	inv_scale_x = (src_width) / (float)(dst_width);

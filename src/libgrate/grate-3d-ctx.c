@@ -82,21 +82,21 @@ int grate_3d_ctx_vertex_attrib_pointer(struct grate_3d_ctx *ctx,
 	struct grate_vtx_attribute *attr;
 
 	switch (type) {
-	case ATTRIB_TYPE_UBYTE:
-	case ATTRIB_TYPE_UBYTE_NORM:
-	case ATTRIB_TYPE_SBYTE:
-	case ATTRIB_TYPE_SBYTE_NORM:
-	case ATTRIB_TYPE_USHORT:
-	case ATTRIB_TYPE_USHORT_NORM:
-	case ATTRIB_TYPE_SSHORT:
-	case ATTRIB_TYPE_SSHORT_NORM:
-	case ATTRIB_TYPE_FIXED16:
-	case ATTRIB_TYPE_FLOAT16:
-	case ATTRIB_TYPE_UINT:
-	case ATTRIB_TYPE_UINT_NORM:
-	case ATTRIB_TYPE_SINT:
-	case ATTRIB_TYPE_SINT_NORM:
-	case ATTRIB_TYPE_FLOAT32:
+	case TGR3D_ATTRIB_TYPE_UBYTE:
+	case TGR3D_ATTRIB_TYPE_UBYTE_NORM:
+	case TGR3D_ATTRIB_TYPE_SBYTE:
+	case TGR3D_ATTRIB_TYPE_SBYTE_NORM:
+	case TGR3D_ATTRIB_TYPE_USHORT:
+	case TGR3D_ATTRIB_TYPE_USHORT_NORM:
+	case TGR3D_ATTRIB_TYPE_SSHORT:
+	case TGR3D_ATTRIB_TYPE_SSHORT_NORM:
+	case TGR3D_ATTRIB_TYPE_FIXED16:
+	case TGR3D_ATTRIB_TYPE_FLOAT16:
+	case TGR3D_ATTRIB_TYPE_UINT:
+	case TGR3D_ATTRIB_TYPE_UINT_NORM:
+	case TGR3D_ATTRIB_TYPE_SINT:
+	case TGR3D_ATTRIB_TYPE_SINT_NORM:
+	case TGR3D_ATTRIB_TYPE_FLOAT32:
 		break;
 	default:
 		grate_error("Invalid type %u\n", type);
@@ -411,13 +411,56 @@ void grate_3d_ctx_use_guardband(struct grate_3d_ctx *ctx, bool enabled)
 void grate_3d_ctx_set_front_direction_is_cw(struct grate_3d_ctx *ctx,
 					    bool front_cw)
 {
+	switch (ctx->cull_face) {
+	case TGR3D_CULL_FACE_NONE:
+	case TGR3D_CULL_FACE_BOTH:
+		break;
+
+	case TGR3D_CULL_FACE_CW:
+		if (ctx->tri_face_front_cw != front_cw)
+			ctx->cull_face = TGR3D_CULL_FACE_CCW;
+		break;
+
+	case TGR3D_CULL_FACE_CCW:
+		if (ctx->tri_face_front_cw != front_cw)
+			ctx->cull_face = TGR3D_CULL_FACE_CW;
+		break;
+
+	default:
+		grate_error("Invalid cull face %u\n", ctx->cull_face);
+		abort();
+	}
+
 	ctx->tri_face_front_cw = front_cw;
 }
 
 void grate_3d_ctx_set_cull_face(struct grate_3d_ctx *ctx,
                                 enum grate_3d_ctx_cull_face cull_face)
 {
-	ctx->cull_face = cull_face;
+	bool front_cw = ctx->tri_face_front_cw;
+
+	switch (cull_face) {
+	case GRATE_3D_CTX_CULL_FACE_NONE:
+		ctx->cull_face = TGR3D_CULL_FACE_NONE;
+		break;
+
+	case GRATE_3D_CTX_CULL_FACE_FRONT:
+		ctx->cull_face =
+			front_cw ? TGR3D_CULL_FACE_CW : TGR3D_CULL_FACE_CCW;
+		break;
+
+	case GRATE_3D_CTX_CULL_FACE_BACK:
+		ctx->cull_face =
+			front_cw ?TGR3D_CULL_FACE_CCW : TGR3D_CULL_FACE_CW;
+		break;
+
+	case GRATE_3D_CTX_CULL_FACE_BOTH:
+		ctx->cull_face = TGR3D_CULL_FACE_BOTH;
+		break;
+
+	default:
+		grate_error("Invalid cull face %u\n", cull_face);
+	}
 }
 
 void grate_3d_ctx_set_scissor(struct grate_3d_ctx *ctx,
@@ -469,7 +512,41 @@ int grate_3d_ctx_bind_texture(struct grate_3d_ctx *ctx,
 void grate_3d_ctx_set_depth_func(struct grate_3d_ctx *ctx,
 				 enum grate_3d_ctx_depth_function func)
 {
-	ctx->depth_func = func;
+	switch (func) {
+	case GRATE_3D_CTX_DEPTH_FUNC_NEVER:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_NEVER;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_LESS:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_LESS;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_EQUAL:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_EQUAL;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_LEQUAL:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_LEQUAL;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_GREATER:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_GREATER;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_NOTEQUAL;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_GEQUAL:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_GEQUAL;
+		break;
+
+	case GRATE_3D_CTX_DEPTH_FUNC_ALWAYS:
+		ctx->depth_func = TGR3D_DEPTH_FUNC_ALWAYS;
+		break;
+	default:
+		grate_error("Invalid depth function %u\n", func);
+	}
 }
 
 void grate_3d_ctx_perform_depth_test(struct grate_3d_ctx *ctx, bool enable)
@@ -485,6 +562,8 @@ void grate_3d_ctx_perform_depth_write(struct grate_3d_ctx *ctx, bool enable)
 int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
 				   struct host1x_pixelbuffer *pixbuf)
 {
+	ctx->render_targets[0].pixbuf = NULL;
+
 	switch (pixbuf->format) {
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:
@@ -504,6 +583,176 @@ int grate_3d_ctx_bind_depth_buffer(struct grate_3d_ctx *ctx,
 	}
 
 	ctx->render_targets[0].pixbuf = pixbuf;
+
+	return 0;
+}
+
+void grate_3d_ctx_perform_stencil_test(struct grate_3d_ctx *ctx, bool enable)
+{
+	ctx->stencil_test = enable;
+}
+
+void grate_3d_ctx_set_stencil_func(struct grate_3d_ctx *ctx,
+				   enum grate_3d_ctx_stencil_test_face face,
+				   enum grate_3d_ctx_stencil_test_func func,
+				   unsigned ref, unsigned mask)
+{
+	unsigned stencil_func;
+
+	if (mask > 255)
+		grate_error("Invalid mask %u, max 255\n", mask);
+
+	if (ref > 255)
+		grate_error("Invalid ref %u, max 255\n", ref);
+
+	switch (func) {
+	case GRATE_3D_CTX_STENCIL_TEST_NEVER:
+		stencil_func = TGR3D_STENCIL_FUNC_NEVER;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_ALWAYS:
+		stencil_func = TGR3D_STENCIL_FUNC_ALWAYS;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_EQUAL:
+		stencil_func = TGR3D_STENCIL_FUNC_EQUAL;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_NOTEQUAL:
+		stencil_func = TGR3D_STENCIL_FUNC_NOTEQUAL;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_LEQUAL:
+		stencil_func = TGR3D_STENCIL_FUNC_LESS_EQUAL;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_GEQUAL:
+		stencil_func = TGR3D_STENCIL_FUNC_GREATER_EQUAL;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_GREATER:
+		stencil_func = TGR3D_STENCIL_FUNC_GREATER;
+		break;
+
+	case GRATE_3D_CTX_STENCIL_TEST_LESS:
+		stencil_func = TGR3D_STENCIL_FUNC_LESS;
+		break;
+	default:
+		grate_error("Invalid stencil function %u\n", func);
+		return;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_FRONT ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_func_front = stencil_func;
+		ctx->stencil_mask_front = mask;
+		ctx->stencil_ref_front  = ref;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_BACK ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_func_back = stencil_func;
+		ctx->stencil_mask_back = mask;
+		ctx->stencil_ref_back  = ref;
+	}
+}
+
+static int get_stencil_op(enum grate_3d_ctx_stencil_operation op)
+{
+	switch (op) {
+	case GRATE_3D_CTX_STENCIL_OP_ZERO:
+		return TGR3D_STENCIL_OP_ZERO;
+
+	case GRATE_3D_CTX_STENCIL_OP_KEEP:
+		return TGR3D_STENCIL_OP_KEEP;
+
+	case GRATE_3D_CTX_STENCIL_OP_INVERT:
+		return TGR3D_STENCIL_OP_INVERT;
+
+	case GRATE_3D_CTX_STENCIL_OP_REPLACE:
+		return TGR3D_STENCIL_OP_REPLACE;
+
+	case GRATE_3D_CTX_STENCIL_OP_INCR:
+		return TGR3D_STENCIL_OP_INCR;
+
+	case GRATE_3D_CTX_STENCIL_OP_DECR:
+		return TGR3D_STENCIL_OP_DECR;
+
+	case GRATE_3D_CTX_STENCIL_OP_INCR_WRAP:
+		return TGR3D_STENCIL_OP_INCR_WRAP;
+
+	case GRATE_3D_CTX_STENCIL_OP_DECR_WRAP:
+		return TGR3D_STENCIL_OP_DECR_WRAP;
+	}
+
+	return -1;
+}
+
+void grate_3d_ctx_set_stencil_ops(struct grate_3d_ctx *ctx,
+				enum grate_3d_ctx_stencil_test_face face,
+				enum grate_3d_ctx_stencil_operation fail_op,
+				enum grate_3d_ctx_stencil_operation zfail_op,
+				enum grate_3d_ctx_stencil_operation zpass_op)
+{
+	int stencil_fail_op = get_stencil_op(fail_op);
+	int stencil_zfail_op = get_stencil_op(zfail_op);
+	int stencil_zpass_op = get_stencil_op(zpass_op);
+
+	if (stencil_fail_op < 0) {
+		grate_error("Invalid stencil fail operation %u\n", fail_op);
+		return;
+	}
+
+	if (stencil_zfail_op < 0) {
+		grate_error("Invalid stencil depth fail operation %u\n",
+			    zfail_op);
+		return;
+	}
+
+	if (stencil_zpass_op < 0) {
+		grate_error("Invalid stencil depth pass operation %u\n",
+			    zpass_op);
+		return;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_FRONT ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_fail_op_front  = stencil_fail_op;
+		ctx->stencil_zfail_op_front = stencil_zfail_op;
+		ctx->stencil_zpass_op_front = stencil_zpass_op;
+	}
+
+	if (face == GRATE_3D_CTX_STENCIL_TEST_BACK ||
+	    face == GRATE_3D_CTX_STENCIL_TEST_BOTH) {
+		ctx->stencil_fail_op_back  = stencil_fail_op;
+		ctx->stencil_zfail_op_back = stencil_zfail_op;
+		ctx->stencil_zpass_op_back = stencil_zpass_op;
+	}
+}
+
+int grate_3d_ctx_bind_stencil_buffer(struct grate_3d_ctx *ctx,
+				     struct host1x_pixelbuffer *pixbuf)
+{
+	ctx->render_targets[2].pixbuf = NULL;
+
+	switch (pixbuf->format) {
+	case PIX_BUF_FMT_S8:
+		break;
+	default:
+		grate_error("Invalid format %u\n", pixbuf->format);
+		return -1;
+	}
+
+	switch (pixbuf->layout) {
+	case PIX_BUF_LAYOUT_LINEAR:
+	case PIX_BUF_LAYOUT_TILED_16x16:
+		break;
+	default:
+		grate_error("Invalid layout %u\n", pixbuf->layout);
+		return -1;
+	}
+
+	ctx->render_targets[2].pixbuf = pixbuf;
 
 	return 0;
 }

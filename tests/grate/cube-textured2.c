@@ -375,8 +375,8 @@ int main(int argc, char *argv[])
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_vertices_loc);
 		grate_3d_ctx_enable_vertex_attrib_array(ctx, cube_texcoord_loc);
 
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       cube_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       cube_bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
 		grate_flush(grate);
 
@@ -392,8 +392,8 @@ int main(int argc, char *argv[])
 
 		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
 						     &cube_mvp);
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       cube_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       cube_bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
 		grate_flush(grate);
 
@@ -408,8 +408,8 @@ int main(int argc, char *argv[])
 
 		grate_3d_ctx_set_vertex_mat4_uniform(ctx, cube_mvp_loc,
 						     &cube_mvp);
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       cube_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       cube_bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
 		grate_flush(grate);
 
@@ -433,8 +433,8 @@ int main(int argc, char *argv[])
 		/* Bypass depth test to always draw on top of cubes */
 		grate_3d_ctx_set_depth_func(ctx, GRATE_3D_CTX_DEPTH_FUNC_ALWAYS);
 
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       grate_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       grate_bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(grate_indices));
 		grate_flush(grate);
 

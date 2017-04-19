@@ -293,8 +293,8 @@ int main(int argc, char *argv[])
 		pixbuf = grate_get_draw_pixbuf(fb);
 		grate_3d_ctx_bind_render_target(ctx, 1, pixbuf);
 
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(indices));
 		grate_flush(grate);
 		grate_swap_buffers(grate);

@@ -346,8 +346,8 @@ int main(int argc, char *argv[])
 
 		/* Draw cube */
 
-		grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-				       cube_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       cube_bo, TGR3D_INDEX_MODE_UINT16,
 				       ARRAY_SIZE(cube_indices));
 		grate_flush(grate);
 

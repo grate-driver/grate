@@ -28,6 +28,7 @@ struct grate_shader {
 			unsigned alu_buf_size;
 			unsigned pseq_inst_nb;
 			unsigned pseq_to_dw_nb;
+			bool discards_fragment;
 		};
 
 		struct {
@@ -114,8 +115,17 @@ struct grate_3d_ctx {
 	bool tri_face_front_cw;
 	bool depth_test;
 	bool depth_write;
-	enum grate_3d_ctx_cull_face cull_face;
-	enum grate_3d_ctx_depth_function depth_func;
+	bool stencil_test;
+	unsigned cull_face;
+	unsigned depth_func;
+	unsigned stencil_func_front;
+	unsigned stencil_fail_op_front;
+	unsigned stencil_zfail_op_front;
+	unsigned stencil_zpass_op_front;
+	unsigned stencil_func_back;
+	unsigned stencil_fail_op_back;
+	unsigned stencil_zfail_op_back;
+	unsigned stencil_zpass_op_back;
 	uint32_t dither_unk;
 	uint32_t point_params;
 	uint32_t line_params;
@@ -126,6 +136,11 @@ struct grate_3d_ctx {
 
 	uint16_t attributes_enable_mask;
 	uint16_t render_targets_enable_mask;
+
+	uint8_t stencil_ref_front;
+	uint8_t stencil_ref_back;
+	uint8_t stencil_mask_front;
+	uint8_t stencil_mask_back;
 };
 
 #endif

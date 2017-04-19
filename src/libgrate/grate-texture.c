@@ -46,6 +46,7 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	unsigned pitch;
 
 	switch (format) {
+	case PIX_BUF_FMT_S8:
 	case PIX_BUF_FMT_RGBA8888:
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:
@@ -474,7 +475,7 @@ int grate_texture_blit(struct grate *grate,
 		       struct grate_texture *src_tex,
 		       struct grate_texture *dst_tex,
 		       unsigned sx, unsigned sy, unsigned sw, unsigned sh,
-		       unsigned dx, unsigned dy, unsigned dw, unsigned dh)
+		       unsigned dx, unsigned dy, unsigned dw, signed dh)
 {
 	struct host1x_gr2d *gr2d = host1x_get_gr2d(grate->host1x);
 	struct host1x_pixelbuffer *src_pixbuf = src_tex->pixbuf;

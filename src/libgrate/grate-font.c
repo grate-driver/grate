@@ -228,6 +228,7 @@ struct grate_font *grate_create_font(struct grate *grate,
 void grate_3d_printf(struct grate *grate,
 		     const struct grate_3d_ctx *ctx,
 		     struct grate_font *font,
+		     unsigned render_target,
 		     float x, float y, float scale,
 		     const char *fmt, ...)
 {
@@ -253,12 +254,18 @@ void grate_3d_printf(struct grate *grate,
 	if (!chars_nb)
 		goto out;
 
-	fb_pixbuf = grate_get_draw_pixbuf(grate->fb);
+	fb_pixbuf = ctx->render_targets[render_target].pixbuf;
 	tex_pixbuf = font->texture->pixbuf;
+
+	if (render_target > 15 || !fb_pixbuf) {
+		grate_error("Invalid render target %u\n", render_target);
+		goto out;
+	}
 
 	ctx_copy = *ctx;
 	grate_3d_ctx_perform_depth_test(&ctx_copy, false);
 	grate_3d_ctx_perform_depth_write(&ctx_copy, false);
+	grate_3d_ctx_perform_stencil_test(&ctx_copy, false);
 	grate_3d_ctx_set_cull_face(&ctx_copy, GRATE_3D_CTX_CULL_FACE_NONE);
 	grate_3d_ctx_bind_program(&ctx_copy, font->program);
 
@@ -282,8 +289,8 @@ void grate_3d_printf(struct grate *grate,
 	grate_texture_set_wrap_t(font->texture, GRATE_TEXTURE_MIRRORED_REPEAT);
 	grate_texture_set_mag_filter(font->texture, GRATE_TEXTURE_LINEAR);
 
-	grate_3d_ctx_bind_render_target(&ctx_copy, 1, fb_pixbuf);
-	grate_3d_ctx_enable_render_target(&ctx_copy, 1);
+	grate_3d_ctx_bind_render_target(&ctx_copy, render_target, fb_pixbuf);
+	grate_3d_ctx_enable_render_target(&ctx_copy, render_target);
 
 	fb_w = fb_pixbuf->width;
 	fb_h = fb_pixbuf->height;
@@ -363,8 +370,10 @@ void grate_3d_printf(struct grate *grate,
 		HOST1X_BO_FLUSH(font->vertices_bo, font->vertices_bo->offset,
 				chars_nb_to_draw * 32);
 
-		grate_3d_draw_elements(&ctx_copy, PRIMITIVE_TYPE_TRIANGLES,
-				       font->indices_bo, INDEX_MODE_UINT16,
+		grate_3d_draw_elements(&ctx_copy,
+				       TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+				       font->indices_bo,
+				       TGR3D_INDEX_MODE_UINT16,
 				       chars_nb_to_draw * 6);
 		grate_flush(grate);
 

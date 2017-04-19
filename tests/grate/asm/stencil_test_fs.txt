@@ -1,0 +1,17 @@
+/*
+ * Fragment shader for /grate/tests/stencil
+ */
+
+pseq_to_dw_exec_nb = 1
+alu_buffer_size = 1
+
+.asm
+EXEC
+	ALU:
+		ALU0:	MAD  r3.*h,  #1, #0, #0 // Alpha
+		ALU1:	MAD  r3.l*,  #1, #1, #0 // Blue
+		ALU2:	MAD  r2.*h,  #1, #0, #0 // Green
+		ALU3:	MAD  r2.l*,  #1, #0, #0 // Red
+
+	DW:	0x00028005
+;

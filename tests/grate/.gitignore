@@ -4,6 +4,7 @@ cube-textured
 cube-textured2
 interactive
 quad
+stencil
 texture-filter
 texture-wrap
 triangle

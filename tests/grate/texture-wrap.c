@@ -200,8 +200,8 @@ int main(int argc, char *argv[])
 	grate_texture_set_wrap_s(texture2, GRATE_TEXTURE_CLAMP_TO_EDGE);
 	grate_texture_set_wrap_t(texture2, GRATE_TEXTURE_CLAMP_TO_EDGE);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
@@ -218,8 +218,8 @@ int main(int argc, char *argv[])
 	grate_texture_set_wrap_s(texture1, GRATE_TEXTURE_REPEAT);
 	grate_texture_set_wrap_t(texture1, GRATE_TEXTURE_REPEAT);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
@@ -236,8 +236,8 @@ int main(int argc, char *argv[])
 	grate_texture_set_wrap_s(texture1, GRATE_TEXTURE_MIRRORED_REPEAT);
 	grate_texture_set_wrap_t(texture1, GRATE_TEXTURE_MIRRORED_REPEAT);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
@@ -254,8 +254,8 @@ int main(int argc, char *argv[])
 	grate_texture_set_wrap_s(texture2, GRATE_TEXTURE_MIRRORED_REPEAT);
 	grate_texture_set_wrap_t(texture2, GRATE_TEXTURE_CLAMP_TO_EDGE);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 

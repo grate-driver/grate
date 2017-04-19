@@ -163,8 +163,8 @@ int main(int argc, char *argv[])
 
 	bo = grate_create_attrib_bo_from_data(grate, indices);
 
-	grate_3d_draw_elements(ctx, PRIMITIVE_TYPE_TRIANGLES,
-			       bo, INDEX_MODE_UINT16,
+	grate_3d_draw_elements(ctx, TGR3D_PRIMITIVE_TYPE_TRIANGLES,
+			       bo, TGR3D_INDEX_MODE_UINT16,
 			       ARRAY_SIZE(indices));
 	grate_flush(grate);
 
