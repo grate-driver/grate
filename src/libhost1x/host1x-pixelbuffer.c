@@ -40,6 +40,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 {
 	struct host1x_pixelbuffer *pixbuf;
 	unsigned long flags = NVHOST_BO_FLAG_FRAMEBUFFER;
+	size_t bo_size;
 
 	pixbuf = calloc(1, sizeof(*pixbuf));
 	if (!pixbuf)
@@ -55,12 +56,16 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	pixbuf->layout = layout;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
+		height = ALIGN(height, 16);
+
+	bo_size = pixbuf->pitch * height + PIXBUF_GUARD_AREA_SIZE;
+
+	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flags |= HOST1X_BO_CREATE_FLAG_TILED;
 
 	flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
-	pixbuf->bo = HOST1X_BO_CREATE(host1x,
-			pixbuf->pitch * height + PIXBUF_GUARD_BAND, flags);
+	pixbuf->bo = HOST1X_BO_CREATE(host1x, bo_size, flags);
 	if (!pixbuf->bo) {
 		free(pixbuf);
 		return NULL;
