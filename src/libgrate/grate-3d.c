@@ -832,6 +832,33 @@ static void grate_3d_setup_context(struct host1x_pushbuf *pb,
 	grate_shader_emit(pb, ctx->program->linker);
 }
 
+static void grate_3d_check_render_targets_guard(struct grate_3d_ctx *ctx)
+{
+	unsigned i;
+
+	for (i = 0; i < 16; i++) {
+		struct grate_render_target *rt = &ctx->render_targets[i];
+
+		/*
+		* Render target 0 is used for depth buffer inclusively,
+		* depth write is performed only if depth test is enabled.
+		*/
+		if (i == 0 && ctx->depth_test)
+			goto pixbuf_check;
+
+		if (i == 2 && ctx->stencil_test)
+			goto pixbuf_check;
+
+		if (!(ctx->render_targets_enable_mask & (1u << i)))
+			continue;
+pixbuf_check:
+		if (!rt->pixbuf)
+			continue;
+
+		host1x_pixelbuffer_check_guard(rt->pixbuf);
+	}
+}
+
 void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 			    unsigned primitive_type,
 			    struct host1x_bo *indices_bo,
@@ -913,4 +940,6 @@ void grate_3d_draw_elements(struct grate_3d_ctx *ctx,
 	err = HOST1X_CLIENT_WAIT(gr3d->client, fence, ~0u);
 	if (err < 0)
 		return;
+
+	grate_3d_check_render_targets_guard(ctx);
 }

@@ -147,7 +147,6 @@ static struct host1x_bo *nvhost_bo_create(struct host1x *host1x,
 	}
 
 	bo->base.handle = bo->handle->id;
-	bo->base.size = bo->handle->size;
 
 	bo->base.priv->mmap = nvhost_bo_mmap;
 	bo->base.priv->invalidate = nvhost_bo_invalidate;
@@ -172,22 +171,8 @@ static void host1x_nvhost_close(struct host1x *host1x)
 static int nvhost_framebuffer_init(struct host1x *host1x,
 				   struct host1x_framebuffer *fb)
 {
-	void *mmap;
-	int err;
-
-	err = HOST1X_BO_MMAP(fb->pixbuf->bo, &mmap);
-	if (err < 0)
-		return err;
-
-	memset(mmap, 0, fb->pixbuf->bo->size);
-
-	err = HOST1X_BO_FLUSH(fb->pixbuf->bo,
-			      fb->pixbuf->bo->offset,
-			      fb->pixbuf->bo->size);
-	if (err < 0)
-		return err;
-
-	return 0;
+	struct host1x_gr2d *gr2d = host1x_get_gr2d(host1x);
+	return host1x_gr2d_clear(gr2d, fb->pixbuf, 0x00000000);
 }
 
 struct host1x *host1x_nvhost_open(void)

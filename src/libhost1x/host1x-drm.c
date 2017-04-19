@@ -518,7 +518,6 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x,
 	}
 
 	bo->base.handle = args.handle;
-	bo->base.size = size;
 
 	bo->base.priv->mmap = drm_bo_mmap;
 	bo->base.priv->invalidate = drm_bo_invalidate;

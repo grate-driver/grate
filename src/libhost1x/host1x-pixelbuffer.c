@@ -23,6 +23,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define PIXBUF_GUARD_PATTERN	0xF5132803
+
 #include <string.h>
 #include "host1x-private.h"
 
@@ -57,11 +59,14 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 
 	flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
-	pixbuf->bo = HOST1X_BO_CREATE(host1x, pixbuf->pitch * height, flags);
+	pixbuf->bo = HOST1X_BO_CREATE(host1x,
+			pixbuf->pitch * height + PIXBUF_GUARD_BAND, flags);
 	if (!pixbuf->bo) {
 		free(pixbuf);
 		return NULL;
 	}
+
+	host1x_pixelbuffer_setup_guard(pixbuf);
 
 	return pixbuf;
 }
@@ -121,4 +126,61 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	}
 
 	return err;
+}
+
+void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
+{
+	volatile uint32_t *guard;
+	unsigned i;
+
+	if (PIXBUF_GUARD_AREA_SIZE == 0)
+		return;
+
+	HOST1X_BO_MMAP(pixbuf->bo, (void**)&guard);
+	guard = (void*)guard + pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE;
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++)
+		guard[i] = PIXBUF_GUARD_PATTERN + i;
+
+	HOST1X_BO_FLUSH(pixbuf->bo, pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE,
+			PIXBUF_GUARD_AREA_SIZE);
+}
+
+void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
+{
+	struct host1x_bo *orig_bo;
+	volatile uint32_t *guard;
+	bool smashed = false;
+	uint32_t value;
+	unsigned i;
+
+	if (PIXBUF_GUARD_AREA_SIZE == 0)
+		return;
+
+	orig_bo = pixbuf->bo->wrapped ?: pixbuf->bo;
+
+	HOST1X_BO_INVALIDATE(orig_bo, orig_bo->size - PIXBUF_GUARD_AREA_SIZE,
+			     PIXBUF_GUARD_AREA_SIZE);
+	HOST1X_BO_MMAP(orig_bo, (void**)&guard);
+	guard = (void*)guard + orig_bo->size - PIXBUF_GUARD_AREA_SIZE;
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++) {
+		value = guard[i];
+
+		if (value != PIXBUF_GUARD_PATTERN + i) {
+			host1x_error("Guard[%d of %d] smashed, "
+				     "0x%08X != 0x%08X\n",
+				     i, PIXBUF_GUARD_AREA_SIZE / 4 - 1,
+				     value, PIXBUF_GUARD_PATTERN + i);
+			smashed = true;
+		}
+	}
+
+	if (smashed) {
+		host1x_error("Pixbuf %p: width %u, height %u, "
+			     "pitch %u, format %u\n",
+			      pixbuf, pixbuf->width, pixbuf->height,
+			      pixbuf->pitch, pixbuf->format);
+		abort();
+	}
 }
