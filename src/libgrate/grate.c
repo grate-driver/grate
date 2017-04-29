@@ -94,11 +94,13 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "vsync", 0, NULL, 'v' },
 		{ "nodisplay", 0, NULL, 'n' },
 		{ "singlebuffered", 0, NULL, 's' },
+		{ "guard", 0, NULL, 'g' },
 	};
-	static const char opts[] = "fw:h:vns";
+	static const char opts[] = "fw:h:vnsg";
 	int opt;
 
 	options->singlebuffered = false;
+	options->pixbuf_guard = false;
 	options->fullscreen = false;
 	options->nodisplay = false;
 	options->vsync = false;
@@ -131,6 +133,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 
 		case 's':
 			options->singlebuffered = true;
+			break;
+
+		case 'g':
+			options->pixbuf_guard = true;
 			break;
 
 		default:
@@ -170,6 +176,9 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 						     &grate->options->width,
 						     &grate->options->height);
 	}
+
+	if (!grate->options->pixbuf_guard)
+		host1x_pixelbuffer_disable_bo_guard();
 
 	return grate;
 }

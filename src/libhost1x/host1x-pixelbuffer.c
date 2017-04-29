@@ -31,6 +31,8 @@
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
+static bool pixbuf_guard_disabled;
+
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				struct host1x *host1x,
 				unsigned width, unsigned height,
@@ -58,7 +60,10 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		height = ALIGN(height, 16);
 
-	bo_size = pixbuf->pitch * height + PIXBUF_GUARD_AREA_SIZE;
+	bo_size = pixbuf->pitch * height;
+
+	if (!pixbuf_guard_disabled)
+		bo_size += PIXBUF_GUARD_AREA_SIZE;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flags |= HOST1X_BO_CREATE_FLAG_TILED;
@@ -138,7 +143,7 @@ void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
 	volatile uint32_t *guard;
 	unsigned i;
 
-	if (PIXBUF_GUARD_AREA_SIZE == 0)
+	if (pixbuf_guard_disabled)
 		return;
 
 	HOST1X_BO_MMAP(pixbuf->bo, (void**)&guard);
@@ -159,7 +164,7 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 	uint32_t value;
 	unsigned i;
 
-	if (PIXBUF_GUARD_AREA_SIZE == 0)
+	if (pixbuf_guard_disabled)
 		return;
 
 	orig_bo = pixbuf->bo->wrapped ?: pixbuf->bo;
@@ -188,4 +193,9 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 			      pixbuf->pitch, pixbuf->format);
 		abort();
 	}
+}
+
+void host1x_pixelbuffer_disable_bo_guard(void)
+{
+	pixbuf_guard_disabled = true;
 }
