@@ -23,11 +23,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define PIXBUF_GUARD_PATTERN	0xF5132803
+
 #include <string.h>
 #include "host1x-private.h"
 
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+
+static bool pixbuf_guard_disabled;
 
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 				struct host1x *host1x,
@@ -38,6 +42,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 {
 	struct host1x_pixelbuffer *pixbuf;
 	unsigned long flags = NVHOST_BO_FLAG_FRAMEBUFFER;
+	size_t bo_size;
 
 	pixbuf = calloc(1, sizeof(*pixbuf));
 	if (!pixbuf)
@@ -53,15 +58,25 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	pixbuf->layout = layout;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
+		height = ALIGN(height, 16);
+
+	bo_size = pixbuf->pitch * height;
+
+	if (!pixbuf_guard_disabled)
+		bo_size += PIXBUF_GUARD_AREA_SIZE;
+
+	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flags |= HOST1X_BO_CREATE_FLAG_TILED;
 
 	flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
-	pixbuf->bo = HOST1X_BO_CREATE(host1x, pixbuf->pitch * height, flags);
+	pixbuf->bo = HOST1X_BO_CREATE(host1x, bo_size, flags);
 	if (!pixbuf->bo) {
 		free(pixbuf);
 		return NULL;
 	}
+
+	host1x_pixelbuffer_setup_guard(pixbuf);
 
 	return pixbuf;
 }
@@ -121,4 +136,66 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	}
 
 	return err;
+}
+
+void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
+{
+	volatile uint32_t *guard;
+	unsigned i;
+
+	if (pixbuf_guard_disabled)
+		return;
+
+	HOST1X_BO_MMAP(pixbuf->bo, (void**)&guard);
+	guard = (void*)guard + pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE;
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++)
+		guard[i] = PIXBUF_GUARD_PATTERN + i;
+
+	HOST1X_BO_FLUSH(pixbuf->bo, pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE,
+			PIXBUF_GUARD_AREA_SIZE);
+}
+
+void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
+{
+	struct host1x_bo *orig_bo;
+	volatile uint32_t *guard;
+	bool smashed = false;
+	uint32_t value;
+	unsigned i;
+
+	if (pixbuf_guard_disabled)
+		return;
+
+	orig_bo = pixbuf->bo->wrapped ?: pixbuf->bo;
+
+	HOST1X_BO_INVALIDATE(orig_bo, orig_bo->size - PIXBUF_GUARD_AREA_SIZE,
+			     PIXBUF_GUARD_AREA_SIZE);
+	HOST1X_BO_MMAP(orig_bo, (void**)&guard);
+	guard = (void*)guard + orig_bo->size - PIXBUF_GUARD_AREA_SIZE;
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++) {
+		value = guard[i];
+
+		if (value != PIXBUF_GUARD_PATTERN + i) {
+			host1x_error("Guard[%d of %d] smashed, "
+				     "0x%08X != 0x%08X\n",
+				     i, PIXBUF_GUARD_AREA_SIZE / 4 - 1,
+				     value, PIXBUF_GUARD_PATTERN + i);
+			smashed = true;
+		}
+	}
+
+	if (smashed) {
+		host1x_error("Pixbuf %p: width %u, height %u, "
+			     "pitch %u, format %u\n",
+			      pixbuf, pixbuf->width, pixbuf->height,
+			      pixbuf->pitch, pixbuf->format);
+		abort();
+	}
+}
+
+void host1x_pixelbuffer_disable_bo_guard(void)
+{
+	pixbuf_guard_disabled = true;
 }

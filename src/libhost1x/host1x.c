@@ -125,8 +125,12 @@ struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 		return NULL;
 
 	bo = host1x->bo_create(host1x, priv, size, flags);
-	if (!bo)
+	if (!bo) {
 		free(priv);
+		return NULL;
+	}
+
+	bo->size = size;
 
 	return bo;
 }

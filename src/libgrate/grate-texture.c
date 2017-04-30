@@ -322,6 +322,8 @@ static int alloc_mipmap(struct grate *grate, struct grate_texture *tex)
 		size += ALIGN(w * bpp, 16) * h;
 	}
 
+	size += PIXBUF_GUARD_AREA_SIZE;
+
 	bo = HOST1X_BO_CREATE(grate->host1x, size, NVHOST_BO_FLAG_FRAMEBUFFER);
 	if (!bo)
 		return -1;
@@ -338,6 +340,8 @@ static int alloc_mipmap(struct grate *grate, struct grate_texture *tex)
 	tex->mipmap_pixbuf->layout = pixbuf->layout;
 
 	tex->max_lod = lod_levels;
+
+	host1x_pixelbuffer_setup_guard(tex->mipmap_pixbuf);
 
 	return 0;
 }

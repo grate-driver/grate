@@ -291,6 +291,8 @@ int host1x_gr2d_clear_rect(struct host1x_gr2d *gr2d,
 	if (err < 0)
 		return err;
 
+	host1x_pixelbuffer_check_guard(pixbuf);
+
 	return 0;
 }
 
@@ -456,6 +458,8 @@ yflip_setup:
 	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
+
+	host1x_pixelbuffer_check_guard(dst);
 
 	return 0;
 }
@@ -706,6 +710,8 @@ coords_check:
 	err = HOST1X_CLIENT_WAIT(gr2d->client, fence, ~0u);
 	if (err < 0)
 		return err;
+
+	host1x_pixelbuffer_check_guard(dst);
 
 	return 0;
 }
