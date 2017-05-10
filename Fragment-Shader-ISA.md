@@ -327,8 +327,7 @@ Data write instruction controls write of values contained in the row registers R
 
 |   Bits | Meaning                 |
 |-------:|:------------------------|
-| 17..31 | ???                     |
-|     16 | depth write             |
+| 16..31 | ???                     |
 |     15 | source registers select |
 | 11..14 | ???                     |
 |     10 | stencil write           |
