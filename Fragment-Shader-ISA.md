@@ -344,3 +344,12 @@ Seems have no effect when the depth or stencil write enabled.
 |-------:|:--------|
 |      1 | R2-R3   |
 |      0 | R0-R1   |
+
+#### Render targets usage
+
+Some of the render targets have an additional special purpose, like depth/stencil store. They are hardwired and their special purpose is active under certain conditions, like when depth/stencil test is enabled.
+
+| Render target | Usage            |
+|--------------:|:-----------------|
+|             0 | Depth buffer     |
+|             2 | Stencil buffer   |
