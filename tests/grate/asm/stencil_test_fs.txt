@@ -13,5 +13,5 @@ EXEC
 		ALU2:	MAD  r2.*h,  #1, #0, #0 // Green
 		ALU3:	MAD  r2.l*,  #1, #0, #0 // Red
 
-	DW:	0x00028005
+	DW:	store rt1, r2, r3
 ;

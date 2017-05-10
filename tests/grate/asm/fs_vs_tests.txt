@@ -13,5 +13,5 @@ EXEC
 		ALU1:	MAD  r3.l*,  r2,         #1,         #0,         #1
 		ALU2:	MAD  r2.*h,  r0,         #1,         #0,         #1
 		ALU3:	MAD  r2.l*,  r1,         #1,         #0,         #1
-	DW:	0x00028005
+	DW:	store rt1, r2, r3
 ;

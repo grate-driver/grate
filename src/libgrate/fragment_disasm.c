@@ -674,6 +674,36 @@ static const char * disassemble_tex(const tex_instr *tex)
 	return ret;
 }
 
+static const char * disassemble_dw(const dw_instr *dw)
+{
+	static char ret[64];
+	char *buf = ret;
+
+	if (dw->enable) {
+		buf += sprintf(buf, "store ");
+
+		if (dw->stencil_write && dw->render_target_index == 2) {
+			buf += sprintf(buf, "stencil");
+		} else {
+			buf += sprintf(buf, "rt%d, ", dw->render_target_index);
+
+			if (dw->src_regs_select) {
+				buf += sprintf(buf, "r2, r3");
+			} else {
+				buf += sprintf(buf, "r0, r1");
+			}
+		}
+	} else {
+		buf += sprintf(buf, "NOP");
+	}
+
+	if (dw->unk_1 || dw->unk_6_9 || dw->unk_11_14 || dw->unk_16_31 != 2) {
+		sprintf(buf, " // 0x%08X", dw->data);
+	}
+
+	return ret;
+}
+
 const char * fragment_pipeline_disassemble(
 	const pseq_instr *pseq,
 	const mfu_instr *mfu, unsigned mfu_nb,
@@ -712,7 +742,7 @@ const char * fragment_pipeline_disassemble(
 	}
 
 	if (dw->data != 0x00000000) {
-		buf += sprintf(buf, "\tDW:\t0x%08X\n", dw->data);
+		buf += sprintf(buf, "\tDW:\t%s\n", disassemble_dw(dw));
 	}
 
 	sprintf(buf, ";");

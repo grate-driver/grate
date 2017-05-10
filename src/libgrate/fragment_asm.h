@@ -278,6 +278,17 @@ typedef union fragment_tex_instruction {
 } tex_instr;
 
 typedef union fragment_dw_instruction {
+	struct __attribute__((packed)) {
+		unsigned enable:1;
+		unsigned unk_1:1;
+		unsigned render_target_index:4;
+		unsigned unk_6_9:4;
+		unsigned stencil_write:1;
+		unsigned unk_11_14:4;
+		unsigned src_regs_select:1;
+		unsigned unk_16_31:16;
+	};
+
 	uint32_t data;
 } dw_instr;
 
