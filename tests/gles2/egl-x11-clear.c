@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -223,11 +224,15 @@ static void window_show(struct window *window)
 
 static void draw(struct window *window)
 {
+	static float incr = 0.0f, incg = 0.0f, incb = 0.0f;
+	float r = sinf(incr), g = sinf(incg), b = sinf(incb);
+	incr += 0.010f; incg += 0.011f; incb += 0.012f;
+
 	printf("=== calling glViewport()\n");
 	glViewport(0, 0, window->width, window->height);
 	glFlush();
 	printf("=== calling glClearColor()\n");
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(fabs(r), fabs(g), fabs(b), 1.0f);
 	glFlush();
 	printf("=== calling glClear()\n");
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -245,7 +250,8 @@ static void event_loop(struct window *window)
 		char buffer[16];
 		XEvent event;
 
-		XNextEvent(window->display->x11, &event);
+		if (!XCheckWindowEvent(window->display->x11, window->x11, ~0l, &event))
+			redraw = true;
 
 		switch (event.type) {
 		case Expose:

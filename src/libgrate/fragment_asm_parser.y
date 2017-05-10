@@ -226,6 +226,10 @@ static uint32_t float_to_fx10(float f)
 %token T_ALU_X4
 %token T_ALU_DIV2
 
+%token T_DW_STORE
+%token T_DW_STENCIL
+%token <u> T_DW_RENDER_TARGET
+
 %token <u> T_HEX
 %token <f> T_FLOAT
 
@@ -1482,6 +1486,36 @@ DW_INSTRUCTION:
 	T_DW T_HEX
 	{
 		asm_dw_instructions[asm_fs_instructions_nb].data = $2;
+	}
+	|
+	T_DW T_DW_STORE T_DW_RENDER_TARGET ',' T_ROW_REGISTER ',' T_ROW_REGISTER
+	{
+		asm_dw_instructions[asm_fs_instructions_nb].enable = 1;
+
+		if ($5 == 0 && $7 == 1) {
+			asm_dw_instructions[asm_fs_instructions_nb].src_regs_select = 0;
+		}
+		else if ($5 == 2 && $7 == 3) {
+			asm_dw_instructions[asm_fs_instructions_nb].src_regs_select = 1;
+		}
+		else {
+			PARSE_ERROR("DW source registers should be either \"r0,r1\" or \"r2,r3\"");
+		}
+
+		if ($3 > 15) {
+			PARSE_ERROR("Invalid DW render target, 15 is maximum");
+		}
+
+		asm_dw_instructions[asm_fs_instructions_nb].render_target_index = $3;
+		asm_dw_instructions[asm_fs_instructions_nb].unk_16_31 = 2;
+	}
+	|
+	T_DW T_DW_STORE T_DW_STENCIL
+	{
+		asm_dw_instructions[asm_fs_instructions_nb].enable = 1;
+		asm_dw_instructions[asm_fs_instructions_nb].stencil_write = 1;
+		asm_dw_instructions[asm_fs_instructions_nb].render_target_index = 2;
+		asm_dw_instructions[asm_fs_instructions_nb].unk_16_31 = 2;
 	}
 	|
 	T_DW T_OPCODE_NOP

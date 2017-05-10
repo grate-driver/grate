@@ -205,5 +205,14 @@ tex[0-9]{1,2}		{
 TEX			return T_TEX_OPCODE;
 TXB			return T_TXB_OPCODE;
 
+"store"			return T_DW_STORE;
+
+rt[0-9]{1,2}		{
+				fragment_asmlval.u = atoi(yytext + 2);
+				return T_DW_RENDER_TARGET;
+			}
+
+"stencil"		return T_DW_STENCIL;
+
 .			return T_SYNTAX_ERROR;
 %%

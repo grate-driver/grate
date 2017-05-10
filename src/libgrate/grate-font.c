@@ -81,11 +81,11 @@ EXEC								\n\
 		mul1: bar, sfu, bar1				\n\
 		ipl: t0.fp20, t0.fp20, NOP, NOP			\n\
 								\n\
-	TEX:	tex r2, r3, tex0, r0, r1, r2			\n\
+	TEX:	tex r0, r1, tex0, r0, r1, r2			\n\
 								\n\
-	ALU:	ALU0:	MAD kill, r3.h, #1, #0 (eq)		\n\
+	ALU:	ALU0:	MAD kill, r1.h, #1, #0 (eq)		\n\
 								\n\
-	DW:	0x00028005					\n\
+	DW:	store rt1, r0, r1				\n\
 ;								\n\
 ";
 

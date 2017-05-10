@@ -37,5 +37,5 @@ EXEC
 	ALU:
 		ALU0:	MAD kill, cr0, cr2, #0
 
-	DW:	0x00028005
+	DW:	store rt1, r2, r3
 ;
