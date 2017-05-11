@@ -425,13 +425,29 @@ Example:
 
 #### DW sub-instruction
 
-Opcodes are unknown, available only in a hex form.
+Performs data store to a specified render target. There is only one STORE opcode which takes the following form:
+
+	EXEC
+		DW:	store rtX, rA, rB
+	;
+
+The content of the source registers rA-rB will be stored to the render target X. The registers values are interpreted as four fx10, i.e. RGBA color. The "rA,rB" are either "r0,r1" or "r2,r3" row registers, render target X is 0-15.
 
 Example:
 
 	EXEC
-		DW:	0x00020005
+		DW:	store rt1, r2, r3
 	;
+
+Here render target 1 will be populated with the values carried in the r2-r3 row registers.
+
+There is a special case of writing to the stencil buffer. The write to the stencil buffer is necessary in case of a late stencil test, i.e. when fragment program performs pixel discard. Instruction takes the following form:
+
+	EXEC
+		DW:	store stencil
+	;
+
+The operation doesn't take any source registers. The stencil data will be stored to the "stencil" render target 2.
 
 ## Linker assembler
 
