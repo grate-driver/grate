@@ -355,8 +355,7 @@ static void grate_3d_upload_vp_constants(struct host1x_pushbuf *pb,
 	unsigned i;
 
 	host1x_pushbuf_push(pb,
-			HOST1X_OPCODE_INCR(TGR3D_VP_UPLOAD_CONST_ID, 1));
-	host1x_pushbuf_push(pb, 0);
+			HOST1X_OPCODE_IMM(TGR3D_VP_UPLOAD_CONST_ID, 0));
 
 	host1x_pushbuf_push(pb,
 			HOST1X_OPCODE_NONINCR(TGR3D_VP_UPLOAD_CONST, 256 * 4));
