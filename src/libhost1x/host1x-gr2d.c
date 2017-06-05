@@ -22,6 +22,7 @@
  */
 
 #include <errno.h>
+#include <math.h>
 
 #include "host1x.h"
 #include "host1x-private.h"
@@ -32,10 +33,12 @@
 	(((int32_t) (fp * 4096.0f + 0.5f)) & ((1 << 18) - 1))
 
 #define FLOAT_TO_FIXED_2_7(fp) \
-	(((int32_t) (fp * 128.0f + 0.5f)) & ((1 << 9) - 1))
+    ((((int32_t) (fp * 128.0f)) & 0x300) | \
+        (((int32_t) (fabs(fp) * 128.0f + 0.5f)) & ((1 << 8) - 1)))
 
 #define FLOAT_TO_FIXED_1_7(fp) \
-	(((int32_t) (fp * 128.0f + 0.5f)) & ((1 << 8) - 1))
+    ((((int32_t) (fp * 128.0f)) & 0x100) | \
+        (((int32_t) (fabs(fp) * 128.0f + 0.5f)) & ((1 << 8) - 1)))
 
 #define FLOAT_TO_FIXED_0_8(fp) \
 	(((int32_t) (fp * 256.0f + 0.5f)) & ((1 << 8) - 1))
