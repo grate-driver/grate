@@ -545,10 +545,10 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	}
 
 	switch (src->format) {
-	case PIX_BUF_FMT_ARGB8888:
+	case PIX_BUF_FMT_ABGR8888:
 		src_fmt = 14;
 		break;
-	case PIX_BUF_FMT_ABGR8888:
+	case PIX_BUF_FMT_ARGB8888:
 		src_fmt = 15;
 		break;
 	default:
@@ -557,10 +557,10 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	}
 
 	switch (dst->format) {
-	case PIX_BUF_FMT_ARGB8888:
+	case PIX_BUF_FMT_ABGR8888:
 		dst_fmt = 14;
 		break;
-	case PIX_BUF_FMT_ABGR8888:
+	case PIX_BUF_FMT_ARGB8888:
 		dst_fmt = 15;
 		break;
 	default:
