@@ -209,6 +209,9 @@ int main(int argc, char *argv[])
 	if (!grate)
 		return 1;
 
+	options.width = 256;
+	options.height = 256;
+
 	fb = grate_framebuffer_create(grate, options.width, options.height,
 				      PIX_BUF_FMT_RGBA8888,
 				      PIX_BUF_LAYOUT_TILED_16x16,
