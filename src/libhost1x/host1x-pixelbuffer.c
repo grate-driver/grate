@@ -63,7 +63,7 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 	bo_size = pixbuf->pitch * height;
 
 	if (!pixbuf_guard_disabled)
-		bo_size += PIXBUF_GUARD_AREA_SIZE;
+		bo_size += PIXBUF_GUARD_AREA_SIZE * 2;
 
 	if (layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flags |= HOST1X_BO_CREATE_FLAG_TILED;
@@ -75,6 +75,9 @@ struct host1x_pixelbuffer *host1x_pixelbuffer_create(
 		free(pixbuf);
 		return NULL;
 	}
+
+	if (!pixbuf_guard_disabled)
+		pixbuf->bo->offset += PIXBUF_GUARD_AREA_SIZE;
 
 	host1x_pixelbuffer_setup_guard(pixbuf);
 
@@ -147,6 +150,12 @@ void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
 		return;
 
 	HOST1X_BO_MMAP(pixbuf->bo, (void**)&guard);
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++)
+		guard[i] = PIXBUF_GUARD_PATTERN + i;
+
+	HOST1X_BO_FLUSH(pixbuf->bo, 0, PIXBUF_GUARD_AREA_SIZE);
+
 	guard = (void*)guard + pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE;
 
 	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++)
@@ -172,13 +181,29 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 	HOST1X_BO_INVALIDATE(orig_bo, orig_bo->size - PIXBUF_GUARD_AREA_SIZE,
 			     PIXBUF_GUARD_AREA_SIZE);
 	HOST1X_BO_MMAP(orig_bo, (void**)&guard);
+
+	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++) {
+		value = guard[i];
+
+		if (value != PIXBUF_GUARD_PATTERN + i) {
+			host1x_error("Back guard[%d of %d] smashed, "
+				     "0x%08X != 0x%08X\n",
+				     i, PIXBUF_GUARD_AREA_SIZE / 4 - 1,
+				     value, PIXBUF_GUARD_PATTERN + i);
+			smashed = true;
+		}
+	}
+
+	if (smashed)
+		goto smashed_abort;
+
 	guard = (void*)guard + orig_bo->size - PIXBUF_GUARD_AREA_SIZE;
 
 	for (i = 0; i < PIXBUF_GUARD_AREA_SIZE / 4; i++) {
 		value = guard[i];
 
 		if (value != PIXBUF_GUARD_PATTERN + i) {
-			host1x_error("Guard[%d of %d] smashed, "
+			host1x_error("Front guard[%d of %d] smashed, "
 				     "0x%08X != 0x%08X\n",
 				     i, PIXBUF_GUARD_AREA_SIZE / 4 - 1,
 				     value, PIXBUF_GUARD_PATTERN + i);
@@ -187,6 +212,7 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 	}
 
 	if (smashed) {
+smashed_abort:
 		host1x_error("Pixbuf %p: width %u, height %u, "
 			     "pitch %u, format %u\n",
 			      pixbuf, pixbuf->width, pixbuf->height,
@@ -198,4 +224,9 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 void host1x_pixelbuffer_disable_bo_guard(void)
 {
 	pixbuf_guard_disabled = true;
+}
+
+bool host1x_pixelbuffer_bo_guard_disabled(void)
+{
+	return pixbuf_guard_disabled;
 }

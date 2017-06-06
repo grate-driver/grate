@@ -322,11 +322,15 @@ static int alloc_mipmap(struct grate *grate, struct grate_texture *tex)
 		size += ALIGN(w * bpp, 16) * h;
 	}
 
-	size += PIXBUF_GUARD_AREA_SIZE;
+	if (!host1x_pixelbuffer_bo_guard_disabled())
+		size += PIXBUF_GUARD_AREA_SIZE * 2;
 
 	bo = HOST1X_BO_CREATE(grate->host1x, size, NVHOST_BO_FLAG_FRAMEBUFFER);
 	if (!bo)
 		return -1;
+
+	if (!host1x_pixelbuffer_bo_guard_disabled())
+		bo->offset += PIXBUF_GUARD_AREA_SIZE;
 
 	tex->mipmap_pixbuf = calloc(1, sizeof(*tex->mipmap_pixbuf));
 	if (!tex->mipmap_pixbuf)
