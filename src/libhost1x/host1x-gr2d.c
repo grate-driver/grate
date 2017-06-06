@@ -684,10 +684,12 @@ coords_check:
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x3149));
 	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
-		dst->bo->offset + yflip * dst->pitch * (dst_height - 1), 0);
+				dst->bo->offset + sb_offset(dst, dx, dy) +
+				yflip * dst->pitch * (dst_height - 1), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
-	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, src->bo->offset, 0);
+	HOST1X_PUSHBUF_RELOCATE(pb, src->bo,
+				src->bo->offset + sb_offset(src, sx, sy), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb,
