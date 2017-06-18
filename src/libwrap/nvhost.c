@@ -151,7 +151,7 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 					 struct nvmap_rw_handle *op)
 {
 	struct nvmap_handle *handle;
-	void *src;
+	uint8_t *src, *dest, *end;
 	unsigned int i;
 
 	printf("  Write operation:\n");
@@ -169,11 +169,20 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 		return;
 	}
 
-	src = (void *)(uintptr_t)op->addr;
+	dest = (uint8_t *)handle->buffer + op->offset;
+	end = (uint8_t *)handle->buffer + handle->size;
+	src = (uint8_t *)op->addr;
 
 	for (i = 0; i < op->count; i++) {
 		print_hexdump(stdout, DUMP_PREFIX_NONE, "  ", src,
 			      op->elem_size, 16, true);
+
+		if (dest + op->elem_size <= end)
+			memcpy(dest, src, op->elem_size);
+		else
+			fprintf(stderr, "BUG: writing outside buffer!\n");
+
+		dest += op->hmem_stride;
 		src += op->user_stride;
 	}
 }
