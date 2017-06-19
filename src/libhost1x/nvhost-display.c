@@ -166,7 +166,7 @@ static int display_set(struct host1x_display *displayp,
 
 struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 {
-	struct tegra_dc_ext_control_output_properties output_properties;
+	struct tegra_dc_ext_control_output_properties output_properties = {};
 	struct fb_var_screeninfo fb_info;
 	struct nvhost_display *display;
 	uint32_t num_outputs = 0;
