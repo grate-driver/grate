@@ -73,6 +73,7 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	flip.win[1].index = -1;
 	flip.win[2].index = display->plane;
 	flip.win[2].stride = fb->pixbuf->pitch;
+	flip.win[2].offset = fb->pixbuf->bo->offset;
 	flip.win[2].buff_id = fb->pixbuf->bo->handle;
 	flip.win[2].pixformat = pixformat;
 	flip.win[2].w = fb->pixbuf->width << 12;

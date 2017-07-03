@@ -552,7 +552,7 @@ static int drm_framebuffer_init(struct host1x *host1x,
 
 	handles[0] = pixbuf->bo->handle;
 	pitches[0] = pixbuf->pitch;
-	offsets[0] = 0;
+	offsets[0] = pixbuf->bo->offset;
 
 	err = drmModeAddFB2(drm->fd, pixbuf->width, pixbuf->height, format,
 			    handles, pitches, offsets, &fb->handle, 0);
