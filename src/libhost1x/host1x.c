@@ -57,7 +57,9 @@ struct host1x *host1x_open(bool open_display, int fd)
 	}
 
 	printf("not found\n");
-	return NULL;
+
+	printf("Using dummy interface\n");
+	return host1x_dummy_open();
 }
 
 void host1x_close(struct host1x *host1x)

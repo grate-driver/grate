@@ -12,6 +12,7 @@ libhost1x_la_CFLAGS = \
 libhost1x_la_SOURCES = \
 	host1x.c \
 	host1x-drm.c \
+	host1x-dummy.c \
 	host1x-framebuffer.c \
 	host1x-gr2d.c \
 	host1x-gr3d.c \
