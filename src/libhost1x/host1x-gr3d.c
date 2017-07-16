@@ -135,7 +135,6 @@ static void host1x_gr3d_reset_hw(void)
 static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 {
 	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
-	const unsigned int num_attributes = 16;
 	struct host1x_pushbuf *pb;
 	struct host1x_job *job;
 	unsigned int i;
@@ -144,7 +143,7 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 
 	host1x_gr3d_reset_hw();
 
-	job = HOST1X_JOB_CREATE(syncpt->id, 2);
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
 
@@ -152,48 +151,52 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	if (!pb)
 		return -ENOMEM;
 
-	/*
-	  Command Buffer:
-	    mem: e5059be0, offset: 0, words: 1705
-	    commands: 1705
-	*/
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0x000, 0x060, 0x00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0003));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x001, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x002, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x00c, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x00e, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x010, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x012, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x014, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* reset attribute modes */
-	for (i = 0; i < num_attributes; i++) {
-		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x101 + i * 2, 0x001));
+	/* Tegra30 specific stuff */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x750, 0x0010));
+	for (i = 0; i < 16; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
-	}
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x120, 0x0005));
-	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x907, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x908, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x909, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x90a, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x90b, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0003));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb01, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb04, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb06, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb07, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb08, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb09, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0a, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0b, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0c, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0d, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0e, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb0f, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb10, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb11, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb12, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb14, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe40, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x0000));
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x124, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000007);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
+	/* Common stuff */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x00d, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x00e, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x00f, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x010, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x011, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x012, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x013, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x014, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x015, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x120, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x122, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x124, 0x0007));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x125, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x126, 0x0000));
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x200, 0x0005));
 	host1x_pushbuf_push(pb, 0x00000011);
 	host1x_pushbuf_push(pb, 0x0000ffff);
@@ -201,29 +204,11 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* Vertex processor constants (256 vectors of 4 elements each) */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x207, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x208, 256 * 4));
-
-	for (i = 0; i < 256; i++) {
-		host1x_pushbuf_push(pb, 0x00000000);
-		host1x_pushbuf_push(pb, 0x00000000);
-		host1x_pushbuf_push(pb, 0x00000000);
-		host1x_pushbuf_push(pb, 0x00000000);
-	}
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x209, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000003);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x300, 0x0040));
-
-	for (i = 0; i < 64; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x209, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x20a, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x20c, 0x0003));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x300, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x301, 0x0000));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0019));
 	host1x_pushbuf_push(pb, 0xb8e00000);
@@ -251,12 +236,28 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000205);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x363, 0x0002));
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x001b));
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x400, 0x0002));
-	host1x_pushbuf_push(pb, 0x000007ff);
-	host1x_pushbuf_push(pb, 0x000007ff);
+	host1x_pushbuf_push(pb, 0x41800000);
+	host1x_pushbuf_push(pb, 0x41800000);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x354, 0x0009));
+	host1x_pushbuf_push(pb, 0x3efffff0);
+	host1x_pushbuf_push(pb, 0x3efffff0);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x0003));
+	host1x_pushbuf_push(pb, 0x3f800000);
+	host1x_pushbuf_push(pb, 0x3f800000);
+	host1x_pushbuf_push(pb, 0x3f800000);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x363, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x364, 0x0000));
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x400, 0x07ff));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x401, 0x07ff));
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x402, 0x0012));
 	host1x_pushbuf_push(pb, 0x00000040);
 	host1x_pushbuf_push(pb, 0x00000310);
@@ -276,149 +277,30 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x500, 0x0004));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000007);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* XXX */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x500, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x501, 0x0007));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x502, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x0000));
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x520, 0x0020));
-
 	for (i = 0; i < 32; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x540, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x540, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x542, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x543, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x544, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x545, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x546, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x60e, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x702, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x740, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x741, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x742, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x902, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x903, 0x0000));
 
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x541, 0x0040));
-
-	for (i = 0; i < 64; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x542, 0x0005));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x600, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x602, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x603, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x604, 0x0080));
-
-	for (i = 0; i < 128; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x608, 0x0004));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x60e, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x700, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x701, 0x0040));
-
-	for (i = 0; i < 64; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x702, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* reset texture parameters */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x720, 0x0020));
-
-	for (i = 0; i < 16; i++) {
-		host1x_pushbuf_push(pb, 0x00000000);
-		host1x_pushbuf_push(pb, 0x00000000);
-	}
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x740, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x750, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x800, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x802, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x803, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/*
-	  Command Buffer:
-	    mem: e5059be0, offset: 1aa4, words: 2048
-	    commands: 2048
-	*/
-	/* write 256 64-bit fragment shader instructions (NOP?) */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x804, 0x0200));
-
-	for (i = 0; i < 256; i++) {
-		host1x_pushbuf_push(pb, 0x00000000);
-		host1x_pushbuf_push(pb, 0x00000000);
-	}
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x805, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x806, 0x0040));
-
-	for (i = 0; i < 64; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	/* write 32 floating point constants */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x820, 0x0020));
-
-	for (i = 0; i < 32; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x900, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x901, 0x0040));
-
-	for (i = 0; i < 64; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x907, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x90a, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa00, 0x000d));
 	host1x_pushbuf_push(pb, 0x00000e00);
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -427,267 +309,23 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x000001ff);
 	host1x_pushbuf_push(pb, 0x00000030);
 	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
+	host1x_pushbuf_push(pb, 0x000001ff);
 	host1x_pushbuf_push(pb, 0x00000100);
 	host1x_pushbuf_push(pb, 0x0f0f0f0f);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb01, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb04, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb06, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb08, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb0a, 0x0009));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000); /* 0xb12 -- why aren't 0xb13 written? */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xb14, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
 
-	/* XXX render target parameters? */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x0010));
-
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe25, 5));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe2c, 1));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe40, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x205, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* write 256 128-bit vertex shader instructions (NOP?) */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x206, 256 * 4));
-
-	for (i = 0; i < 256; i++) {
-		host1x_pushbuf_push(pb, 0x001f9c6c);
-		host1x_pushbuf_push(pb, 0x0000000d);
-		host1x_pushbuf_push(pb, 0x8106c083);
-		host1x_pushbuf_push(pb, 0x60401ffd);
-	}
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0001));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x0001));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0002));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x0003));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0003));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe10, 0x0010));
-	host1x_pushbuf_push(pb, 0x0c00002c);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x0c00000c);
-	host1x_pushbuf_push(pb, 0x0c000000);
-	host1x_pushbuf_push(pb, 0x08000050);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, 0x08000019);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe26, 0x0924));
-
-	/* write 16 vertex attribute specifiers */
-	for (i = 0; i < 16; ++i) {
-		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x101 + i * 2, 0x0001));
-		host1x_pushbuf_push(pb, 0x0000104d);
-	}
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0001));
-	host1x_pushbuf_push(pb, 0xb8e08000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x902, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000003);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x344, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-
-	/* XXX scissors setup? */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x350, 0x0002));
-	host1x_pushbuf_push(pb, 0x00001fff);
-	host1x_pushbuf_push(pb, 0x00001fff);
-
-	/* XXX viewport setup? */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x001b));
-	host1x_pushbuf_push(pb, 0x00000000); /* offset: 0x00000352 */
-	host1x_pushbuf_push(pb, 0x00000000); /* offset: 0x00000353 */
-	host1x_pushbuf_push(pb, 0x41800000); /* offset: 0x00000355 */
-	host1x_pushbuf_push(pb, 0x41800000); /* offset: 0x00000356 */
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x404, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x000fffff);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x354, 0x0009));
-	host1x_pushbuf_push(pb, 0x3efffff0); /* offset: 0x00000354 */
-	host1x_pushbuf_push(pb, 0x3efffff0); /* offset: 0x00000357 */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x358, 0x0003));
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x343, 0x0001));
-	host1x_pushbuf_push(pb, 0xb8e08000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x300, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
-	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe21, 0x0140));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x347, 0x0001));
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x346, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x348, 0x0004));
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x34c, 0x0002));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x3f800000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x35b, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x403, 0x0710));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40c, 0x0006));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x402, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40e, 0x0030));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40c, 0x0006));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0xe28, 0x0003));
-	host1x_pushbuf_push(pb, 0x00000049); /* offset: 0x00000e28 */
-	host1x_pushbuf_push(pb, 0x00000049); /* offset: 0x00000e29 */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x400, 0x0003));
-	host1x_pushbuf_push(pb, 0x000002ff); /* offset: 0x00000400 */
-	host1x_pushbuf_push(pb, 0x000002ff); /* offset: 0x00000401 */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x402, 0x0040));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0xe28, 0x0003));
-	host1x_pushbuf_push(pb, 0x0001fe49); /* offset: 0x00000e28 */
-	host1x_pushbuf_push(pb, 0x0001fe49); /* offset: 0x00000e29 */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x402, 0x0048));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40c, 0x0006));
-
-	/*
-	  Command Buffer:
-	    mem: e5059be0, offset: 3aa4, words: 42
-	    commands: 42
-	*/
-
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xa02, 0x0006));
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x000001ff);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, 0x00000020);
-	host1x_pushbuf_push(pb, 0x00000030);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0x0e00));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x0100));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x740, 0x0011));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe20, 0x0001));
-	host1x_pushbuf_push(pb, 0x58000000);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x503, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x545, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x501, 0x0001));
-	host1x_pushbuf_push(pb, 0x0000000f);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe20, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe21, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe22, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x603, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x803, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x520, 0x0001));
-	host1x_pushbuf_push(pb, 0x20006001);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x546, 0x0001));
-	host1x_pushbuf_push(pb, 0x00000040);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe25, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa0a, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x544, 0x0000));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x0001));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe26, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe27, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe28, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe29, 0x0000));
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
 	err = HOST1X_CLIENT_SUBMIT(gr3d->client, job);
@@ -1051,7 +689,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 
 	/*
 	  Command Buffer:
-	    mem: e462a7c0, offset: 3d28, words: 66
+	    mem: e462a7c0, offset: 3d28, words: 67
 	    commands: 66
 	*/
 
@@ -1075,6 +713,7 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000002 << 8 | syncpt->id);
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe21, 0x0140));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe01, 0x01));
 	/* relocate color render target */
 	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
