@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "grate.h"
+#include "grate-3d.h"
 #include "tgr_3d.xml.h"
 
 struct vs_uniform {
@@ -165,6 +166,41 @@ static int parse_command_line(struct vs_asm_test *test, int argc, char *argv[])
 	return 1;
 }
 
+static void dump_raw(struct grate_shader *vs,
+		     struct grate_shader *fs,
+		     struct grate_shader *linker,
+		     struct grate_program *program)
+{
+	unsigned i;
+
+	fprintf(stderr, "\nVertex constants raw:\n");
+
+	for (i = 0; i < 256 * 4; i++)
+		fprintf(stderr, "\t[%d] = 0x%08X,\n",
+			i, program->vs_constants[i]);
+
+	fprintf(stderr, "\nFragment constants raw:\n");
+
+	for (i = 0; i < 32; i++)
+		fprintf(stderr, "\t[%d] = 0x%08X,\n",
+			i, program->fs_constants[i]);
+
+	fprintf(stderr, "\nVertex program raw:\n");
+
+	for (i = 0; i < vs->num_words; i++)
+		fprintf(stderr, "\t[%d] = 0x%08X,\n", i, vs->words[i]);
+
+	fprintf(stderr, "\nFragment program raw:\n");
+
+	for (i = 0; i < fs->num_words; i++)
+		fprintf(stderr, "\t[%d] = 0x%08X,\n", i, fs->words[i]);
+
+	fprintf(stderr, "\nLinker program raw:\n");
+
+	for (i = 0; i < linker->num_words; i++)
+		fprintf(stderr, "\t[%d] = 0x%08X,\n", i, linker->words[i]);
+}
+
 static void dump_asm(struct grate_shader *vs,
 		     struct grate_shader *fs,
 		     struct grate_shader *linker)
@@ -295,6 +331,7 @@ int main(int argc, char *argv[])
 	bo = grate_create_attrib_bo_from_data(grate, indices);
 
 	if (!test.test_only) {
+		dump_raw(vs, fs, linker, program);
 		dump_asm(vs, fs, linker);
 	}
 
