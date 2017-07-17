@@ -10,19 +10,19 @@ Vertex processor has 32 local vec4 registers, 16 input vec4 attribute registers,
 
 ### See also
 
-Nouveau:
+#### Nouveau
 
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.h  
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nv30_vertprog.c  
 http://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/drivers/nouveau/nv30/nvfx_vertprog.c  
 
-Instruction set specifications:
+#### Instruction set specifications:
 
 https://www.opengl.org/registry/specs/NV/vertex_program.txt  
 https://www.opengl.org/registry/specs/NV/vertex_program2.txt  
 https://www.opengl.org/registry/specs/NV/vertex_program3.txt  
 
-Patents:
+#### Patents:
 
 https://www.google.com/patents/US7755634  
 
