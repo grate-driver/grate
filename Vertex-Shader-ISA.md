@@ -2,7 +2,7 @@
 
 The Tegra vertex shader ISA is a relatively straight-forward implementation of the Shader Model 2 instruction set. The instruction set seems to be a strict subset of the NV30 vertex-shader.
 
-Each instruction contains up to two operations; one 4-component vector ALU (arithmetic logic unit) operation, and one 1-component SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
+Each instruction contains up to two operations; one 4-component vector [ALU](https://en.wikipedia.org/wiki/Arithmetic_logic_unit) operation, and one scalar SFU (special function unit) operation. The result of both units is a 4 component-vector, limited by a write-mask.
 
 There's five operands, one destination register per unit (referred to as rD), and three source operands (referred to as rA, rB and rC). The ALU can use up to all three source operands, while the SFU only operates on rC.
 
