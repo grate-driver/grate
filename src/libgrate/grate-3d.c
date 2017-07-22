@@ -636,6 +636,14 @@ pixbuf_check:
 	grate_3d_enable_render_targets(pb, enable_mask);
 }
 
+static void grate_3d_disable_texture(struct host1x_pushbuf *pb, unsigned index)
+{
+	host1x_pushbuf_push(pb,
+			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_DESC1(index), 2));
+	host1x_pushbuf_push(pb, 0);
+	host1x_pushbuf_push(pb, 0);
+}
+
 static void grate_3d_relocate_texture(struct host1x_pushbuf *pb,
 				      unsigned index,
 				      struct host1x_bo *bo,
@@ -759,16 +767,20 @@ static void grate_3d_setup_textures(struct host1x_pushbuf *pb,
 		struct grate_texture *tex = ctx->textures[i];
 		struct host1x_pixelbuffer *pixbuf;
 
-		if (!tex)
+		if (!tex) {
+			grate_3d_disable_texture(pb, i);
 			continue;
+		}
 
 		if (tex->mipmap_enabled)
 			pixbuf = tex->mipmap_pixbuf;
 		else
 			pixbuf = tex->pixbuf;
 
-		if (!pixbuf)
+		if (!pixbuf) {
+			grate_3d_disable_texture(pb, i);
 			continue;
+		}
 
 		grate_3d_relocate_texture(pb, i,
 					  pixbuf->bo,
