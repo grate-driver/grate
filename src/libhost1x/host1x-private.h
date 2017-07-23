@@ -125,6 +125,8 @@ void host1x_nvhost_display_init(struct host1x *host1x);
 struct host1x *host1x_drm_open(int fd);
 void host1x_drm_display_init(struct host1x *host1x);
 
+struct host1x *host1x_dummy_open(void);
+
 #define host1x_error(fmt, args...) \
 	fprintf(stderr, "ERROR: %s: %d: " fmt, __func__, __LINE__, ##args)
 
