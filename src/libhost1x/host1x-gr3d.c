@@ -237,12 +237,6 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, 0x00000000);
 	host1x_pushbuf_push(pb, 0x00000205);
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x352, 0x001b));
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x00000000);
-	host1x_pushbuf_push(pb, 0x41800000);
-	host1x_pushbuf_push(pb, 0x41800000);
-
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x354, 0x0009));
 	host1x_pushbuf_push(pb, 0x3efffff0);
 	host1x_pushbuf_push(pb, 0x3efffff0);
