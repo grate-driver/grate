@@ -5,7 +5,6 @@ egl-x11-triangle
 gles-clear
 gles-cube
 gles-cube-textured
-gles-info
 gles-pbuffer-cgshader
 gles-pbuffer-clear
 gles-pbuffer-cube
@@ -20,4 +19,5 @@ gles-quad-textured
 gles-quad-textured2
 gles-shader-fill
 gles-stencil
+gles2-info
 libcommon.la

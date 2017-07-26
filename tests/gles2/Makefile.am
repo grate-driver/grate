@@ -18,7 +18,6 @@ noinst_PROGRAMS = \
 	gles-clear \
 	gles-cube \
 	gles-cube-textured \
-	gles-info \
 	gles-pbuffer-cgshader \
 	gles-pbuffer-clear \
 	gles-pbuffer-cube \
@@ -32,7 +31,8 @@ noinst_PROGRAMS = \
 	gles-quad-textured \
 	gles-quad-textured2 \
 	gles-shader-fill \
-	gles-stencil
+	gles-stencil \
+	gles2-info
 
 gles_cube_LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la \
