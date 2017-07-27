@@ -56,8 +56,8 @@ static char *read_file(const char *path)
 
 	data = calloc(1, sb.st_size + 1);
 	if (!data) {
-		grate_error("Failed to get allocate %lu: %s\n",
-			    sb.st_size, path);
+		grate_error("Failed to get allocate %ju: %s\n",
+			    (uintmax_t)sb.st_size, path);
 		goto cleanup;
 	}
 
