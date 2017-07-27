@@ -13,7 +13,6 @@
 
 struct opts {
 	enum cgc_shader_type type;
-	bool version;
 	bool help;
 };
 
@@ -28,7 +27,6 @@ static int parse_command_line(struct opts *opts, int argc, char *argv[])
 		{ "fragment", 0, NULL, 'F' },
 		{ "help", 0, NULL, 'h' },
 		{ "vertex", 0, NULL, 'v' },
-		{ "version", 0, NULL, 'V' },
 		{ NULL, 0, NULL, 0 }
 	};
 	int opt;
@@ -48,10 +46,6 @@ static int parse_command_line(struct opts *opts, int argc, char *argv[])
 
 		case 'v':
 			opts->type = CGC_SHADER_VERTEX;
-			break;
-
-		case 'V':
-			opts->version = true;
 			break;
 
 		default:
@@ -83,11 +77,6 @@ int main(int argc, char *argv[])
 
 	if (opts.help) {
 		usage(stdout, argv[0]);
-		return 0;
-	}
-
-	if (opts.version) {
-		printf("cgc %s\n", PACKAGE_VERSION);
 		return 0;
 	}
 

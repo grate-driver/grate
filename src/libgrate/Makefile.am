@@ -54,23 +54,23 @@ CLEANFILES = \
 	lex.linker_asm.c \
 	lex.vertex_asm.c
 
-lex.vertex_asm.c: vertex_asm_lexer.l vertex_asm.tab.c
-	$(LEX) -P vertex_asm --nounput $(srcdir)/vertex_asm_lexer.l
+lex.vertex_asm.c: vertex_asm.l vertex_asm.tab.c
+	$(LEX) -P vertex_asm --nounput $(srcdir)/vertex_asm.l
 
-vertex_asm.tab.c: vertex_asm_parser.y
-	$(YACC) -p vertex_asm -b vertex_asm -d --debug $(srcdir)/vertex_asm_parser.y
+vertex_asm.tab.c: vertex_asm.y
+	$(YACC) -p vertex_asm -b vertex_asm -d --debug $(srcdir)/vertex_asm.y
 
-lex.fragment_asm.c: fragment_asm_lexer.l fragment_asm.tab.c
-	$(LEX) -P fragment_asm --nounput $(srcdir)/fragment_asm_lexer.l
+lex.fragment_asm.c: fragment_asm.l fragment_asm.tab.c
+	$(LEX) -P fragment_asm --nounput $(srcdir)/fragment_asm.l
 
-fragment_asm.tab.c: fragment_asm_parser.y
-	$(YACC) -p fragment_asm -b fragment_asm -d --debug $(srcdir)/fragment_asm_parser.y
+fragment_asm.tab.c: fragment_asm.y
+	$(YACC) -p fragment_asm -b fragment_asm -d --debug $(srcdir)/fragment_asm.y
 
-lex.linker_asm.c: linker_asm_lexer.l linker_asm.tab.c
-	$(LEX) -P linker_asm --nounput $(srcdir)/linker_asm_lexer.l
+lex.linker_asm.c: linker_asm.l linker_asm.tab.c
+	$(LEX) -P linker_asm --nounput $(srcdir)/linker_asm.l
 
-linker_asm.tab.c: linker_asm_parser.y
-	$(YACC) -p linker_asm -b linker_asm -d --debug $(srcdir)/linker_asm_parser.y
+linker_asm.tab.c: linker_asm.y
+	$(YACC) -p linker_asm -b linker_asm -d --debug $(srcdir)/linker_asm.y
 
 libgrate_la_SOURCES += \
 	fragment_asm.tab.c \
