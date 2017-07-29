@@ -16,6 +16,14 @@ if egl.found() and x11.found()
 	gles2 = dependency('glesv2', required : false)
 endif
 
+rnn_enable = ''
+librnn = cc.find_library('rnn', required : false)
+if librnn.found()
+	if cc.has_header('envytools/rnn.h')
+		rnn_enable = '-DENABLE_RNN'
+	endif
+endif
+
 subdir('src')
 subdir('tools')
 subdir('tests')

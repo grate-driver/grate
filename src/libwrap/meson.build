@@ -8,4 +8,9 @@ libwrap_sources =  files(
 	'utils.h'
 )
 
-libwrap = shared_library('wrap', libwrap_sources, dependencies: libdl)
+libwrap = shared_library(
+	'wrap',
+	libwrap_sources,
+	dependencies: [libdl, librnn],
+	cpp_args : rnn_enable
+)
