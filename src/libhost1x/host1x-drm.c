@@ -486,6 +486,24 @@ static struct host1x_bo *drm_bo_clone(struct host1x_bo *bo)
 	return &clone->base;
 }
 
+static int drm_bo_export(struct host1x_bo *bo, uint32_t *handle)
+{
+	struct drm_bo *dbo = to_drm_bo(bo);
+	struct drm_gem_flink args;
+	int err;
+
+	memset(&args, 0, sizeof(args));
+	args.handle = bo->handle;
+
+	err = drmIoctl(dbo->drm->fd, DRM_IOCTL_GEM_FLINK, &args);
+	if (err < 0)
+		return -errno;
+
+	*handle = args.name;
+
+	return 0;
+}
+
 static struct host1x_bo *drm_bo_create(struct host1x *host1x,
 				       struct host1x_bo_priv *priv,
 				       size_t size, unsigned long flags)
@@ -524,6 +542,44 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x,
 	bo->base.priv->flush = drm_bo_flush;
 	bo->base.priv->free = drm_bo_free;
 	bo->base.priv->clone = drm_bo_clone;
+	bo->base.priv->export = drm_bo_export;
+
+	return &bo->base;
+}
+
+static struct host1x_bo *drm_bo_import(struct host1x *host1x,
+				       struct host1x_bo_priv *priv,
+				       uint32_t handle)
+{
+	struct drm_gem_open args;
+	struct drm *drm = to_drm(host1x);
+	struct drm_bo *bo;
+	int err;
+
+	bo = calloc(1, sizeof(*bo));
+	if (!bo)
+		return NULL;
+
+	bo->drm = drm;
+	bo->base.priv = priv;
+
+	memset(&args, 0, sizeof(args));
+	args.name = handle;
+
+	err = ioctl(drm->fd, DRM_IOCTL_GEM_OPEN, &args);
+	if (err < 0) {
+		free(bo);
+		return NULL;
+	}
+
+	bo->base.handle = args.handle;
+
+	bo->base.priv->mmap = drm_bo_mmap;
+	bo->base.priv->invalidate = drm_bo_invalidate;
+	bo->base.priv->flush = drm_bo_flush;
+	bo->base.priv->free = drm_bo_free;
+	bo->base.priv->clone = drm_bo_clone;
+	bo->base.priv->export = drm_bo_export;
 
 	return &bo->base;
 }
@@ -867,6 +923,7 @@ struct host1x *host1x_drm_open(int fd)
 	drm->base.bo_create = drm_bo_create;
 	drm->base.framebuffer_init = drm_framebuffer_init;
 	drm->base.close = drm_close;
+	drm->base.bo_import = drm_bo_import;
 
 	err = drm_gr2d_create(&drm->gr2d, drm);
 	if (err < 0) {

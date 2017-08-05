@@ -175,6 +175,8 @@ int host1x_bo_invalidate(struct host1x_bo *bo, unsigned long offset,
 int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
 		    size_t length);
 int host1x_bo_mmap(struct host1x_bo *bo, void **ptr);
+int host1x_bo_export(struct host1x_bo *bo, uint32_t *handle);
+struct host1x_bo *host1x_bo_import(struct host1x *host1x, uint32_t handle);
 
 static inline struct host1x_bo *host1x_bo_create_helper(struct host1x *host1x,
 						size_t size, int flags,
@@ -235,6 +237,31 @@ static inline int host1x_bo_mmap_helper(struct host1x_bo *bo, void **ptr,
 	return err;
 }
 
+static inline int host1x_bo_export_helper(struct host1x_bo *bo,
+					  uint32_t *handle,
+					  const char *file, int line)
+{
+	int err = host1x_bo_export(bo, handle);
+	if (err)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_export() failed %d\n",
+			file, line, err);
+	return err;
+}
+
+static inline struct host1x_bo *host1x_bo_import_helper(struct host1x *host1x,
+							uint32_t handle,
+							const char *file,
+							int line)
+{
+	struct host1x_bo *bo = host1x_bo_import(host1x, handle);
+	if (!bo)
+		fprintf(stderr,
+			"ERROR: %s:%d: host1x_bo_import() failed\n",
+			file, line);
+	return bo;
+}
+
 #define HOST1X_BO_CREATE(host1x, size, flags) \
 	host1x_bo_create_helper(host1x, size, flags, __FILE__, __LINE__)
 
@@ -249,6 +276,12 @@ static inline int host1x_bo_mmap_helper(struct host1x_bo *bo, void **ptr,
 
 #define HOST1X_BO_MMAP(bo, ptr) \
 	host1x_bo_mmap_helper(bo, ptr, __FILE__, __LINE__)
+
+#define HOST1X_BO_EXPORT(bo, handle) \
+	host1x_bo_export_helper(bo, handle, __FILE__, __LINE__)
+
+#define HOST1X_BO_IMPORT(host1x, handle) \
+	host1x_bo_import_helper(host1x, handle, __FILE__, __LINE__)
 
 #define HOST1X_OPCODE_SETCL(offset, classid, mask) \
 	((0x0 << 28) | (((offset) & 0xfff) << 16) | (((classid) & 0x3ff) << 6) | ((mask) & 0x3f))

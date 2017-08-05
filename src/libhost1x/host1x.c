@@ -137,6 +137,21 @@ struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 	return bo;
 }
 
+struct host1x_bo *host1x_bo_import(struct host1x *host1x, uint32_t handle)
+{
+	struct host1x_bo_priv *priv;
+
+	if (host1x->bo_import) {
+		priv = calloc(1, sizeof(*priv));
+		if (!priv)
+			return NULL;
+
+		return host1x->bo_import(host1x, priv, handle);
+	}
+
+	return NULL;
+}
+
 void host1x_bo_free(struct host1x_bo *bo)
 {
 	struct host1x_bo_priv *priv = bo->priv;
@@ -175,6 +190,14 @@ int host1x_bo_flush(struct host1x_bo *bo, unsigned long offset,
 		return bo->priv->flush(bo, offset, length);
 
 	return 0;
+}
+
+int host1x_bo_export(struct host1x_bo *bo, uint32_t *handle)
+{
+	if (bo->priv->export)
+		return bo->priv->export(bo, handle);
+
+	return -1;
 }
 
 /*
