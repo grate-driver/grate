@@ -1,5 +1,6 @@
 tests = [
 	'gr2d-clear',
+	'gr2d-context',
 	'gr3d-triangle',
 ]
 
