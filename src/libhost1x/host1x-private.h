@@ -48,6 +48,7 @@ struct host1x_bo_priv {
 	int (*invalidate)(struct host1x_bo *bo, unsigned long offset,
 			  size_t length);
 	int (*flush)(struct host1x_bo *bo, unsigned long offset, size_t length);
+	int (*export)(struct host1x_bo *bo, uint32_t *handle);
 	void (*free)(struct host1x_bo *bo);
 	struct host1x_bo* (*clone)(struct host1x_bo *bo);
 };
@@ -113,6 +114,9 @@ struct host1x {
 	int (*framebuffer_init)(struct host1x *host1x,
 				struct host1x_framebuffer *fb);
 	void (*close)(struct host1x *host1x);
+	struct host1x_bo *(*bo_import)(struct host1x *host1x,
+				       struct host1x_bo_priv *priv,
+				       uint32_t handle);
 
 	struct host1x_display *display;
 	struct host1x_gr2d *gr2d;
