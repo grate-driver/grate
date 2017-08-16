@@ -180,6 +180,8 @@ As the result of a predicate vector instruction, corresponding components of the
 ## Scalar instructions
 If vector opcode isn't NOP and rD is same as scalar's, then vector result takes precedence.
 
+First component of swizzled source register rC determines actual source for scalar operation and result of that operation is repeated to .xyzw of destination register rD, taking write mask into account.
+
 ### MOV instruction
 Scalar's MOV acts as vector's MOV, i.e. it fetches and writes all .xyzw components.
 
