@@ -168,7 +168,6 @@ int host1x_gr2d_clear_rect(struct host1x_gr2d *gr2d,
 	}
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(0, 0x01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x09, 9));
 	host1x_pushbuf_push(pb, 0x0000003a);
 	host1x_pushbuf_push(pb, 0x00000000);
@@ -190,7 +189,6 @@ int host1x_gr2d_clear_rect(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x38, 5));
 	host1x_pushbuf_push(pb, height << 16 | width);
 	host1x_pushbuf_push(pb, y << 16 | x);
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_EXTEND(1, 1));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 
