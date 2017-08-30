@@ -12,5 +12,6 @@ libwrap = shared_library(
 	'wrap',
 	libwrap_sources,
 	dependencies: [libdl, librnn],
-	cpp_args : rnn_enable
+	cpp_args: rnn_enable,
+	c_args: '-U_FILE_OFFSET_BITS'
 )
