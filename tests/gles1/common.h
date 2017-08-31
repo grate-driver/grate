@@ -75,31 +75,11 @@ struct pbuffer *pbuffer_create(unsigned int width, unsigned int height);
 void pbuffer_free(struct pbuffer *pbuffer);
 bool pbuffer_save(struct pbuffer *pbuffer, const char *filename);
 
-GLuint glsl_shader_load(GLenum type, const GLchar *lines[], size_t count);
-GLuint glsl_program_create(GLuint vertex, GLuint fragment);
-void glsl_program_link(GLuint program);
-
-struct framebuffer {
-	unsigned int width;
-	unsigned int height;
-	GLuint texture;
-	GLenum format;
-	GLuint id;
-};
-
-struct framebuffer *framebuffer_create(unsigned int width, unsigned int height,
-				       GLenum format);
-struct framebuffer *display_create(unsigned int width, unsigned int height);
-void framebuffer_free(struct framebuffer *framebuffer);
-void framebuffer_bind(struct framebuffer *framebuffer);
-bool framebuffer_save(struct framebuffer *framebuffer, const char *filename);
-
 struct gles_texture {
 	GLenum format;
 	GLuint id;
 };
 
 struct gles_texture *gles_texture_load(const char *filename);
-void gles_texture_free(struct gles_texture *texture);
 
 #endif
