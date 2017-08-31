@@ -26,7 +26,7 @@ libgrate_sources = files(
 parser_gen = generator(
 	yacc,
 	output : ['@BASENAME@.tab.c', '@BASENAME@.tab.h'],
-	arguments : ['-d', '-o', '@OUTPUT0@', '@INPUT@', '@EXTRA_ARGS@']
+	arguments : ['-d', '-o', '@OUTPUT0@', '@EXTRA_ARGS@', '@INPUT@']
 )
 
 lex_gen = generator(
