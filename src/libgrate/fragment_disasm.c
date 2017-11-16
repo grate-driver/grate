@@ -738,7 +738,7 @@ const char * fragment_pipeline_disassemble(
 	}
 
 	for (i = 0; i < alu_nb; i++) {
-		buf += sprintf(buf, "\tALU:\n\%s", disassemble_alus(alu + i));
+		buf += sprintf(buf, "\tALU:\n%s", disassemble_alus(alu + i));
 	}
 
 	if (dw->data != 0x00000000) {
