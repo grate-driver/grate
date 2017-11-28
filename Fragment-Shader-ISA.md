@@ -38,6 +38,28 @@ Instructions schedule specifies the number of MFU and ALU instructions executed 
 
 If the "number of instructions to execute" is 0, then the pipeline stage is NOP, however still takes 1 clock cycle. The "address" is the number of pushed instructions before the instruction to execute, so unit[Address] ... unit[Address + Number of instructions to execute] instructions will be executed, where unit stands for MFU or ALU.
 
+## Registers
+
+Registers / embedded constants can either be treated as one FP20 register, or two FX10 values. Their encoding is like so:
+
+### FP20
+
+The FP20 format is similar to [IEEE 754 FP32](https://en.wikipedia.org/wiki/Single-precision_floating-point_format) and [IEEE 754 FP16](https://en.wikipedia.org/wiki/Half-precision_floating-point_format), but with both range and precision somewhere in the middle of the two.
+
+|   Bits | Meaning     |
+|-------:|:------------|
+|     19 | Sign        |
+| 13..18 | Exponent    |
+|  0..12 | Significand |
+
+This means that there's a 14 bit significand, with 13 bits explicitly stored. A 6 bit exponent gives an exponent bias of 31, with a minimum exponent value of -31, and a maximum exponent value of 32.
+
+### FX10
+
+The FX10 format is similar to [most signed fixed-point formats](https://en.wikipedia.org/wiki/Fixed-point_arithmetic), using 10 bits of storage, and a scaling-factor of 1/256.
+
+This means we have a minumum value of -4.0, and a maximum value of ~3.996.
+
 ## ALU instruction word encoding
 
 The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth instruction can be traded for embedded constants). Each ALU instruction package seems to run pipelined, and each instruction in a package can use partial results from the previous instruction.
