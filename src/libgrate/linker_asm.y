@@ -155,8 +155,8 @@ instruction:
 		yyval.instr.tram_dst_type_w		= $8.type;
 		yyval.instr.tram_dst_swizzle_w		= $15;
 
-		if ($10 > asm_linker_used_tram_rows_nb) {
-			asm_linker_used_tram_rows_nb = $10;
+		if ($10 >= asm_linker_used_tram_rows_nb) {
+			asm_linker_used_tram_rows_nb = $10 + 1;
 		}
 	}
 	;
