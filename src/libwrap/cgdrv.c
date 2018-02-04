@@ -31,7 +31,7 @@
 
 #include "utils.h"
 
-extern void *__libc_dlsym(void *handle, const char *name);
+extern void *_dl_sym(void *, const char *, void *);
 extern void *__libc_malloc(size_t size);
 extern void *__libc_realloc(void *ptr, size_t size);
 extern void *__libc_free(void *ptr);
@@ -54,7 +54,7 @@ static void *dlsym_helper(const char *name)
 	if (!cgdrv)
 		cgdrv = dlopen_helper("libcgdrv.so");
 
-	return __libc_dlsym(cgdrv, name);
+	return _dl_sym(cgdrv, name, dlsym);
 }
 
 #if 0
@@ -245,5 +245,5 @@ void *dlsym(void *handle, const char *name)
 	if (strcmp(name, "CgDrv_Compile") == 0)
 		return CgDrv_Compile;
 
-	return __libc_dlsym(handle, name);
+	return _dl_sym(handle, name, dlsym);
 }
