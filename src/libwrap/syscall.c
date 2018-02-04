@@ -31,6 +31,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <sys/ioctl.h>
 
@@ -168,12 +169,27 @@ ssize_t write(int fd, const void *buffer, size_t size)
 	return ret;
 }
 
+static long timespec_diff_in_us(struct timespec *t1, struct timespec *t2)
+{
+	struct timespec diff;
+	if (t2->tv_nsec-t1->tv_nsec < 0) {
+		diff.tv_sec  = t2->tv_sec - t1->tv_sec - 1;
+		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec + 1000000000;
+	} else {
+		diff.tv_sec  = t2->tv_sec - t1->tv_sec;
+		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec;
+	}
+	return (diff.tv_sec * 1000000.0 + diff.tv_nsec / 1000);
+}
+
 int ioctl(int fd, unsigned long request, ...)
 {
 	static typeof(ioctl) *orig = NULL;
 	const struct ioctl *ioc = NULL;
+	struct timespec t1, t2;
 	struct file *file;
 	va_list ap;
+	long diff;
 	void *arg;
 	int ret;
 
@@ -198,20 +214,25 @@ int ioctl(int fd, unsigned long request, ...)
 
 	printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
 
-	if (file && file->ops && file->ops->enter_ioctl)
+	if (file && file->ops && file->ops->enter_ioctl) {
 		file->ops->enter_ioctl(file, request, arg);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+	}
 
 	ret = orig(fd, request, arg);
 
-	if (file && file->ops && file->ops->leave_ioctl)
+	if (file && file->ops && file->ops->leave_ioctl) {
 		file->ops->leave_ioctl(file, request, arg);
+		clock_gettime(CLOCK_MONOTONIC, &t2);
+	}
 
 	if (!ioc) {
 		printf("  dir:%lx type:'%c' nr:%lx size:%lu\n",
 		       _IOC_DIR(request), (char)_IOC_TYPE(request),
 		       _IOC_NR(request), _IOC_SIZE(request));
 	} else {
-		printf("  %s\n", ioc->name);
+		diff = timespec_diff_in_us(&t1, &t2);
+		printf("  %s (%'ld us)\n", ioc->name, diff);
 	}
 
 	printf("%s() = %d\n", __func__, ret);
