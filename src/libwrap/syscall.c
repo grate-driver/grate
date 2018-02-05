@@ -33,6 +33,7 @@
 #include <sys/ioctl.h>
 
 #include "nvhost.h"
+#include "syscall.h"
 #include "utils.h"
 #include "list.h"
 
@@ -201,34 +202,46 @@ int ioctl(int fd, unsigned long request, ...)
 	return ret;
 }
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+void *mmap_orig(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-	static typeof(mmap) *orig = NULL;
-	void *ret;
+	static typeof(mmap_orig) *orig = NULL;
 
 	if (!orig)
-		orig = dlsym_helper(__func__);
+		orig = dlsym_helper("mmap");
+
+	return orig(addr, length, prot, flags, fd, offset);
+}
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+	void *ret;
 
 	printf("%s(addr=%p, length=%zu, prot=%#x, flags=%#x, fd=%d, offset=%lu)\n",
 	       __func__, addr, length, prot, flags, fd, offset);
 
-	ret = orig(addr, length, prot, flags, fd, offset);
+	ret = mmap_orig(addr, length, prot, flags, fd, offset);
 
 	printf("%s() = %p\n", __func__, ret);
 	return ret;
 }
 
-int munmap(void *addr, size_t length)
+int munmap_orig(void *addr, size_t length)
 {
-	static typeof(munmap) *orig = NULL;
-	int ret;
+	static typeof(munmap_orig) *orig = NULL;
 
 	if (!orig)
-		orig = dlsym_helper(__func__);
+		orig = dlsym_helper("munmap");
+
+	return orig(addr, length);
+}
+
+int munmap(void *addr, size_t length)
+{
+	int ret;
 
 	printf("%s(addr=%p, length=%zu)\n", __func__, addr, length);
 
-	ret = orig(addr, length);
+	ret = munmap_orig(addr, length);
 
 	printf("%s() = %d\n", __func__, ret);
 	return ret;
