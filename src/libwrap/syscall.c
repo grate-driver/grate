@@ -34,6 +34,7 @@
 
 #include <sys/ioctl.h>
 
+#include "host1x.h"
 #include "nvhost.h"
 #include "syscall.h"
 #include "utils.h"
@@ -68,6 +69,7 @@ int open(const char *pathname, int flags, ...)
 
 	if (!initialized) {
 		nvhost_register();
+		host1x_register();
 		initialized = true;
 	}
 
