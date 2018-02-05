@@ -70,6 +70,10 @@ struct cdma_stream {
 	uint32_t num_words;
 	uint32_t position;
 	uint32_t *words;
+	uint32_t classid;
+	cdma_write write;
+	void *write_arg;
+	bool print;
 };
 
 static enum cdma_opcode cdma_stream_get_opcode(struct cdma_stream *stream)
@@ -125,6 +129,16 @@ static void cdma_dump_register_write(uint32_t offset, uint32_t value)
 
 #endif
 
+static void cdma_register_write(struct cdma_stream *stream,
+				uint32_t offset, uint32_t value)
+{
+	if (stream->print)
+		cdma_dump_register_write(offset, value);
+
+	if (stream->write)
+		stream->write(stream->write_arg, stream->classid, offset, value);
+}
+
 static void cdma_opcode_setcl_dump(struct cdma_stream *stream)
 {
 	uint32_t offset, classid, mask, i;
@@ -133,13 +147,16 @@ static void cdma_opcode_setcl_dump(struct cdma_stream *stream)
 	classid = (stream->words[stream->position] >> 6) & 0x3ff;
 	mask =stream->words[stream->position] & 0x3f;
 
-	printf("      HOST1X_OPCODE_SETCL: offset:%x classid:%x mask:%x\n",
-	       offset, classid, mask);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_SETCL: offset:%x classid:%x mask:%x\n",
+		       offset, classid, mask);
+
+	stream->classid = classid;
 
 	for (i = 0; i < 6; i++) {
 		if (mask & BIT(i)) {
 			uint32_t value = stream->words[++stream->position];
-			cdma_dump_register_write(offset + i, value);
+			cdma_register_write(stream, offset + i, value);
 		}
 	}
 
@@ -154,10 +171,13 @@ static void cdma_opcode_incr_dump(struct cdma_stream *stream)
 	count = stream->words[stream->position] & 0xffff;
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_INCR: offset:%x count:%x\n", offset, count);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_INCR: offset:%x count:%x\n",
+		       offset, count);
 
 	for (i = 0; i < count; i++)
-		cdma_dump_register_write(offset + i, stream->words[stream->position++]);
+		cdma_register_write(stream, offset + i,
+				    stream->words[stream->position++]);
 }
 
 static void cdma_opcode_nonincr_dump(struct cdma_stream *stream)
@@ -168,11 +188,13 @@ static void cdma_opcode_nonincr_dump(struct cdma_stream *stream)
 	count = stream->words[stream->position] & 0xffff;
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_NONINCR: offset:%x count:%x\n", offset,
-	       count);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_NONINCR: offset:%x count:%x\n",
+		       offset, count);
 
 	for (i = 0; i < count; i++)
-		cdma_dump_register_write(offset, stream->words[stream->position++]);
+		cdma_register_write(stream, offset,
+				    stream->words[stream->position++]);
 }
 
 static void cdma_opcode_mask_dump(struct cdma_stream *stream)
@@ -183,11 +205,13 @@ static void cdma_opcode_mask_dump(struct cdma_stream *stream)
 	mask = stream->words[stream->position] & 0xffff;
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_MASK: offset:%x mask:%x\n", offset, mask);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_MASK: offset:%x mask:%x\n",
+		       offset, mask);
 
 	for (i = 0; i < 16; i++)
 		if (mask & BIT(i))
-			cdma_dump_register_write(offset + i,
+			cdma_register_write(stream, offset + i,
 			       stream->words[stream->position++]);
 }
 
@@ -199,8 +223,11 @@ static void cdma_opcode_imm_dump(struct cdma_stream *stream)
 	value = stream->words[stream->position] & 0xffff;
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_IMM: offset:%x value:%x\n", offset, value);
-	cdma_dump_register_write(offset, value);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_IMM: offset:%x value:%x\n",
+		       offset, value);
+
+	cdma_register_write(stream, offset, value);
 }
 
 static void cdma_opcode_restart_dump(struct cdma_stream *stream)
@@ -210,7 +237,8 @@ static void cdma_opcode_restart_dump(struct cdma_stream *stream)
 	offset = (stream->words[stream->position] & 0x0fffffff) << 4;
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_RESTART: offset:%x\n", offset);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_RESTART: offset:%x\n", offset);
 }
 
 static void cdma_opcode_gather_dump(struct cdma_stream *stream)
@@ -231,8 +259,9 @@ static void cdma_opcode_gather_dump(struct cdma_stream *stream)
 	}
 	stream->position++;
 
-	printf("      HOST1X_OPCODE_GATHER: offset:%x %scount:%x base:%x\n",
-	       offset, insert, count, stream->words[++stream->position]);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_GATHER: offset:%x %scount:%x base:%x\n",
+		       offset, insert, count, stream->words[++stream->position]);
 }
 
 static void cdma_opcode_extend_dump(struct cdma_stream *stream)
@@ -243,26 +272,36 @@ static void cdma_opcode_extend_dump(struct cdma_stream *stream)
 	subop = (stream->words[stream->position] >> 24) & 0xf;
 	value = stream->words[stream->position] & 0xffffff;
 
-	printf("      HOST1X_OPCODE_EXTEND: subop:%x value:%x\n", subop, value);
+	if (stream->print)
+		printf("      HOST1X_OPCODE_EXTEND: subop:%x value:%x\n",
+		       subop, value);
 
 	stream->position++;
 }
 
 static void cdma_opcode_chdone_dump(struct cdma_stream *stream)
 {
-	printf("      HOST1X_OPCODE_CHDONE\n");
+	if (stream->print)
+		printf("      HOST1X_OPCODE_CHDONE\n");
 	stream->position++;
 }
 
-void cdma_dump_commands(uint32_t *commands, unsigned int count)
+void cdma_parse_commands(uint32_t *commands, unsigned int count,
+			 bool print, uint32_t *classid, void *write_arg,
+			 cdma_write write_cb)
 {
 	struct cdma_stream stream = {
+		.classid = classid ? (*classid) : 0,
 		.words = commands,
 		.num_words = count,
 		.position = 0,
+		.write_arg = write_arg,
+		.write = write_cb,
+		.print = print,
 	};
 
-	printf("    commands: %u\n", count);
+	if (print)
+		printf("    commands: %u\n", count);
 
 	while (stream.position < stream.num_words) {
 		enum cdma_opcode opcode = cdma_stream_get_opcode(&stream);
@@ -305,8 +344,12 @@ void cdma_dump_commands(uint32_t *commands, unsigned int count)
 			break;
 
 		default:
-			printf("\n");
+			if (print)
+				printf("\n");
 			break;
 		}
 	}
+
+	if (classid)
+		*classid = stream.classid;
 }

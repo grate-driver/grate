@@ -26,8 +26,14 @@
 #ifndef GRATE_CDMA_PARSE_H
 #define GRATE_CDMA_PARSE_H 1
 
+#include <stdbool.h>
 #include <stdint.h>
 
-void cdma_dump_commands(uint32_t *commands, unsigned int count);
+typedef void (*cdma_write)(void *opaque, uint32_t host1x_class,
+			   uint32_t offset, uint32_t data);
+
+void cdma_parse_commands(uint32_t *commands, unsigned int count,
+			 bool print, uint32_t *classid, void *write_arg,
+			 cdma_write write_cb);
 
 #endif
