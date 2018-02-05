@@ -1,9 +1,12 @@
 libwrap_sources =  files(
 	'cgdrv.c',
+	'drm.h',
+	'drm_mode.h',
 	'list.h',
 	'nvhost.c',
 	'nvhost.h',
 	'syscall.c',
+	'tegra_drm.h',
 	'utils.c',
 	'utils.h'
 )
