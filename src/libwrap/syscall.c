@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define _LARGEFILE64_SOURCE
+
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -91,6 +93,18 @@ int open(const char *pathname, int flags, ...)
 		file_open(pathname, ret);
 
 	printf("%s() = %d\n", __func__, ret);
+	return ret;
+}
+
+int open64(const char *pathname, int flags, ...)
+{
+	va_list argp;
+	int ret;
+
+	va_start(argp, flags);
+	ret = open(pathname, flags | O_LARGEFILE, argp);
+	va_end(argp);
+
 	return ret;
 }
 
