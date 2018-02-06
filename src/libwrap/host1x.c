@@ -32,11 +32,20 @@
 #include <sys/mman.h>
 
 #include "cdma_parser.h"
+#include "disasm.h"
 #include "host1x.h"
 #include "syscall.h"
 
+struct drm_context {
+	uint32_t id;
+	uint32_t client;
+
+	struct list_head list;
+};
+
 struct host1x_file {
 	struct list_head handles;
+	struct list_head contexts;
 	struct file file;
 };
 
@@ -110,6 +119,39 @@ static struct host1x_handle *host1x_file_lookup_handle(struct host1x_file *host1
 	return NULL;
 }
 
+static struct drm_context *host1x_context_new(unsigned long id, uint32_t client)
+{
+	struct drm_context *ctx;
+
+	ctx = calloc(1, sizeof(*ctx));
+	if (!ctx)
+		return NULL;
+
+	INIT_LIST_HEAD(&ctx->list);
+	ctx->client = client;
+	ctx->id = id;
+
+	return ctx;
+}
+
+static void host1x_context_free(struct drm_context *ctx)
+{
+	list_del(&ctx->list);
+	free(ctx);
+}
+
+static struct drm_context *host1x_file_lookup_context(struct host1x_file *host1x,
+						       unsigned long id)
+{
+	struct drm_context *ctx;
+
+	list_for_each_entry(ctx, &host1x->contexts, list)
+		if (ctx->id == id)
+			return ctx;
+
+	return NULL;
+}
+
 static void host1x_gem_flags_to_string(char *str, uint32_t flags)
 {
 	if (flags & DRM_TEGRA_GEM_CREATE_TILED)
@@ -143,6 +185,9 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 {
 	struct drm_tegra_cmdbuf *cmdbuf = (void *)(intptr_t)args->cmdbufs;
 	struct host1x_handle *handle;
+	struct drm_context *ctx;
+	struct disasm_state d;
+	uint32_t classid;
 	unsigned int i;
 
 	printf("  SUBMIT:\n");
@@ -157,6 +202,15 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 	printf("    cmdbufs: 0x%08llx\n", args->cmdbufs);
 	printf("    relocs: 0x%08llx\n", args->relocs);
 	printf("    waitchks: 0x%08llx\n", args->waitchks);
+
+	ctx = host1x_file_lookup_context(host1x, args->context);
+	if (!ctx) {
+		fprintf(stderr, "invalid context: %llu\n", args->context);
+		return;
+	}
+
+	classid = ctx->client;
+	disasm_reset(&d);
 
 	for (i = 0; i < args->num_cmdbufs; i++, cmdbuf++) {
 		uint32_t *commands;
@@ -173,7 +227,8 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 		}
 
 		commands = (uint32_t *)(handle->mapped + cmdbuf->offset);
-		cdma_dump_commands(commands, cmdbuf->words);
+		cdma_parse_commands(commands, cmdbuf->words, true,
+				    &classid, &d, disasm_write_reg);
 	}
 }
 
@@ -327,16 +382,36 @@ static void host1x_file_leave_ioctl_submit(struct host1x_file *host1x,
 static void host1x_file_leave_ioctl_open_channel(struct host1x_file *host1x,
 						 struct drm_tegra_open_channel *args)
 {
+	struct drm_context *ctx;
+
 	printf("  Channel opened:\n");
 	printf("    client: 0x%X\n", args->client);
 	printf("    context: %llu\n", args->context);
+
+	ctx = host1x_context_new(args->context, args->client);
+	if (!ctx) {
+		fprintf(stderr, "failed to create context\n");
+		return;
+	}
+
+	list_add_tail(&ctx->list, &host1x->contexts);
 }
 
 static void host1x_file_leave_ioctl_close_channel(struct host1x_file *host1x,
 						  struct drm_tegra_close_channel *args)
 {
+	struct drm_context *ctx;
+
 	printf("  Channel closed:\n");
 	printf("    context: %llu\n", args->context);
+
+	ctx = host1x_file_lookup_context(host1x, args->context);
+	if (!ctx) {
+		fprintf(stderr, "invalid context: %llu\n", args->context);
+		return;
+	}
+
+	host1x_context_free(ctx);
 }
 
 static void host1x_file_leave_ioctl_get_syncpt(struct host1x_file *host1x,
@@ -549,10 +624,14 @@ static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 static void host1x_file_release(struct file *file)
 {
 	struct host1x_file *host1x = to_host1x_file(file);
-	struct host1x_handle *handle, *tmp;
+	struct host1x_handle *handle, *handle_tmp;
+	struct drm_context *ctx, *ctx_tmp;
 
-	list_for_each_entry_safe(handle, tmp, &host1x->handles, list)
+	list_for_each_entry_safe(handle, handle_tmp, &host1x->handles, list)
 		host1x_handle_free(handle);
+
+	list_for_each_entry_safe(ctx, ctx_tmp, &host1x->contexts, list)
+		host1x_context_free(ctx);
 
 	free(file->path);
 	free(host1x);
@@ -581,6 +660,7 @@ static struct file *host1x_file_new(const char *path, int fd)
 	host1x->file.ops = &host1x_file_ops;
 
 	INIT_LIST_HEAD(&host1x->handles);
+	INIT_LIST_HEAD(&host1x->contexts);
 
 	return &host1x->file;
 }

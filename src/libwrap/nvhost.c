@@ -26,6 +26,7 @@
 #include <string.h>
 
 #include "cdma_parser.h"
+#include "disasm.h"
 #include "nvhost.h"
 
 struct nvmap_file {
@@ -510,6 +511,10 @@ struct nvhost_file {
 	struct file file;
 
 	struct nvhost_job *job;
+
+	struct disasm_state d;
+
+	uint32_t classid;
 };
 
 static inline struct nvhost_file *to_nvhost_file(struct file *file)
@@ -645,10 +650,12 @@ static void nvhost_job_free(struct nvhost_job *job)
 	free(job);
 }
 
-static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
+static void nvhost_job_add_pushbuf(struct nvhost_file *nvhost,
+				   unsigned int index,
 				   const struct nvhost_cmdbuf *cmdbuf)
 {
 	struct file *file = file_find("/dev/nvmap");
+	struct nvhost_job *job = nvhost->job;
 	struct nvmap_handle *handle;
 	struct nvmap_file *nvmap;
 
@@ -671,7 +678,9 @@ static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
 				commands = handle->buffer + cmdbuf->offset;
 
 			nvhost_pushbuf_push(pushbuf, commands, cmdbuf->words);
-			cdma_dump_commands(commands, cmdbuf->words);
+			cdma_parse_commands(commands, cmdbuf->words, true,
+					    &nvhost->classid, &nvhost->d,
+					    disasm_write_reg);
 		}
 	} else {
 		fprintf(stderr, "nvmap not found!\n");
@@ -868,7 +877,7 @@ static ssize_t nvhost_file_write(struct file *file, const void *buffer,
 			unsigned int index = job->num_pushbufs - job->submit.num_cmdbufs;
 			const struct nvhost_cmdbuf *cmdbuf = buffer + pos;
 
-			nvhost_job_add_pushbuf(nvhost->job, index, cmdbuf);
+			nvhost_job_add_pushbuf(nvhost, index, cmdbuf);
 
 			job->submit.num_cmdbufs--;
 			pos += sizeof(*cmdbuf);
@@ -944,6 +953,8 @@ struct file *nvhost_file_new(const char *path, int fd)
 	nvhost->file.num_ioctls = ARRAY_SIZE(nvhost_ioctls);
 	nvhost->file.ioctls = nvhost_ioctls;
 	nvhost->file.ops = &nvhost_file_ops;
+
+	disasm_reset(&nvhost->d);
 
 	return &nvhost->file;
 }
