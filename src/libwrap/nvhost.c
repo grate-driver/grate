@@ -25,11 +25,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef ENABLE_RNN
-#include <envytools/rnn.h>
-#include <envytools/rnndec.h>
-#endif
-
+#include "cdma_parser.h"
+#include "disasm.h"
 #include "nvhost.h"
 
 struct nvmap_file {
@@ -514,291 +511,15 @@ struct nvhost_file {
 	struct file file;
 
 	struct nvhost_job *job;
+
+	struct disasm_state d;
+
+	uint32_t classid;
 };
 
 static inline struct nvhost_file *to_nvhost_file(struct file *file)
 {
 	return container_of(file, struct nvhost_file, file);
-}
-
-enum nvhost_opcode {
-	NVHOST_OPCODE_SETCL,
-	NVHOST_OPCODE_INCR,
-	NVHOST_OPCODE_NONINCR,
-	NVHOST_OPCODE_MASK,
-	NVHOST_OPCODE_IMM,
-	NVHOST_OPCODE_RESTART,
-	NVHOST_OPCODE_GATHER,
-	NVHOST_OPCODE_EXTEND = 14,
-	NVHOST_OPCODE_CHDONE = 15,
-};
-
-#if 0
-static const char *nvhost_opcode_names[] = {
-	"NVHOST_OPCODE_SETCL",
-	"NVHOST_OPCODE_INCR",
-	"NVHOST_OPCODE_NONINCR",
-	"NVHOST_OPCODE_MASK",
-	"NVHOST_OPCODE_IMM",
-	"NVHOST_OPCODE_RESTART",
-	"NVHOST_OPCODE_GATHER",
-	"NVHOST_OPCODE_UNKNOWN_7",
-	"NVHOST_OPCODE_UNKNOWN_8",
-	"NVHOST_OPCODE_UNKNOWN_9",
-	"NVHOST_OPCODE_UNKNOWN_10",
-	"NVHOST_OPCODE_UNKNOWN_11",
-	"NVHOST_OPCODE_UNKNOWN_12",
-	"NVHOST_OPCODE_UNKNOWN_13",
-	"NVHOST_OPCODE_EXTEND",
-	"NVHOST_OPCODE_CHDONE",
-};
-#endif
-
-#define BIT(x) (1 << (x))
-
-struct nvhost_stream {
-	unsigned int num_words;
-	unsigned int position;
-	uint32_t *words;
-};
-
-static enum nvhost_opcode nvhost_stream_get_opcode(struct nvhost_stream *stream)
-{
-	return (stream->words[stream->position] >> 28) & 0xf;
-}
-
-#ifdef ENABLE_RNN
-
-static void nvhost_dump_register_write(int offset, uint32_t value)
-{
-	struct rnndecaddrinfo *info;
-	static struct rnndeccontext *vc;
-	static struct rnndb *db;
-	static struct rnndomain *tgr3d_dom;
-	static int rnn_inited;
-	if (!rnn_inited) {
-		int use_colors = getenv("LIBWRAP_NO_COLORS") == NULL;
-		rnn_init();
-
-		db = rnn_newdb();
-		rnn_parsefile(db, "tgr_3d.xml");
-		rnn_prepdb(db);
-		vc = rnndec_newcontext(db);
-		vc->colors = use_colors ? &envy_def_colors : &envy_null_colors;
-
-		tgr3d_dom = rnn_finddomain(db, "TGR3D");
-		if (!tgr3d_dom)
-			fprintf(stderr, "Could not find domain\n");
-
-		rnn_inited = 1;
-	}
-
-	if (tgr3d_dom) {
-		info = rnndec_decodeaddr(vc, tgr3d_dom, offset, 0);
-		if (info && info->typeinfo)
-			printf("        %s <= %s\n", info->name,
-			    rnndec_decodeval(vc, info->typeinfo, value, info->width));
-		else if (info)
-			printf("        %s <= 0x%08x\n", info->name, value);
-		else
-			printf("        %03x <= 0x%08x\n", offset, value);
-	} else
-		printf("        %03x <= 0x%08x\n", offset, value);
-}
-
-#else
-
-static void nvhost_dump_register_write(int offset, int value)
-{
-	printf("        %03x <= 0x%08x\n", offset, value);
-}
-
-#endif
-
-static void nvhost_opcode_setcl_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, classid, mask, i;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	classid = (stream->words[stream->position] >> 6) & 0x3ff;
-	mask =stream->words[stream->position] & 0x3f;
-
-	printf("      NVHOST_OPCODE_SETCL: offset:%x classid:%x mask:%x\n",
-	       offset, classid, mask);
-
-	for (i = 0; i < 6; i++) {
-		if (mask & BIT(i)) {
-			uint32_t value = stream->words[++stream->position];
-			nvhost_dump_register_write(offset + i, value);
-		}
-	}
-
-	stream->position++;
-}
-
-static void nvhost_opcode_incr_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, count, i;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	count = stream->words[stream->position] & 0xffff;
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_INCR: offset:%x count:%x\n", offset, count);
-
-	for (i = 0; i < count; i++)
-		nvhost_dump_register_write(offset + i, stream->words[stream->position++]);
-}
-
-static void nvhost_opcode_nonincr_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, count, i;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	count = stream->words[stream->position] & 0xffff;
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_NONINCR: offset:%x count:%x\n", offset,
-	       count);
-
-	for (i = 0; i < count; i++)
-		nvhost_dump_register_write(offset, stream->words[stream->position++]);
-}
-
-static void nvhost_opcode_mask_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, mask, i;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	mask = stream->words[stream->position] & 0xffff;
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_MASK: offset:%x mask:%x\n", offset, mask);
-
-	for (i = 0; i < 16; i++)
-		if (mask & BIT(i))
-			nvhost_dump_register_write(offset + i,
-			       stream->words[stream->position++]);
-}
-
-static void nvhost_opcode_imm_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, value;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	value = stream->words[stream->position] & 0xffff;
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_IMM: offset:%x value:%x\n", offset, value);
-	nvhost_dump_register_write(offset, value);
-}
-
-static void nvhost_opcode_restart_dump(struct nvhost_stream *stream)
-{
-	uint32_t offset;
-
-	offset = (stream->words[stream->position] & 0x0fffffff) << 4;
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_RESTART: offset:%x\n", offset);
-}
-
-static void nvhost_opcode_gather_dump(struct nvhost_stream *stream)
-{
-	unsigned int offset, count;
-	const char *insert;
-
-	offset = (stream->words[stream->position] >> 16) & 0xfff;
-	count = stream->words[stream->position] & 0x3fff;
-
-	if (stream->words[stream->position] & BIT(15)) {
-		if (stream->words[stream->position] & BIT(14))
-			insert = "INCR ";
-		else
-			insert = "NONINCR ";
-	} else {
-		insert = "";
-	}
-	stream->position++;
-
-	printf("      NVHOST_OPCODE_GATHER: offset:%x %scount:%x base:%x\n",
-	       offset, insert, count, stream->words[++stream->position]);
-}
-
-static void nvhost_opcode_extend_dump(struct nvhost_stream *stream)
-{
-	uint16_t subop;
-	uint32_t value;
-
-	subop = (stream->words[stream->position] >> 24) & 0xf;
-	value = stream->words[stream->position] & 0xffffff;
-
-	printf("      NVHOST_OPCODE_EXTEND: subop:%x value:%x\n", subop, value);
-
-	stream->position++;
-}
-
-static void nvhost_opcode_chdone_dump(struct nvhost_stream *stream)
-{
-	printf("      NVHOST_OPCODE_CHDONE\n");
-	stream->position++;
-}
-
-static void dump_commands(uint32_t *commands, unsigned int count)
-{
-	struct nvhost_stream stream = {
-		.words = commands,
-		.num_words = count,
-		.position = 0,
-	};
-
-	printf("    commands: %u\n", count);
-
-	while (stream.position < stream.num_words) {
-		enum nvhost_opcode opcode = nvhost_stream_get_opcode(&stream);
-
-		switch (opcode) {
-		case NVHOST_OPCODE_SETCL:
-			nvhost_opcode_setcl_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_INCR:
-			nvhost_opcode_incr_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_NONINCR:
-			nvhost_opcode_nonincr_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_MASK:
-			nvhost_opcode_mask_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_IMM:
-			nvhost_opcode_imm_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_RESTART:
-			nvhost_opcode_restart_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_GATHER:
-			nvhost_opcode_gather_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_EXTEND:
-			nvhost_opcode_extend_dump(&stream);
-			break;
-
-		case NVHOST_OPCODE_CHDONE:
-			nvhost_opcode_chdone_dump(&stream);
-			break;
-
-		default:
-			printf("\n");
-			break;
-		}
-	}
 }
 
 struct nvhost_cmdbuf {
@@ -929,10 +650,12 @@ static void nvhost_job_free(struct nvhost_job *job)
 	free(job);
 }
 
-static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
+static void nvhost_job_add_pushbuf(struct nvhost_file *nvhost,
+				   unsigned int index,
 				   const struct nvhost_cmdbuf *cmdbuf)
 {
 	struct file *file = file_find("/dev/nvmap");
+	struct nvhost_job *job = nvhost->job;
 	struct nvmap_handle *handle;
 	struct nvmap_file *nvmap;
 
@@ -955,7 +678,9 @@ static void nvhost_job_add_pushbuf(struct nvhost_job *job, unsigned int index,
 				commands = handle->buffer + cmdbuf->offset;
 
 			nvhost_pushbuf_push(pushbuf, commands, cmdbuf->words);
-			dump_commands(commands, cmdbuf->words);
+			cdma_parse_commands(commands, cmdbuf->words, true,
+					    &nvhost->classid, &nvhost->d,
+					    disasm_write_reg);
 		}
 	} else {
 		fprintf(stderr, "nvmap not found!\n");
@@ -1152,7 +877,7 @@ static ssize_t nvhost_file_write(struct file *file, const void *buffer,
 			unsigned int index = job->num_pushbufs - job->submit.num_cmdbufs;
 			const struct nvhost_cmdbuf *cmdbuf = buffer + pos;
 
-			nvhost_job_add_pushbuf(nvhost->job, index, cmdbuf);
+			nvhost_job_add_pushbuf(nvhost, index, cmdbuf);
 
 			job->submit.num_cmdbufs--;
 			pos += sizeof(*cmdbuf);
@@ -1228,6 +953,8 @@ struct file *nvhost_file_new(const char *path, int fd)
 	nvhost->file.num_ioctls = ARRAY_SIZE(nvhost_ioctls);
 	nvhost->file.ioctls = nvhost_ioctls;
 	nvhost->file.ops = &nvhost_file_ops;
+
+	disasm_reset(&nvhost->d);
 
 	return &nvhost->file;
 }

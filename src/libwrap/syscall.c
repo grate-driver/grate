@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define _LARGEFILE64_SOURCE
+
 #include <dlfcn.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -29,10 +31,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <sys/ioctl.h>
 
+#include "host1x.h"
 #include "nvhost.h"
+#include "syscall.h"
 #include "utils.h"
 #include "list.h"
 
@@ -65,6 +70,7 @@ int open(const char *pathname, int flags, ...)
 
 	if (!initialized) {
 		nvhost_register();
+		host1x_register();
 		initialized = true;
 	}
 
@@ -90,6 +96,18 @@ int open(const char *pathname, int flags, ...)
 		file_open(pathname, ret);
 
 	printf("%s() = %d\n", __func__, ret);
+	return ret;
+}
+
+int open64(const char *pathname, int flags, ...)
+{
+	va_list argp;
+	int ret;
+
+	va_start(argp, flags);
+	ret = open(pathname, flags | O_LARGEFILE, argp);
+	va_end(argp);
+
 	return ret;
 }
 
@@ -151,12 +169,27 @@ ssize_t write(int fd, const void *buffer, size_t size)
 	return ret;
 }
 
+static long timespec_diff_in_us(struct timespec *t1, struct timespec *t2)
+{
+	struct timespec diff;
+	if (t2->tv_nsec-t1->tv_nsec < 0) {
+		diff.tv_sec  = t2->tv_sec - t1->tv_sec - 1;
+		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec + 1000000000;
+	} else {
+		diff.tv_sec  = t2->tv_sec - t1->tv_sec;
+		diff.tv_nsec = t2->tv_nsec - t1->tv_nsec;
+	}
+	return (diff.tv_sec * 1000000.0 + diff.tv_nsec / 1000);
+}
+
 int ioctl(int fd, unsigned long request, ...)
 {
 	static typeof(ioctl) *orig = NULL;
 	const struct ioctl *ioc = NULL;
+	struct timespec t1, t2;
 	struct file *file;
 	va_list ap;
+	long diff;
 	void *arg;
 	int ret;
 
@@ -181,54 +214,71 @@ int ioctl(int fd, unsigned long request, ...)
 
 	printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
 
-	if (file && file->ops && file->ops->enter_ioctl)
+	if (file && file->ops && file->ops->enter_ioctl) {
 		file->ops->enter_ioctl(file, request, arg);
+		clock_gettime(CLOCK_MONOTONIC, &t1);
+	}
 
 	ret = orig(fd, request, arg);
 
-	if (file && file->ops && file->ops->leave_ioctl)
+	if (file && file->ops && file->ops->leave_ioctl) {
 		file->ops->leave_ioctl(file, request, arg);
+		clock_gettime(CLOCK_MONOTONIC, &t2);
+	}
 
 	if (!ioc) {
 		printf("  dir:%lx type:'%c' nr:%lx size:%lu\n",
 		       _IOC_DIR(request), (char)_IOC_TYPE(request),
 		       _IOC_NR(request), _IOC_SIZE(request));
 	} else {
-		printf("  %s\n", ioc->name);
+		diff = timespec_diff_in_us(&t1, &t2);
+		printf("  %s (%'ld us)\n", ioc->name, diff);
 	}
 
 	printf("%s() = %d\n", __func__, ret);
 	return ret;
 }
 
-void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+void *mmap_orig(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-	static typeof(mmap) *orig = NULL;
-	void *ret;
+	static typeof(mmap_orig) *orig = NULL;
 
 	if (!orig)
-		orig = dlsym_helper(__func__);
+		orig = dlsym_helper("mmap");
+
+	return orig(addr, length, prot, flags, fd, offset);
+}
+
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+	void *ret;
 
 	printf("%s(addr=%p, length=%zu, prot=%#x, flags=%#x, fd=%d, offset=%lu)\n",
 	       __func__, addr, length, prot, flags, fd, offset);
 
-	ret = orig(addr, length, prot, flags, fd, offset);
+	ret = mmap_orig(addr, length, prot, flags, fd, offset);
 
 	printf("%s() = %p\n", __func__, ret);
 	return ret;
 }
 
-int munmap(void *addr, size_t length)
+int munmap_orig(void *addr, size_t length)
 {
-	static typeof(munmap) *orig = NULL;
-	int ret;
+	static typeof(munmap_orig) *orig = NULL;
 
 	if (!orig)
-		orig = dlsym_helper(__func__);
+		orig = dlsym_helper("munmap");
+
+	return orig(addr, length);
+}
+
+int munmap(void *addr, size_t length)
+{
+	int ret;
 
 	printf("%s(addr=%p, length=%zu)\n", __func__, addr, length);
 
-	ret = orig(addr, length);
+	ret = munmap_orig(addr, length);
 
 	printf("%s() = %d\n", __func__, ret);
 	return ret;
