@@ -279,10 +279,7 @@ The SFU result is evaluated first and is available to use by MUL's via "SFU resu
 
 |  Value | Meaning                          |
 |-------:|:---------------------------------|
-|      0 | row register 0                   |
-|      1 | row register 1                   |
-|      2 | row register 2                   |
-|      3 | row register 3                   |
+|   0..3 | row register 0..3                |
 |   4..7 | ??? (general purpose registers?) |
 |   8..9 | ???                              |
 |     10 | SFU result                       |
