@@ -170,19 +170,23 @@ The returned fragment position X register value is accumulated by 8192.0, fragme
 
 #### Registers:
 
-|  Value | Meaning                   |
-|-------:|:--------------------------|
-|  0..15 | row registers             |
-| 16..23 | general purpose registers |
-| 24..27 | ALU result registers      |
-| 28..30 | embedded constants        |
-|     31 | lowp vec2(0, 1)           |
-| 32..63 | uniform registers         |
-| 64..71 | condition registers       |
-|     72 | fragment x-position       |
-|     73 | fragment y-position       |
-|     75 | polygon face              |
-|     76 | kill (discard) fragment   |
+Patents:
+* https://www.google.com/patents/US7659909
+* https://www.google.com/patents/US8599208
+
+|  Value | Meaning                 |
+|-------:|:------------------------|
+|  0..15 | row registers           |
+| 16..23 | global registers        |
+| 24..27 | ALU result registers    |
+| 28..30 | embedded constants      |
+|     31 | lowp vec2(0, 1)         |
+| 32..63 | uniform registers       |
+| 64..71 | condition registers     |
+|     72 | fragment x-position     |
+|     73 | fragment y-position     |
+|     75 | polygon face            |
+|     76 | kill (discard) fragment |
 
 #### Result accumulation:
 
@@ -277,16 +281,16 @@ The varying id corresponds to the TRAM component: var0 is TRAM.x, var1 is TRAM.y
 
 The SFU result is evaluated first and is available to use by MUL's via "SFU result" register.
 
-|  Value | Meaning                          |
-|-------:|:---------------------------------|
-|   0..3 | row register 0..3                |
-|   4..7 | ??? (general purpose registers?) |
-|   8..9 | ???                              |
-|     10 | SFU result                       |
-|     11 | barycentric coef 0               |
-|     12 | barycentric coef 1               |
-|     13 | 1.0                              |
-| 14..15 | ???                              |
+|  Value | Meaning                 |
+|-------:|:------------------------|
+|   0..3 | row register 0..3       |
+|   4..7 | ??? (global registers?) |
+|   8..9 | ???                     |
+|     10 | SFU result              |
+|     11 | barycentric coef 0      |
+|     12 | barycentric coef 1      |
+|     13 | 1.0                     |
+| 14..15 | ???                     |
 
 #### Interpolation
 
