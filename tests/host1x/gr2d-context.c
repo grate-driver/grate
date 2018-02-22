@@ -39,6 +39,8 @@
 struct ctx2d {
 	struct host1x *host1x;
 	struct host1x_gr2d *gr2d;
+	struct host1x_bo *dst;
+	struct host1x_bo *src;
 };
 
 static struct ctx2d *create_context()
@@ -82,6 +84,8 @@ static void prepare_context(struct ctx2d *ctx,
 	if (!dst)
 		abort();
 
+	dst->offset = target->bo->offset;
+
 	src = host1x_pixelbuffer_create(ctx->host1x,
 					width, height, width * 4,
 					PIX_BUF_FMT_RGBA8888,
@@ -103,10 +107,7 @@ static void prepare_context(struct ctx2d *ctx,
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_SETCL(0, 0x51, 0));
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x009, 0x9));
-	host1x_pushbuf_push(pb, 0x0000003a); /* trigger */
-	host1x_pushbuf_push(pb, 0x00000000); /* cmdsel */
-
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x00c, 0x0)); /* cmdsel */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x01e, 0x7));
 	host1x_pushbuf_push(pb, 0x00000000); /* controlsecond */
 	/*
@@ -126,12 +127,8 @@ static void prepare_context(struct ctx2d *ctx,
 	 */
 	host1x_pushbuf_push(pb, 0 << 20 | 0); /* tilemode */
 
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x6149));
-	HOST1X_PUSHBUF_RELOCATE(pb, dst, target->bo->offset, 0);
-	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x6108));
 	host1x_pushbuf_push(pb, target->pitch); /* dstst */
-	HOST1X_PUSHBUF_RELOCATE(pb, src->bo, src->bo->offset, 0);
-	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
 	host1x_pushbuf_push(pb, height << 16 | width); /* dstsize */
 	host1x_pushbuf_push(pb, 0 << 16 | 0); /* srcps */
@@ -148,6 +145,9 @@ static void prepare_context(struct ctx2d *ctx,
 	err = HOST1X_CLIENT_FLUSH(ctx->gr2d->client, &fence);
 	if (err < 0)
 		abort();
+
+	ctx->dst = dst;
+	ctx->src = src->bo;
 }
 
 static void exec_context(struct ctx2d *ctx, unsigned int dx, unsigned int dy)
@@ -165,6 +165,14 @@ static void exec_context(struct ctx2d *ctx, unsigned int dx, unsigned int dy)
 	pb = HOST1X_JOB_APPEND(job, ctx->gr2d->commands, 0);
 	if (!pb)
 		abort();
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x009, 0x3a)); /* trigger */
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x41));
+	HOST1X_PUSHBUF_RELOCATE(pb, ctx->dst, ctx->dst->offset, 0);
+	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
+	HOST1X_PUSHBUF_RELOCATE(pb, ctx->src, ctx->src->offset, 0);
+	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x03a, 1));
 	host1x_pushbuf_push(pb, dy << 16 | dx); /* dstps */
