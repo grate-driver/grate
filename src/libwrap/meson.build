@@ -11,6 +11,8 @@ libwrap_sources =  files(
 	'list.h',
 	'nvhost.c',
 	'nvhost.h',
+	'recorder.c',
+	'recorder.h',
 	'syscall.c',
 	'syscall.h',
 	'tegra_drm.h',
@@ -33,7 +35,7 @@ libwrap_includes = include_directories(
 	'../../src/libgrate'
 )
 
-libwrap_deps = [libdl, dependency('threads')]
+libwrap_deps = [libdl, dependency('threads'), dependency('zlib')]
 libwrap_c_args = ['-U_FILE_OFFSET_BITS']
 
 librnn = cc.find_library('rnn', required : false)
