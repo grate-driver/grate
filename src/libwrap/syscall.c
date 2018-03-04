@@ -26,6 +26,7 @@
 
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -40,6 +41,8 @@
 #include "syscall.h"
 #include "utils.h"
 #include "list.h"
+
+static pthread_mutex_t ioctl_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static void *dlopen_helper(const char *name)
 {
@@ -215,15 +218,21 @@ int ioctl(int fd, unsigned long request, ...)
 	printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
 
 	if (file && file->ops && file->ops->enter_ioctl) {
+		pthread_mutex_lock(&ioctl_lock);
 		file->ops->enter_ioctl(file, request, arg);
+		pthread_mutex_unlock(&ioctl_lock);
+
 		clock_gettime(CLOCK_MONOTONIC, &t1);
 	}
 
 	ret = orig(fd, request, arg);
 
 	if (file && file->ops && file->ops->leave_ioctl) {
-		file->ops->leave_ioctl(file, request, arg);
 		clock_gettime(CLOCK_MONOTONIC, &t2);
+
+		pthread_mutex_lock(&ioctl_lock);
+		file->ops->leave_ioctl(file, request, arg);
+		pthread_mutex_unlock(&ioctl_lock);
 	}
 
 	if (!ioc) {

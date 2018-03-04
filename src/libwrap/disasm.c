@@ -21,15 +21,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <pthread.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "tgr_3d.xml.h"
 #include "disasm.h"
-
-/* grates disassemblers aren't thread-safe */
-static pthread_mutex_t disasm_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static void disasm_reset_vp(struct disasm_state *d)
 {
@@ -192,8 +188,6 @@ void disasm_dump(struct disasm_state *d)
 	unsigned int i, k;
 	unsigned int addr;
 
-	pthread_mutex_lock(&disasm_lock);
-
 	printf("=======================\n");
 	printf("Vertex instructions: %u\n", d->vpe_words_nb / 4);
 	printf("\n");
@@ -280,6 +274,4 @@ void disasm_dump(struct disasm_state *d)
 					dw));
 	}
 	printf("\n");
-
-	pthread_mutex_unlock(&disasm_lock);
 }
