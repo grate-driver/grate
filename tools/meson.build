@@ -3,12 +3,14 @@ tools = [
 	'cgc',
 	'hex2float',
 	'fp20',
-	'fx10'
+	'fx10',
+	'replay'
 ]
 
 includes = include_directories(
 	'../../include',
-	'../../src/libgrate'
+	'../../src/libgrate',
+	'../../src/libhost1x'
 )
 
 foreach tool : tools

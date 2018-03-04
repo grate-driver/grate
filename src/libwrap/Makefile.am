@@ -21,7 +21,6 @@ libgrate_wrap_la_SOURCES = \
 	drm_mode.h \
 	host1x.c \
 	host1x.h \
-	list.h \
 	nvhost.c \
 	nvhost.h \
 	recorder.c \

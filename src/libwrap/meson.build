@@ -9,7 +9,6 @@ libwrap_sources =  files(
 	'drm_mode.h',
 	'host1x.c',
 	'host1x.h',
-	'list.h',
 	'nvhost.c',
 	'nvhost.h',
 	'recorder.c',
