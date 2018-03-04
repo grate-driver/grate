@@ -5,6 +5,7 @@ libwrap_sources =  files(
 	'disasm.c',
 	'disasm.h',
 	'drm.h',
+	'drm_fourcc.h',
 	'drm_mode.h',
 	'host1x.c',
 	'host1x.h',

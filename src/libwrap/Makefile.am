@@ -17,6 +17,7 @@ libgrate_wrap_la_SOURCES = \
 	disasm.h \
 	disasm.c \
 	drm.h \
+	drm_fourcc.h \
 	drm_mode.h \
 	host1x.c \
 	host1x.h \
