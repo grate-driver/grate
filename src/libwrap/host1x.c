@@ -206,7 +206,7 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
 		fprintf(stderr, "invalid context: %llu\n", args->context);
-		return;
+		abort();
 	}
 
 	classid = ctx->client;
@@ -218,12 +218,12 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 		handle = host1x_file_lookup_handle(host1x, cmdbuf->handle);
 		if (!handle) {
 			fprintf(stderr, "invalid handle: %u\n", cmdbuf->handle);
-			continue;
+			abort();
 		}
 
 		if (!handle->mapped) {
 			fprintf(stderr, "cmdbuf %u not mapped\n", i);
-			continue;
+			abort();
 		}
 
 		commands = (uint32_t *)(handle->mapped + cmdbuf->offset);
@@ -245,7 +245,7 @@ static void host1x_file_enter_ioctl_gem_set_tiling(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
@@ -261,7 +261,7 @@ static void host1x_file_enter_ioctl_gem_set_flags(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
@@ -314,7 +314,7 @@ static void host1x_file_leave_ioctl_gem_create(struct host1x_file *host1x,
 	handle = host1x_handle_new(args->handle, args->size);
 	if (!handle) {
 		fprintf(stderr, "failed to create handle\n");
-		return;
+		abort();
 	}
 
 	list_add_tail(&handle->list, &host1x->handles);
@@ -332,7 +332,7 @@ static void host1x_file_leave_ioctl_gem_mmap(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
 	if (!handle->mapped) {
@@ -391,7 +391,7 @@ static void host1x_file_leave_ioctl_open_channel(struct host1x_file *host1x,
 	ctx = host1x_context_new(args->context, args->client);
 	if (!ctx) {
 		fprintf(stderr, "failed to create context\n");
-		return;
+		abort();
 	}
 
 	list_add_tail(&ctx->list, &host1x->contexts);
@@ -408,7 +408,7 @@ static void host1x_file_leave_ioctl_close_channel(struct host1x_file *host1x,
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
 		fprintf(stderr, "invalid context: %llu\n", args->context);
-		return;
+		abort();
 	}
 
 	host1x_context_free(ctx);
@@ -445,7 +445,7 @@ static void host1x_file_enter_ioctl_gem_get_tiling(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
@@ -461,7 +461,7 @@ static void host1x_file_enter_ioctl_gem_get_flags(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
@@ -485,7 +485,7 @@ static void host1x_file_leave_ioctl_create_dumb(struct host1x_file *host1x,
 	handle = host1x_handle_new(args->handle, args->size);
 	if (!handle) {
 		fprintf(stderr, "failed to create handle\n");
-		return;
+		abort();
 	}
 
 	list_add_tail(&handle->list, &host1x->handles);
@@ -503,7 +503,7 @@ static void host1x_file_leave_ioctl_mmap_dumb(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
 	if (!handle->mapped) {
@@ -525,7 +525,7 @@ static void host1x_file_leave_ioctl_destroy_dumb(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
 	host1x_handle_free(handle);
@@ -542,7 +542,7 @@ static void host1x_file_leave_ioctl_gem_close(struct host1x_file *host1x,
 	handle = host1x_file_lookup_handle(host1x, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
 	host1x_handle_free(handle);
