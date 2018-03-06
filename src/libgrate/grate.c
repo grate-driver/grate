@@ -323,7 +323,7 @@ void grate_wait_for_key(struct grate *grate)
 	 * If on-screen display isn't supported, don't wait for key-press
 	 * because the output is rendered into a PNG file.
 	 */
-	if (!grate->display && !grate->overlay)
+	if (grate && !grate->display && !grate->overlay)
 		return;
 
 	getchar();
@@ -342,7 +342,7 @@ static uint8_t grate_key_pressed__(struct grate *grate, bool return_keycode)
 	 * If on-screen display isn't supported, pretend that a key was
 	 * pressed so that the main loop can be exited.
 	 */
-	if (!grate->display && !grate->overlay)
+	if (grate && !grate->display && !grate->overlay)
 		return true;
 
 	if (return_keycode && !termio_adjusted) {

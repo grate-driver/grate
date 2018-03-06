@@ -138,7 +138,7 @@ static void nvmap_file_enter_ioctl_mmap(struct nvmap_file *nvmap,
 	handle = nvmap_file_lookup_handle(nvmap, args->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
 	handle->mapped = (void *)(uintptr_t)args->addr;
@@ -163,7 +163,7 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 	handle = nvmap_file_lookup_handle(nvmap, op->handle);
 	if (!handle) {
 		fprintf(stderr, "invalid handle: %x\n", op->handle);
-		return;
+		abort();
 	}
 
 	dest = (uint8_t *)handle->buffer + op->offset;
@@ -174,10 +174,12 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 		print_hexdump(stdout, DUMP_PREFIX_NONE, "  ", src,
 			      op->elem_size, 16, true);
 
-		if (dest + op->elem_size <= end)
+		if (dest + op->elem_size <= end) {
 			memcpy(dest, src, op->elem_size);
-		else
+		} else {
 			fprintf(stderr, "BUG: writing outside buffer!\n");
+			abort();
+		}
 
 		dest += op->hmem_stride;
 		src += op->user_stride;
@@ -267,7 +269,7 @@ static void nvmap_file_leave_ioctl_create(struct nvmap_file *nvmap,
 	handle = nvmap_handle_new(args->handle, args->size);
 	if (!handle) {
 		fprintf(stderr, "failed to create handle\n");
-		return;
+		abort();
 	}
 
 	list_add_tail(&handle->list, &nvmap->handles);
@@ -684,7 +686,7 @@ static void nvhost_job_add_pushbuf(struct nvhost_file *nvhost,
 		}
 	} else {
 		fprintf(stderr, "nvmap not found!\n");
-		exit(1);
+		abort();
 	}
 }
 
@@ -791,8 +793,10 @@ static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
 		nvhost_job_free(nvhost->job);
 
 	nvhost->job = nvhost_job_new(submit);
-	if (!nvhost->job)
+	if (!nvhost->job) {
 		fprintf(stderr, "failed to create new job\n");
+		abort();
+	}
 }
 
 static int nvhost_file_enter_ioctl(struct file *file, unsigned long request,

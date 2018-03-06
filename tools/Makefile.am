@@ -3,7 +3,8 @@ noinst_PROGRAMS = \
 	cgc \
 	hex2float \
 	fp20 \
-	fx10
+	fx10 \
+	replay
 
 AM_LDFLAGS = -static
 
@@ -19,3 +20,11 @@ cgc_CPPFLAGS = \
 
 cgc_LDADD = \
 	../src/libcgc/libcgc.la
+
+replay_CPPFLAGS = \
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/src/libhost1x \
+	-I$(top_srcdir)/src/libgrate
+
+replay_LDADD = \
+	../src/libgrate/libgrate.la

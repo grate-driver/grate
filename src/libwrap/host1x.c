@@ -35,26 +35,39 @@
 #include "disasm.h"
 #include "host1x.h"
 #include "syscall.h"
+#include "recorder.h"
+#include "drm_fourcc.h"
+
+enum host1x_class {
+	HOST1X_CLASS_GR2D = 0x51,
+	HOST1X_CLASS_GR3D = 0x60,
+};
 
 struct drm_context {
 	uint32_t id;
 	uint32_t client;
 
 	struct list_head list;
+
+	struct job_ctx_rec *rec_job_ctx;
 };
 
 struct host1x_file {
-	struct list_head handles;
+	struct list_head bos;
 	struct list_head contexts;
 	struct file file;
+
+	struct rec_ctx *rec_ctx;
 };
 
-struct host1x_handle {
+struct host1x_bo {
 	int id;
 	size_t size;
 	char *mapped;
 
 	struct list_head list;
+
+	struct bo_rec *rec_bo;
 };
 
 static inline struct host1x_file *to_host1x_file(struct file *file)
@@ -81,40 +94,47 @@ static const struct ioctl host1x_ioctls[] = {
 	IOCTL(DRM_IOCTL_MODE_MAP_DUMB),
 	IOCTL(DRM_IOCTL_MODE_DESTROY_DUMB),
 	IOCTL(DRM_IOCTL_GEM_CLOSE),
+	IOCTL(DRM_IOCTL_MODE_ADDFB),
+	IOCTL(DRM_IOCTL_MODE_ADDFB2),
+	IOCTL(DRM_IOCTL_MODE_RMFB),
 };
 
-static struct host1x_handle *host1x_handle_new(unsigned long id, size_t size)
+static struct host1x_bo *host1x_bo_new(struct host1x_file *host1x,
+				       unsigned long id, size_t size,
+				       uint32_t flags)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
-	handle = calloc(1, sizeof(*handle));
-	if (!handle)
+	bo = calloc(1, sizeof(*bo));
+	if (!bo)
 		return NULL;
 
-	INIT_LIST_HEAD(&handle->list);
-	handle->size = size;
-	handle->id = id;
+	INIT_LIST_HEAD(&bo->list);
+	bo->size = size;
+	bo->id = id;
+	bo->rec_bo = record_create_bo(host1x->rec_ctx, size, flags);
 
-	return handle;
+	return bo;
 }
 
-static void host1x_handle_free(struct host1x_handle *handle)
+static void host1x_bo_free(struct host1x_bo *bo)
 {
-	if (handle->mapped)
-		munmap_orig(handle->mapped, handle->size);
+	if (bo->mapped)
+		munmap_orig(bo->mapped, bo->size);
 
-	list_del(&handle->list);
-	free(handle);
+	record_destroy_bo(bo->rec_bo);
+	list_del(&bo->list);
+	free(bo);
 }
 
-static struct host1x_handle *host1x_file_lookup_handle(struct host1x_file *host1x,
-						       unsigned long id)
+static struct host1x_bo *host1x_file_lookup_bo(struct host1x_file *host1x,
+					       unsigned long id)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
-	list_for_each_entry(handle, &host1x->handles, list)
-		if (handle->id == id)
-			return handle;
+	list_for_each_entry(bo, &host1x->bos, list)
+		if (bo->id == id)
+			return bo;
 
 	return NULL;
 }
@@ -130,12 +150,14 @@ static struct drm_context *host1x_context_new(unsigned long id, uint32_t client)
 	INIT_LIST_HEAD(&ctx->list);
 	ctx->client = client;
 	ctx->id = id;
+	ctx->rec_job_ctx = record_job_ctx_create(client == HOST1X_CLASS_GR2D);
 
 	return ctx;
 }
 
 static void host1x_context_free(struct drm_context *ctx)
 {
+	record_job_ctx_destroy(ctx->rec_job_ctx);
 	list_del(&ctx->list);
 	free(ctx);
 }
@@ -184,11 +206,16 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 					   struct drm_tegra_submit *args)
 {
 	struct drm_tegra_cmdbuf *cmdbuf = (void *)(intptr_t)args->cmdbufs;
-	struct host1x_handle *handle;
+	struct drm_tegra_reloc *reloc = (void *)(intptr_t)args->relocs;
+	struct drm_tegra_syncpt *syncpt = (void *)(intptr_t)args->syncpts;
+	struct host1x_bo *bo;
 	struct drm_context *ctx;
 	struct disasm_state d;
+	struct job_rec j;
 	uint32_t classid;
-	unsigned int i;
+	unsigned int *handles;
+	unsigned int num_handles;
+	unsigned int i, k;
 
 	printf("  SUBMIT:\n");
 	printf("    context: %llu\n", args->context);
@@ -206,63 +233,134 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
 		fprintf(stderr, "invalid context: %llu\n", args->context);
-		return;
+		abort();
 	}
 
 	classid = ctx->client;
 	disasm_reset(&d);
 
+	j.num_gathers = args->num_cmdbufs;
+	j.num_relocs = args->num_relocs;
+	j.num_syncpt_incrs = syncpt->incrs;
+	j.gathers = alloca(sizeof(*j.gathers) * args->num_cmdbufs);
+	j.relocs = alloca(sizeof(*j.relocs) * args->num_relocs);
+	j.ctx = ctx->rec_job_ctx;
+
 	for (i = 0; i < args->num_cmdbufs; i++, cmdbuf++) {
 		uint32_t *commands;
 
-		handle = host1x_file_lookup_handle(host1x, cmdbuf->handle);
-		if (!handle) {
+		bo = host1x_file_lookup_bo(host1x, cmdbuf->handle);
+		if (!bo) {
 			fprintf(stderr, "invalid handle: %u\n", cmdbuf->handle);
-			continue;
+			abort();
 		}
 
-		if (!handle->mapped) {
+		if (!bo->mapped) {
 			fprintf(stderr, "cmdbuf %u not mapped\n", i);
-			continue;
+			abort();
 		}
 
-		commands = (uint32_t *)(handle->mapped + cmdbuf->offset);
+		commands = (uint32_t *)(bo->mapped + cmdbuf->offset);
 		cdma_parse_commands(commands, cmdbuf->words, true,
 				    &classid, &d, disasm_write_reg);
+
+		if (!recorder_enabled())
+			continue;
+
+		j.gathers[i].id = bo->rec_bo->id;
+		j.gathers[i].ctx_id = bo->rec_bo->ctx->id;
+		j.gathers[i].offset = cmdbuf->offset;
+		j.gathers[i].num_words = cmdbuf->words;
+
+		record_capture_bo_data(bo->rec_bo, false);
 	}
+
+	if (!recorder_enabled())
+		return;
+
+	handles = alloca(sizeof(handles) * args->num_relocs);
+	num_handles = 0;
+
+	for (i = 0; i < args->num_relocs; i++)
+		handles[i] = ~0u;
+
+	for (i = 0; i < args->num_relocs; i++, reloc++) {
+		bo = host1x_file_lookup_bo(host1x, reloc->cmdbuf.handle);
+		if (!bo) {
+			fprintf(stderr, "invalid gather handle: %u\n",
+				reloc->target.handle);
+			abort();
+		}
+
+		j.relocs[i].gather_id = bo->rec_bo->id;
+		j.relocs[i].patch_offset = reloc->cmdbuf.offset;
+
+		bo = host1x_file_lookup_bo(host1x, reloc->target.handle);
+		if (!bo) {
+			fprintf(stderr, "invalid handle: %u\n",
+				reloc->target.handle);
+			abort();
+		}
+
+		j.relocs[i].id = bo->rec_bo->id;
+		j.relocs[i].ctx_id = bo->rec_bo->ctx->id;
+		j.relocs[i].offset = reloc->target.offset;
+
+		/* skip duplicated BO's */
+		for (k = 0; k < num_handles; k++)
+			if (handles[k] == reloc->target.handle)
+				break;
+
+		if (k < num_handles)
+			continue;
+
+		handles[num_handles++] = reloc->target.handle;
+
+		if (!bo->mapped)
+			continue;
+
+		record_capture_bo_data(bo->rec_bo, false);
+	}
+
+	record_job_submit(&j);
 }
 
 static void host1x_file_enter_ioctl_gem_set_tiling(struct host1x_file *host1x,
 						   struct drm_tegra_gem_set_tiling *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  Set GEM tiling:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    mode: %u\n", args->mode);
 	printf("    value: %u\n", args->value);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
 static void host1x_file_enter_ioctl_gem_set_flags(struct host1x_file *host1x,
 						  struct drm_tegra_gem_set_flags *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  Set GEM flags:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    flags: %u\n", args->flags);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
+
+	if (!recorder_enabled())
+		return;
+
+	record_set_bo_flags(bo->rec_bo, args->flags);
 }
 
 static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
@@ -301,7 +399,7 @@ static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
 static void host1x_file_leave_ioctl_gem_create(struct host1x_file *host1x,
 					       struct drm_tegra_gem_create *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 	char buf[256] = { };
 
 	host1x_gem_flags_to_string(buf, args->flags);
@@ -311,35 +409,37 @@ static void host1x_file_leave_ioctl_gem_create(struct host1x_file *host1x,
 	printf("    size: %llx\n", args->size);
 	printf("    flags: %x (%s )\n", args->flags, buf);
 
-	handle = host1x_handle_new(args->handle, args->size);
-	if (!handle) {
-		fprintf(stderr, "failed to create handle\n");
-		return;
+	bo = host1x_bo_new(host1x, args->handle, args->size, args->flags);
+	if (!bo) {
+		fprintf(stderr, "failed to create bo\n");
+		abort();
 	}
 
-	list_add_tail(&handle->list, &host1x->handles);
+	list_add_tail(&bo->list, &host1x->bos);
 }
 
 static void host1x_file_leave_ioctl_gem_mmap(struct host1x_file *host1x,
 					     struct drm_tegra_gem_mmap *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  GEM mapped:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    offset: %llx\n", args->offset);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
-	if (!handle->mapped) {
-		handle->mapped = mmap_orig(NULL, handle->size, PROT_READ,
+	if (!bo->mapped) {
+		bo->mapped = mmap_orig(NULL, bo->size, PROT_READ,
 					   MAP_SHARED, host1x->file.fd,
 					   args->offset);
-		assert(handle->mapped != MAP_FAILED);
+		assert(bo->mapped != MAP_FAILED);
+
+		record_set_bo_data(bo->rec_bo, bo->mapped);
 	}
 }
 
@@ -391,7 +491,7 @@ static void host1x_file_leave_ioctl_open_channel(struct host1x_file *host1x,
 	ctx = host1x_context_new(args->context, args->client);
 	if (!ctx) {
 		fprintf(stderr, "failed to create context\n");
-		return;
+		abort();
 	}
 
 	list_add_tail(&ctx->list, &host1x->contexts);
@@ -408,7 +508,7 @@ static void host1x_file_leave_ioctl_close_channel(struct host1x_file *host1x,
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
 		fprintf(stderr, "invalid context: %llu\n", args->context);
-		return;
+		abort();
 	}
 
 	host1x_context_free(ctx);
@@ -435,40 +535,40 @@ static void host1x_file_leave_ioctl_get_syncpt_base(struct host1x_file *host1x,
 static void host1x_file_enter_ioctl_gem_get_tiling(struct host1x_file *host1x,
 						   struct drm_tegra_gem_get_tiling *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  Set GEM tiling:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    mode: %u\n", args->mode);
 	printf("    value: %u\n", args->value);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
 static void host1x_file_enter_ioctl_gem_get_flags(struct host1x_file *host1x,
 						  struct drm_tegra_gem_get_flags *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  Set GEM flags:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    flags: %u\n", args->flags);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 }
 
 static void host1x_file_leave_ioctl_create_dumb(struct host1x_file *host1x,
 						struct drm_mode_create_dumb *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 	char buf[256] = { };
 
 	host1x_gem_flags_to_string(buf, args->flags);
@@ -482,70 +582,164 @@ static void host1x_file_leave_ioctl_create_dumb(struct host1x_file *host1x,
 	printf("    pitch: %u\n", args->pitch);
 	printf("    size: %llx\n", args->size);
 
-	handle = host1x_handle_new(args->handle, args->size);
-	if (!handle) {
-		fprintf(stderr, "failed to create handle\n");
-		return;
+	bo = host1x_bo_new(host1x, args->handle, args->size, args->flags);
+	if (!bo) {
+		fprintf(stderr, "failed to create bo\n");
+		abort();
 	}
 
-	list_add_tail(&handle->list, &host1x->handles);
+	list_add_tail(&bo->list, &host1x->bos);
 }
 
 static void host1x_file_leave_ioctl_mmap_dumb(struct host1x_file *host1x,
 					      struct drm_mode_map_dumb *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  Dumb GEM mapped:\n");
 	printf("    handle: %u\n", args->handle);
 	printf("    offset: %llx\n", args->offset);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
-	if (!handle->mapped) {
-		handle->mapped = mmap_orig(NULL, handle->size, PROT_READ,
+	if (!bo->mapped) {
+		bo->mapped = mmap_orig(NULL, bo->size, PROT_READ,
 					   MAP_SHARED, host1x->file.fd,
 					   args->offset);
-		assert(handle->mapped != MAP_FAILED);
+		assert(bo->mapped != MAP_FAILED);
+
+		record_set_bo_data(bo->rec_bo, bo->mapped);
 	}
 }
 
 static void host1x_file_leave_ioctl_destroy_dumb(struct host1x_file *host1x,
 						 struct drm_mode_destroy_dumb *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  GEM destroyed:\n");
 	printf("    handle: %u\n", args->handle);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
-	host1x_handle_free(handle);
+	host1x_bo_free(bo);
 }
 
 static void host1x_file_leave_ioctl_gem_close(struct host1x_file *host1x,
 					      struct drm_gem_close *args)
 {
-	struct host1x_handle *handle;
+	struct host1x_bo *bo;
 
 	printf("  GEM closed:\n");
 	printf("    handle: %u\n", args->handle);
 
-	handle = host1x_file_lookup_handle(host1x, args->handle);
-	if (!handle) {
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
 		fprintf(stderr, "invalid handle: %x\n", args->handle);
-		return;
+		abort();
 	}
 
-	host1x_handle_free(handle);
+	host1x_bo_free(bo);
+}
+
+static void host1x_file_leave_ioctl_addfb(struct host1x_file *host1x,
+					  struct drm_mode_fb_cmd *args)
+{
+	struct host1x_bo *bo;
+	uint32_t pixel_format;
+
+	printf("  FB added:\n");
+	printf("    fb_id: %u\n", args->fb_id);
+	printf("    width: %u\n", args->width);
+	printf("    height: %u\n", args->height);
+	printf("    bpp: %u\n", args->bpp);
+	printf("    depth: %u\n", args->depth);
+	printf("    handle: %u\n", args->handle);
+
+	bo = host1x_file_lookup_bo(host1x, args->handle);
+	if (!bo) {
+		fprintf(stderr, "invalid handle: %x\n", args->handle);
+		abort();
+	}
+
+	if (args->bpp == 32 && args->depth == 24)
+		pixel_format = DRM_FORMAT_XRGB8888;
+	else if (args->bpp == 16 && args->depth == 16)
+		pixel_format = DRM_FORMAT_RGB565;
+	else
+		return;
+
+	if (!recorder_enabled())
+		return;
+
+	bo->rec_bo->width = args->width;
+	bo->rec_bo->height = args->height;
+	bo->rec_bo->pitch = args->pitch;
+	bo->rec_bo->format = pixel_format;
+	bo->rec_bo->fb_id = args->fb_id;
+
+	record_add_framebuffer(bo->rec_bo, 0);
+}
+
+static void host1x_file_leave_ioctl_addfb2(struct host1x_file *host1x,
+					   struct drm_mode_fb_cmd2 *args)
+{
+	struct host1x_bo *bo;
+	unsigned int i;
+
+	printf("  FB2 added:\n");
+	printf("    fb_id: %u\n", args->fb_id);
+	printf("    width: %u\n", args->width);
+	printf("    height: %u\n", args->height);
+	printf("    pixel_format: %u\n", args->pixel_format);
+	printf("    flags: %u\n", args->flags);
+
+	for (i = 0; i < 4; i++) {
+		printf("    handles[%u]: %u\n", i, args->handles[i]);
+		printf("    pitches[%u]: %u\n", i, args->pitches[i]);
+		printf("    offsets[%u]: %u\n", i, args->offsets[i]);
+		printf("    modifier[%u]: %llu\n", i, args->modifier[i]);
+	}
+
+	bo = host1x_file_lookup_bo(host1x, args->handles[0]);
+	if (!bo) {
+		fprintf(stderr, "invalid handle: %x\n", args->handles[0]);
+		abort();
+	}
+
+	if (args->pixel_format != DRM_FORMAT_XBGR8888 &&
+	    args->pixel_format != DRM_FORMAT_XRGB8888 &&
+	    args->pixel_format != DRM_FORMAT_RGB565)
+		return;
+
+	if (!recorder_enabled())
+		return;
+
+	bo->rec_bo->width = args->width;
+	bo->rec_bo->height = args->height;
+	bo->rec_bo->pitch = args->pitches[0];
+	bo->rec_bo->format = args->pixel_format;
+	bo->rec_bo->fb_id = args->fb_id;
+
+	record_add_framebuffer(bo->rec_bo, args->flags);
+}
+
+static void host1x_file_leave_ioctl_rmfb(struct host1x_file *host1x,
+					 unsigned int fb_id)
+{
+	struct host1x_bo *bo;
+
+	list_for_each_entry(bo, &host1x->bos, list)
+		if (bo->rec_bo->fb_id == fb_id)
+			return record_del_framebuffer(bo->rec_bo);
 }
 
 static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
@@ -614,6 +808,18 @@ static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 		host1x_file_leave_ioctl_gem_close(host1x, arg);
 		break;
 
+	case DRM_IOCTL_MODE_ADDFB:
+		host1x_file_leave_ioctl_addfb(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_ADDFB2:
+		host1x_file_leave_ioctl_addfb2(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_RMFB:
+		host1x_file_leave_ioctl_rmfb(host1x, (unsigned long)arg);
+		break;
+
 	default:
 		break;
 	}
@@ -624,14 +830,16 @@ static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 static void host1x_file_release(struct file *file)
 {
 	struct host1x_file *host1x = to_host1x_file(file);
-	struct host1x_handle *handle, *handle_tmp;
+	struct host1x_bo *bo, *bo_tmp;
 	struct drm_context *ctx, *ctx_tmp;
 
-	list_for_each_entry_safe(handle, handle_tmp, &host1x->handles, list)
-		host1x_handle_free(handle);
+	list_for_each_entry_safe(bo, bo_tmp, &host1x->bos, list)
+		host1x_bo_free(bo);
 
 	list_for_each_entry_safe(ctx, ctx_tmp, &host1x->contexts, list)
 		host1x_context_free(ctx);
+
+	record_destroy_ctx(host1x->rec_ctx);
 
 	free(file->path);
 	free(host1x);
@@ -659,7 +867,9 @@ static struct file *host1x_file_new(const char *path, int fd)
 	host1x->file.ioctls = host1x_ioctls;
 	host1x->file.ops = &host1x_file_ops;
 
-	INIT_LIST_HEAD(&host1x->handles);
+	host1x->rec_ctx = record_create_ctx();
+
+	INIT_LIST_HEAD(&host1x->bos);
 	INIT_LIST_HEAD(&host1x->contexts);
 
 	return &host1x->file;
