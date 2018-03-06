@@ -254,11 +254,47 @@ void record_destroy_bo(struct bo_rec *bo)
 	record_write_action(&r);
 }
 
+static size_t compress_data(void *in, void *out,
+			    size_t in_size, size_t out_size)
+{
+	z_stream strm;
+	int ret;
+
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.avail_in = in_size;
+	strm.next_in = in;
+	strm.avail_out = out_size;
+	strm.next_out = out;
+
+	ret = deflateInit(&strm, Z_BEST_SPEED);
+	assert(ret == Z_OK);
+
+	ret = deflate(&strm, Z_FINISH);
+	if (ret != Z_STREAM_END) {
+		fprintf(stderr, "%s: ERROR: deflate failed: %d\n",
+			__func__, ret);
+		abort();
+	}
+
+	ret = deflateEnd(&strm);
+	assert(ret == Z_OK);
+
+	if (strm.total_out >= in_size)
+		return 0;
+
+	return strm.total_out;
+}
+
 static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 {
 	struct record_act r;
 	unsigned long chksum;
+	uint16_t data_size;
+	uint8_t compressed[4608];
 	uint8_t buf[4096];
+	void *data;
 
 	memcpy(buf, bo->page_data[page].data, 4096);
 
@@ -267,13 +303,18 @@ static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 	if (chksum == bo->page_meta[page].chksum)
 		return false;
 
+	/* size 0 means go uncompressed */
+	data_size = compress_data(buf, compressed, 4096, 4608);
+	data = data_size ? compressed : buf;
+
 	r.act = REC_BO_LOAD_DATA;
 	r.data.bo_load.id = bo->id;
 	r.data.bo_load.page_id = page;
 	r.data.bo_load.ctx_id = bo->ctx->id;
+	r.data.bo_load.data_size = data_size;
 
 	record_write_action(&r);
-	record_write_data(buf, 4096);
+	record_write_data(data, data_size ?: 4096);
 
 	bo->page_meta[page].chksum = chksum;
 
