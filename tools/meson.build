@@ -19,7 +19,7 @@ foreach tool : tools
 		tool,
 		src,
 		include_directories : includes,
-		dependencies : math,
+		dependencies : [math, dependency('zlib')],
 		link_with : [libgrate, libhost1x, libcgc]
 	)
 endforeach

@@ -21,10 +21,13 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#define _LARGEFILE64_SOURCE
+
 #include <assert.h>
 #include <errno.h>
 #include <getopt.h>
 #include <string.h>
+#include <zlib.h>
 
 #include <libdrm/drm_fourcc.h>
 
@@ -174,13 +177,57 @@ static void destroy_bo(unsigned int id, unsigned int ctx_id)
 	free(rbo);
 }
 
+static void decompress_data(void *in, void *out,
+			    size_t in_size, size_t out_size)
+{
+	z_stream strm;
+	void *buf;
+	int ret;
+
+	/* utilizing CPU cache is way much faster than uncached DRAM */
+	buf = alloca(out_size);
+
+	strm.zalloc = Z_NULL;
+	strm.zfree = Z_NULL;
+	strm.opaque = Z_NULL;
+	strm.avail_in = in_size;
+	strm.next_in = in;
+	strm.avail_out = out_size;
+	strm.next_out = buf;
+
+	ret = inflateInit(&strm);
+	assert(ret == Z_OK);
+
+	ret = inflate(&strm, Z_FINISH);
+	assert(ret == Z_STREAM_END);
+
+	ret = inflateEnd(&strm);
+	assert(ret == Z_OK);
+
+	memcpy(out, buf, out_size);
+}
+
 static int load_bo(unsigned int id, unsigned int ctx_id,
-		   unsigned int page)
+		   unsigned int page, unsigned int size)
 {
 	struct rep_bo *rbo = lookup_bo(id, ctx_id);
+	uint8_t compressed[4096];
+	void *dest;
+	int ret;
+
 	assert(rbo != NULL);
 
-	return fread(rbo->map + page * 4096, 4096, 1, recfile);
+	dest = rbo->map + page * 4096;
+
+	if (size) {
+		ret = fread(compressed, size, 1, recfile);
+		if (ret == 1)
+			decompress_data(compressed, dest, size, 4096);
+	} else {
+		ret = fread(dest, 4096, 1, recfile);
+	}
+
+	return ret;
 }
 
 static void set_bo_flags(unsigned int id, unsigned int ctx_id, uint32_t flags)
@@ -673,7 +720,8 @@ int main(int argc, char *argv[])
 			printf("    page: %u\n", r.data.bo_load.page_id);
 
 			ret = load_bo(r.data.bo_load.id, r.data.bo_load.ctx_id,
-				      r.data.bo_load.page_id);
+				      r.data.bo_load.page_id,
+				      r.data.bo_load.data_size);
 			if (ret != 1)
 				goto err_act_data;
 
@@ -784,7 +832,7 @@ int main(int argc, char *argv[])
 				    strlen(REC_MAGIC) != 0))
 				goto err_invalid_header;
 
-			if (r.data.header.version != 1)
+			if (r.data.header.version != 2)
 				goto err_invalid_version;
 
 			break;

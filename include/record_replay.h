@@ -96,6 +96,7 @@ struct __attribute__((packed)) record_act {
 			uint16_t id;
 			uint16_t ctx_id;
 			uint32_t page_id;
+			uint16_t data_size;
 		} bo_load;
 
 		struct bo_set_flags {
