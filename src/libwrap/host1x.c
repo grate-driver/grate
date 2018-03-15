@@ -737,6 +737,9 @@ static void host1x_file_leave_ioctl_rmfb(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
+	if (!recorder_enabled())
+		return;
+
 	list_for_each_entry(bo, &host1x->bos, list)
 		if (bo->rec_bo->fb_id == fb_id)
 			return record_del_framebuffer(bo->rec_bo);
