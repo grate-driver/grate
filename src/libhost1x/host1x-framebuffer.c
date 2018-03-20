@@ -102,6 +102,7 @@ struct host1x_framebuffer *host1x_framebuffer_create(struct host1x *host1x,
 	if (host1x->framebuffer_init) {
 		err = host1x->framebuffer_init(host1x, fb);
 		if (err < 0) {
+			host1x_error("framebuffer_init failed: %d\n", err);
 			host1x_framebuffer_free(fb);
 			fb = NULL;
 		}
