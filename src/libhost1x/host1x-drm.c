@@ -587,10 +587,13 @@ static struct host1x_bo *drm_bo_import(struct host1x *host1x,
 static int drm_framebuffer_init(struct host1x *host1x,
 				struct host1x_framebuffer *fb)
 {
-	uint32_t handles[1], pitches[1], offsets[1], format;
+	uint32_t handles[4], pitches[4], offsets[4], format;
+#ifdef DRM_FORMAT_MOD_NVIDIA_TEGRA_TILED
+	uint64_t modifiers[4];
+#endif
 	struct host1x_pixelbuffer *pixbuf = fb->pixbuf;
 	struct drm *drm = to_drm(host1x);
-	int err;
+	int err = -1;
 
 	/* XXX: support other formats */
 	switch (pixbuf->format)
@@ -606,10 +609,29 @@ static int drm_framebuffer_init(struct host1x *host1x,
 		return -EINVAL;
 	}
 
+	memset(handles, 0, sizeof(handles));
+	memset(pitches, 0, sizeof(pitches));
+	memset(offsets, 0, sizeof(offsets));
+
 	handles[0] = pixbuf->bo->handle;
 	pitches[0] = pixbuf->pitch;
 	offsets[0] = pixbuf->bo->offset;
 
+#ifdef DRM_FORMAT_MOD_NVIDIA_TEGRA_TILED
+	memset(modifiers, 0, sizeof(modifiers));
+
+	if (pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16)
+		modifiers[0] = DRM_FORMAT_MOD_NVIDIA_TEGRA_TILED;
+	else
+		modifiers[0] = DRM_FORMAT_MOD_LINEAR;
+
+	err = drmModeAddFB2WithModifiers(drm->fd, pixbuf->width, pixbuf->height,
+					 format, handles, pitches, offsets,
+					 modifiers, &fb->handle,
+					 DRM_MODE_FB_MODIFIERS);
+	if (!err)
+		return 0;
+#endif
 	err = drmModeAddFB2(drm->fd, pixbuf->width, pixbuf->height, format,
 			    handles, pitches, offsets, &fb->handle, 0);
 	if (err < 0)
