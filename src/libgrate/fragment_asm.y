@@ -21,6 +21,7 @@
  */
 
 %{
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,6 +66,8 @@ unsigned asm_pseq_to_dw_exec_nb;
 
 int asm_discards_fragment;
 
+static bool asm_alu_used[4];
+
 static void reset_fragment_asm_parser_state(void)
 {
 	int i, k;
@@ -94,6 +97,8 @@ static void reset_fragment_asm_parser_state(void)
 	asm_discards_fragment = 0;
 
 	fragment_asmlineno = 1;
+
+	memset(asm_alu_used, 0, sizeof(asm_alu_used));
 }
 
 static uint32_t float_to_fp20(float f)
@@ -831,6 +836,8 @@ ALU_INSTRUCTION: T_ALU ALUX_INSTRUCTIONS
 		asm_alu_sched[asm_fs_instructions_nb].instructions_nb++;
 		asm_alu_sched[asm_fs_instructions_nb].address = address;
 		asm_alu_instructions_nb++;
+
+		memset(asm_alu_used, 0, sizeof(asm_alu_used));
 	}
 	;
 
@@ -848,12 +855,24 @@ ALUX_INSTRUCTIONS:
 ALUX_INSTRUCTION:
 	T_ALUX ALU_OPERATION
 	{
+		if (asm_alu_used[$1]) {
+			PARSE_ERROR("ALU has been overridden");
+		} else {
+			asm_alu_used[$1] = true;
+		}
+
 		asm_alu_instructions[asm_alu_instructions_nb].a[$1] = $2;
 	}
 	|
 	T_ALUX ALU3_IMMEDIATES
 	{
 		uint32_t swap = asm_alu_instructions[asm_alu_instructions_nb].part7;
+
+		if (asm_alu_used[$1]) {
+			PARSE_ERROR("ALU has been overridden");
+		} else {
+			asm_alu_used[$1] = true;
+		}
 
 		if ($1 != 3) {
 			PARSE_ERROR("ALU immediates can override ALU3 only");
