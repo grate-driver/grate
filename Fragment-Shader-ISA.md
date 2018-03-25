@@ -376,3 +376,26 @@ Some of the render targets have an additional special purpose, like depth/stenci
 |--------------:|:-----------------|
 |             0 | Depth buffer     |
 |             2 | Stencil buffer   |
+
+## PSEQ instruction word encoding
+
+PSEQ stands for Program Sequencer. It fetches raw data from a selected render target, converts that data into FX10 [FP20(?)] format and loads it into registers.
+
+|   Bits | Meaning                 |
+|-------:|:------------------------|
+| 24..31 | ???                     |
+|     23 | enable (?)              |
+| 20..22 | ???                     |
+| 16..19 | render target select    |
+|  4..15 | ???                     |
+|      3 | enable something (?)    |
+|      2 | ???                     |
+|      1 | dest registers select   |
+|      0 | ???                     |
+
+| Destination registers select | Meaning   |
+|-----------------------------:|:----------|
+|                            0 | R0 - R1   |
+|                            1 | R2 - R3   |
+
+_XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination registers._
