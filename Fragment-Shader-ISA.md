@@ -393,9 +393,11 @@ PSEQ stands for Program Sequencer. It fetches raw data from a selected render ta
 |      1 | dest registers select   |
 |      0 | ???                     |
 
-| Destination registers select | Meaning   |
-|-----------------------------:|:----------|
-|                            0 | R0 - R1   |
-|                            1 | R2 - R3   |
+#### Destination registers select:
+
+| Value | Meaning   |
+|------:|:----------|
+|     0 | R0 - R1   |
+|     1 | R2 - R3   |
 
 _XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination registers._
