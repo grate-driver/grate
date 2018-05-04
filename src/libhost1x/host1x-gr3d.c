@@ -689,13 +689,15 @@ int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 	HOST1X_PUSHBUF_RELOCATE(pb, pixbuf->bo, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
 	/* vertex position attribute */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x01));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x100, 0x02));
 	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0x30, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
+	host1x_pushbuf_push(pb, 0x0000104d);
 	/* vertex color attribute */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x102, 0x01));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x102, 0x02));
 	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef);
+	host1x_pushbuf_push(pb, 0x0000104d);
 	/* primitive indices */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x121, 0x03));
 	HOST1X_PUSHBUF_RELOCATE(pb, gr3d->attributes, 0x60, 0);
