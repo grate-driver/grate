@@ -118,7 +118,39 @@ static struct drm *to_drm(struct host1x *host1x)
 	return container_of(host1x, struct drm, base);
 }
 
-static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
+static int drm_plane_type(struct drm *drm, drmModePlane *p)
+{
+#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
+	drmModeObjectPropertiesPtr props;
+	drmModePropertyPtr prop;
+	int type = -EINVAL;
+	unsigned int i;
+
+	props = drmModeObjectGetProperties(drm->fd, p->plane_id,
+					   DRM_MODE_OBJECT_PLANE);
+	if (!props)
+		return -ENODEV;
+
+	for (i = 0; i < props->count_props && type == -EINVAL; i++) {
+		prop = drmModeGetProperty(drm->fd, props->props[i]);
+		if (prop) {
+			if (!strcmp(prop->name, "type"))
+				type = props->prop_values[i];
+
+			drmModeFreeProperty(prop);
+		}
+	}
+
+	drmModeFreeObjectProperties(props);
+
+	return type;
+#else
+	return 0;
+#endif
+}
+
+static int drm_display_find_plane(struct drm_display *display,
+				  uint32_t *plane, uint32_t type)
 {
 	struct drm *drm = display->drm;
 	drmModePlaneRes *res;
@@ -134,7 +166,8 @@ static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
 			continue;
 		}
 
-		if (!p->crtc_id && (p->possible_crtcs & (1u << display->pipe)))
+		if ((p->possible_crtcs & (1u << display->pipe)) &&
+		    (drm_plane_type(drm, p) == type))
 			id = p->plane_id;
 
 		drmModeFreePlane(p);
@@ -149,6 +182,68 @@ static int drm_display_find_plane(struct drm_display *display, uint32_t *plane)
 		*plane = id;
 
 	return 0;
+}
+
+static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
+				 bool reflect)
+{
+#ifdef DRM_MODE_REFLECT_Y
+	drmModeObjectPropertiesPtr properties;
+	drmModePropertyPtr property;
+	drmModeAtomicReqPtr req;
+	unsigned int i;
+	int ret;
+
+	req = drmModeAtomicAlloc();
+	if (!req) {
+		host1x_error("drmModeAtomicAlloc() failed\n");
+		return -ENOMEM;
+	}
+
+	properties = drmModeObjectGetProperties(drm->fd, plane_id,
+						DRM_MODE_OBJECT_PLANE);
+	if (!properties) {
+		host1x_error("drmModeObjectGetProperties() failed\n");
+		ret = -EINVAL;
+		goto atomic_free;
+	}
+
+	for (i = 0, ret = -100; i < properties->count_props; i++) {
+		property = drmModeGetProperty(drm->fd, properties->props[i]);
+		if (!property)
+			continue;
+
+		if (!strcmp(property->name, "rotation")) {
+			ret = drmModeAtomicAddProperty(req, plane_id,
+						       property->prop_id,
+						       DRM_MODE_ROTATE_0 |
+						       DRM_MODE_REFLECT_Y);
+			if (ret < 0)
+				host1x_error("drmModeAtomicAddProperty() failed: %d\n",
+					     ret);
+		}
+
+		free(property);
+	}
+
+	free(properties);
+
+	if (ret >= 0) {
+		ret = drmModeAtomicCommit(drm->fd, req, 0, NULL);
+		if (ret < 0)
+			host1x_error("drmModeAtomicCommit() failed: %d\n", ret);
+	}
+
+atomic_free:
+	drmModeAtomicFree(req);
+
+	if (ret == -100)
+		host1x_error("couldn't get DRM plane \"rotation\" property\n");
+
+	return ret;
+#else
+	return 0;
+#endif
 }
 
 static int drm_overlay_close(struct host1x_overlay *overlay)
@@ -210,7 +305,10 @@ static int drm_overlay_create(struct host1x_display *display,
 	uint32_t plane = 0;
 	int err;
 
-	err = drm_display_find_plane(drm, &plane);
+#ifndef DRM_PLANE_TYPE_OVERLAY
+#define DRM_PLANE_TYPE_OVERLAY 0
+#endif
+	err = drm_display_find_plane(drm, &plane, DRM_PLANE_TYPE_OVERLAY);
 	if (err < 0)
 		return err;
 
@@ -225,6 +323,8 @@ static int drm_overlay_create(struct host1x_display *display,
 	overlay->plane = plane;
 
 	*overlayp = &overlay->base;
+
+	drm_overlay_reflect_y(drm->drm, plane, true);
 
 	return 0;
 }
@@ -352,6 +452,21 @@ static int drm_display_setup(struct drm_display *display)
 	}
 
 	drmModeFreeResources(res);
+
+#ifdef DRM_MODE_REFLECT_Y
+	if (ret == 0) {
+		uint32_t plane;
+		int err;
+
+		err = drm_display_find_plane(display, &plane,
+					     DRM_PLANE_TYPE_PRIMARY);
+		if (err == 0)
+			drm_overlay_reflect_y(drm, plane, true);
+		else
+			host1x_error("failed to get primary plane: %d\n", err);
+	}
+#endif
+
 	return ret;
 }
 
@@ -369,6 +484,19 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	err = drmSetMaster(drm->fd);
 	if (err < 0)
 		goto try_x11;
+
+#ifdef DRM_CLIENT_CAP_ATOMIC
+	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_ATOMIC, 1);
+	if (err)
+		host1x_error("drmSetClientCap(ATOMIC) failed: %d\n", err);
+#endif
+
+#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
+	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
+	if (err)
+		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
+			     err);
+#endif
 
 	err = drm_display_setup(display);
 	if (err < 0)
