@@ -1,16 +1,16 @@
 # Grate-driver packages
 
-### Ubuntu PPA
+### Arch Linux AUR
 
-[https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa](https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa)
+[https://aur.archlinux.org/packages/?K=aa13q&SeB=m](https://aur.archlinux.org/packages/?K=aa13q&SeB=m)
 
 ### Gentoo overlay
 
 [https://github.com/grate-driver/grate-overlay](https://github.com/grate-driver/grate-overlay)
 
-### Arch Linux AUR
+### Ubuntu PPA
 
-[https://aur.archlinux.org/packages/?K=aa13q&SeB=m](https://aur.archlinux.org/packages/?K=aa13q&SeB=m)
+[https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa](https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa)
 
 # Build it yourself
 
