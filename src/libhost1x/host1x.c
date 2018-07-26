@@ -56,9 +56,9 @@ struct host1x *host1x_open(bool open_display, int fd)
 		return host1x;
 	}
 
-	printf("not found\n");
+	printf("not found\n\n");
 
-	printf("Using dummy interface\n");
+	printf("Kernel driver interface undetected, continuing using a dummy interface!\n\n");
 	return host1x_dummy_open();
 }
 
