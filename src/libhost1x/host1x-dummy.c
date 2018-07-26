@@ -25,27 +25,49 @@
 
 #include "host1x-private.h"
 
+struct dummy_data {
+	void *ptr;
+	int refcnt;
+};
+
+struct dummy_bo {
+	struct host1x_bo bo;
+	struct dummy_data *data;
+};
+
 static int host1x_dummy_bo_mmap(struct host1x_bo *bo)
 {
+	struct dummy_bo *dbo = container_of(bo, struct dummy_bo, bo);
+
+	bo->ptr = dbo->data->ptr;
+
 	return 0;
 }
 
 static void host1x_dummy_bo_free(struct host1x_bo *bo)
 {
-	free(bo->ptr);
-	free(bo);
+	struct dummy_bo *dbo = container_of(bo, struct dummy_bo, bo);
+
+	if (dbo->data->refcnt-- == 0) {
+		free(dbo->data->ptr);
+		free(dbo->data);
+	}
+	free(dbo);
 }
 
 static struct host1x_bo *host1x_dummy_bo_clone(struct host1x_bo *bo)
 {
-	struct host1x_bo *clone = malloc(sizeof(*bo));
+	struct dummy_bo *dbo = container_of(bo, struct dummy_bo, bo);
+	struct dummy_bo *clone;
 
+	clone = malloc(sizeof(*dbo));
 	if (!clone)
 		return NULL;
 
-	memcpy(clone, bo, sizeof(*bo));
+	memcpy(clone, dbo, sizeof(*dbo));
+	clone->data->refcnt++;
 
-	return clone;
+	return &clone->bo;
 }
 
 static struct host1x_bo *host1x_dummy_bo_create(struct host1x *host1x,
@@ -53,17 +75,27 @@ static struct host1x_bo *host1x_dummy_bo_create(struct host1x *host1x,
 						size_t size,
 						unsigned long flags)
 {
+	struct dummy_bo *dbo;
 	struct host1x_bo *bo;
 
-	bo = calloc(1, sizeof(*bo));
-	if (!bo)
+	dbo = calloc(1, sizeof(*dbo));
+	if (!dbo)
 		return NULL;
 
-	bo->ptr = malloc(size);
-	if (!bo->ptr) {
-		free(bo);
+	dbo->data = calloc(1, sizeof(*dbo->data));
+	if (!dbo->data) {
+		free(dbo);
 		return NULL;
 	}
+
+	dbo->data->ptr = malloc(size);
+	if (!dbo->data->ptr) {
+		free(dbo->data);
+		free(dbo);
+		return NULL;
+	}
+
+	bo = &dbo->bo;
 
 	bo->priv = priv;
 	bo->priv->mmap = host1x_dummy_bo_mmap;
