@@ -337,6 +337,9 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 	hfb->pixbuf = pb;
 	hfb->flags = flags;
 
+	if (rbo->flags & HOST1X_BO_CREATE_FLAG_TILED)
+		pb->layout = PIX_BUF_LAYOUT_TILED_16x16;
+
 	if (host1x->framebuffer_init) {
 		err = host1x->framebuffer_init(host1x, hfb);
 		if (err != 0) {
