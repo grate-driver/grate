@@ -80,7 +80,7 @@ struct job_rec {
 	struct job_ctx_rec *ctx;
 };
 
-#define REC_VER		0x0002
+#define REC_VER		0x0003
 
 struct recorder {
 	bool inited;

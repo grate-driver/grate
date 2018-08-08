@@ -59,6 +59,12 @@ struct __attribute__((packed)) record_reloc {
 	uint32_t patch_offset;
 };
 
+enum record_compression {
+	REC_UNCOMPRESSED,
+	REC_ZLIB,
+	REC_LZ4,
+};
+
 struct __attribute__((packed)) record_act {
 	uint32_t act;
 
@@ -66,10 +72,13 @@ struct __attribute__((packed)) record_act {
 		struct header {
 			char magic[8];
 			uint16_t version;
+			uint16_t reserved[32];
 		} header;
 
 		struct record_info {
 			uint16_t drm;
+			uint16_t compression;
+			uint16_t reserved[32];
 		} record_info;
 
 		struct ctx_create {

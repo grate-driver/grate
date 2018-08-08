@@ -35,7 +35,7 @@ libwrap_includes = include_directories(
 	'../../src/libgrate'
 )
 
-libwrap_deps = [libdl, dependency('threads'), dependency('zlib')]
+libwrap_deps = [libdl, dependency('threads')]
 libwrap_c_args = ['-U_FILE_OFFSET_BITS']
 
 librnn = cc.find_library('rnn', required : false)
@@ -44,6 +44,18 @@ if librnn.found() and cc.has_header('envytools/rnn.h')
 	libxml2 = cc.find_library('xml2')
 	libwrap_deps += [librnn, libenvyutil, libxml2]
 	libwrap_c_args += ['-DENABLE_RNN']
+endif
+
+libz = cc.find_library('z', required : false)
+if libz.found() and cc.has_header('zlib.h')
+	libwrap_deps += [libz]
+	libwrap_c_args += ['-DENABLE_ZLIB']
+endif
+
+liblz4 = cc.find_library('lz4', required : false)
+if liblz4.found() and cc.has_header('lz4.h')
+	libwrap_deps += [liblz4]
+	libwrap_c_args += ['-DENABLE_LZ4']
 endif
 
 libwrap = shared_library(

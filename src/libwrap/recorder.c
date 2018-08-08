@@ -23,15 +23,25 @@
 
 #define _LARGEFILE64_SOURCE
 
+#ifdef ENABLE_ZLIB
 #include <zlib.h>
+#endif
+
+#ifdef ENABLE_LZ4
+#include <lz4.h>
+#endif
 
 #include "recorder.h"
 
 static struct recorder rec;
+static enum record_compression compression = REC_UNCOMPRESSED;
 
 static unsigned long calc_page_checksum(void *page_data, size_t size)
 {
+#ifdef ENABLE_ZLIB
 	return adler32(0, page_data, size);
+#endif
+	return 0;
 }
 
 static void record_write_data(void *data, size_t size)
@@ -139,6 +149,14 @@ static bool record_start(void)
 
 	r.act = REC_INFO;
 	r.data.record_info.drm = access("/dev/nvhost-ctrl", F_OK) == -1;
+
+#ifdef ENABLE_ZLIB
+	compression = REC_ZLIB;
+#endif
+#ifdef ENABLE_LZ4
+	compression = REC_LZ4;
+#endif
+	r.data.record_info.compression = compression;
 
 	record_write_action(&r);
 
@@ -254,8 +272,9 @@ void record_destroy_bo(struct bo_rec *bo)
 	record_write_action(&r);
 }
 
-static size_t compress_data(void *in, void *out,
-			    size_t in_size, size_t out_size)
+#ifdef ENABLE_ZLIB
+static size_t compress_data_zlib(void *in, void *out,
+				 size_t in_size, size_t out_size)
 {
 	z_stream strm;
 	int ret;
@@ -286,6 +305,31 @@ static size_t compress_data(void *in, void *out,
 
 	return strm.total_out;
 }
+#endif
+
+#ifdef ENABLE_LZ4
+static size_t compress_data_lz4(void *in, void *out,
+				size_t in_size, size_t out_size)
+{
+	return LZ4_compress_default(in, out, in_size, out_size);
+}
+#endif
+
+static size_t compress_data(void *in, void *out,
+			    size_t in_size, size_t out_size)
+{
+#ifdef ENABLE_LZ4
+	if (compression == REC_LZ4)
+		return compress_data_lz4(in, out, in_size, out_size);
+#endif
+
+#ifdef ENABLE_ZLIB
+	if (compression == REC_ZLIB)
+		return compress_data_zlib(in, out, in_size, out_size);
+#endif
+
+	return 0;
+}
 
 static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 {
@@ -300,8 +344,10 @@ static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 
 	chksum = calc_page_checksum(buf, 4096);
 
+#ifdef ENABLE_ZLIB
 	if (chksum == bo->page_meta[page].chksum)
 		return false;
+#endif
 
 	/* size 0 means go uncompressed */
 	data_size = compress_data(buf, compressed, 4096, 4608);

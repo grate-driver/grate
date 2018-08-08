@@ -27,7 +27,14 @@
 #include <errno.h>
 #include <getopt.h>
 #include <string.h>
+
+#ifdef ENABLE_ZLIB
 #include <zlib.h>
+#endif
+
+#ifdef ENABLE_LZ4
+#include <lz4.h>
+#endif
 
 #include <libdrm/drm_fourcc.h>
 
@@ -80,6 +87,8 @@ static struct host1x_display *display;
 static struct host1x_overlay *overlay;
 static struct host1x_gr2d *gr2d;
 static struct host1x_gr3d *gr3d;
+
+static enum record_compression compression;
 
 static const char *str_actions[] = {
 	[REC_START] = "REC_START",
@@ -177,8 +186,9 @@ static void destroy_bo(unsigned int id, unsigned int ctx_id)
 	free(rbo);
 }
 
-static void decompress_data(void *in, void *out,
-			    size_t in_size, size_t out_size)
+#ifdef ENABLE_ZLIB
+static void decompress_data_zlib(void *in, void *out,
+				 size_t in_size, size_t out_size)
 {
 	z_stream strm;
 	void *buf;
@@ -206,12 +216,50 @@ static void decompress_data(void *in, void *out,
 
 	memcpy(out, buf, out_size);
 }
+#endif
+
+#ifdef ENABLE_LZ4
+static void decompress_data_lz4(void *in, void *out,
+				size_t in_size, size_t out_size)
+{
+	void *buf;
+	int ret;
+
+	/* utilizing CPU cache is way much faster than uncached DRAM */
+	buf = alloca(out_size + 512);
+
+	ret = LZ4_decompress_safe(in, buf, in_size, out_size + 512);
+	assert(ret >= 0);
+
+	memcpy(out, buf, out_size);
+}
+#endif
+
+static int decompress_data(void *in, void *out,
+			    size_t in_size, size_t out_size)
+{
+#ifdef ENABLE_ZLIB
+	if (compression == REC_ZLIB) {
+		decompress_data_zlib(in, out, in_size, out_size);
+		return 1;
+	}
+#endif
+
+#ifdef ENABLE_LZ4
+	if (compression == REC_LZ4) {
+		decompress_data_lz4(in, out, in_size, out_size);
+		return 1;
+	}
+#endif
+
+	return 0;
+}
 
 static int load_bo(unsigned int id, unsigned int ctx_id,
 		   unsigned int page, unsigned int size)
 {
 	struct rep_bo *rbo = lookup_bo(id, ctx_id);
-	uint8_t compressed[4096];
+	uint8_t compressed[size];
 	void *dest;
 	int ret;
 
@@ -222,7 +270,7 @@ static int load_bo(unsigned int id, unsigned int ctx_id,
 	if (size) {
 		ret = fread(compressed, size, 1, recfile);
 		if (ret == 1)
-			decompress_data(compressed, dest, size, 4096);
+			ret = decompress_data(compressed, dest, size, 4096);
 	} else {
 		ret = fread(dest, 4096, 1, recfile);
 	}
@@ -658,6 +706,13 @@ int main(int argc, char *argv[])
 			if (!r.data.record_info.drm)
 				goto err_bad_info;
 
+			compression = r.data.record_info.compression;
+
+			printf("    compression: %u\n", compression);
+
+			if (compression > REC_LZ4)
+				goto err_bad_info;
+
 			break;
 
 		case REC_CTX_CREATE:
@@ -832,7 +887,7 @@ int main(int argc, char *argv[])
 				    strlen(REC_MAGIC) != 0))
 				goto err_invalid_header;
 
-			if (r.data.header.version != 2)
+			if (r.data.header.version != 3)
 				goto err_invalid_version;
 
 			break;
