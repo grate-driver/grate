@@ -93,7 +93,8 @@ static void *fbdata(struct xcb_stuff *stuff, struct host1x_framebuffer *fb)
 }
 
 static int x11_display_set(struct host1x_display *displayp,
-			   struct host1x_framebuffer *fb, bool vsync)
+			   struct host1x_framebuffer *fb,
+			   bool vsync, bool reflect_y)
 {
 	struct xcb_stuff *stuff = displayp->priv;
 

@@ -55,6 +55,7 @@ struct rep_bo {
 	unsigned int refcnt;
 	unsigned int ctx_id;
 	unsigned int id;
+	uint32_t flags;
 	char *map;
 };
 
@@ -67,6 +68,7 @@ struct rep_framebuffer {
 	unsigned width;
 	unsigned height;
 	unsigned pitch;
+	bool reflect_y;
 };
 
 struct rep_job_ctx {
@@ -141,7 +143,6 @@ static void create_bo(unsigned int id, unsigned int ctx_id,
 {
 	struct rep_ctx *ctx;
 	struct rep_bo *rbo;
-	uint32_t grate_flags = 0;
 
 	ctx = lookup_context(ctx_id);
 	assert(ctx != NULL);
@@ -150,13 +151,13 @@ static void create_bo(unsigned int id, unsigned int ctx_id,
 	assert(rbo != NULL);
 
 	if (flags & DRM_TEGRA_GEM_CREATE_TILED)
-		grate_flags |= HOST1X_BO_CREATE_FLAG_TILED;
+		rbo->flags |= HOST1X_BO_CREATE_FLAG_TILED;
 
 	if (flags & DRM_TEGRA_GEM_CREATE_BOTTOM_UP)
-		grate_flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
+		rbo->flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
 	rbo->id = id;
-	rbo->bo = HOST1X_BO_CREATE(host1x, size, grate_flags);
+	rbo->bo = HOST1X_BO_CREATE(host1x, size, rbo->flags);
 	assert(rbo->bo != NULL);
 
 	HOST1X_BO_MMAP(rbo->bo, (void *)&rbo->map);
@@ -356,6 +357,7 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 	rfb->width = width;
 	rfb->height = height;
 	rfb->pitch = pitch;
+	rfb->reflect_y = !!(rbo->flags & HOST1X_BO_CREATE_FLAG_BOTTOM_UP);
 
 	INIT_LIST_HEAD(&rfb->node);
 	list_add_tail(&rfb->node, &fb_list);

@@ -221,9 +221,9 @@ static void grate_display_framebuffer(struct grate *grate,
 	if (grate->overlay)
 		grate_overlay_show(grate->overlay, fb, 0, 0,
 				   options->width, options->height,
-				   options->vsync);
+				   options->vsync, true);
 	else
-		grate_display_show(grate->display, fb, options->vsync);
+		grate_display_show(grate->display, fb, options->vsync, true);
 }
 
 void grate_bind_framebuffer(struct grate *grate, struct grate_framebuffer *fb)

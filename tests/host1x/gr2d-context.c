@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 	if (display) {
 		if (overlay) {
 			err = host1x_overlay_set(overlay, fb, 0, 0,
-						 width, height, false);
+						 width, height, false, true);
 			if (err < 0)
 				fprintf(stderr, "host1x_overlay_set() failed: %d\n", err);
 			else
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
 
 			host1x_overlay_close(overlay);
 		} else {
-			err = host1x_display_set(display, fb, false);
+			err = host1x_display_set(display, fb, false, true);
 			if (err < 0)
 				fprintf(stderr, "host1x_display_set() failed: %d\n", err);
 			else

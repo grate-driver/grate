@@ -47,7 +47,7 @@ static inline struct nvhost_display *to_nvhost_display_overlay(
 static int overlay_set(struct host1x_overlay *overlayp,
 		       struct host1x_framebuffer *fb, unsigned int x,
 		       unsigned int y, unsigned int width,
-		       unsigned int height, bool vsync)
+		       unsigned int height, bool vsync, bool reflect_y)
 {
 	struct nvhost_display *display = to_nvhost_display_overlay(overlayp);
 	struct nvhost *nvhost = display->nvhost;
@@ -83,7 +83,9 @@ static int overlay_set(struct host1x_overlay *overlayp,
 	flip.win[2].out_w = width;
 	flip.win[2].out_h = height;
 	flip.win[2].pre_syncpt_id = (uint32_t)-1;
-	flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
+
+	if (reflect_y)
+		flip.win[2].flags = TEGRA_DC_EXT_FLIP_FLAG_INVERT_V;
 
 	if (fb->pixbuf->layout == PIX_BUF_LAYOUT_TILED_16x16)
 		flip.win[2].flags |= TEGRA_DC_EXT_FLIP_FLAG_TILED;
@@ -151,7 +153,8 @@ static int overlay_create(struct host1x_display *displayp,
 }
 
 static int display_set(struct host1x_display *displayp,
-		       struct host1x_framebuffer *fb, bool vsync)
+		       struct host1x_framebuffer *fb,
+		       bool vsync, bool reflect_y)
 {
 	struct nvhost_display *display = to_nvhost_display(displayp);
 	int err;
@@ -162,7 +165,7 @@ static int display_set(struct host1x_display *displayp,
 
 	return overlay_set(&display->overlay, fb, 0, 0,
 			   displayp->width, displayp->height,
-			   vsync);
+			   vsync, reflect_y);
 }
 
 struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)

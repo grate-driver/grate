@@ -66,9 +66,10 @@ void grate_display_get_resolution(struct grate_display *display,
 }
 
 void grate_display_show(struct grate_display *display,
-			struct grate_framebuffer *fb, bool vsync)
+			struct grate_framebuffer *fb,
+			bool vsync, bool reflect_y)
 {
-	host1x_display_set(display->base, fb->front, vsync);
+	host1x_display_set(display->base, fb->front, vsync, reflect_y);
 }
 
 struct grate_overlay *grate_overlay_create(struct grate_display *display)
@@ -101,12 +102,12 @@ void grate_overlay_free(struct grate_overlay *overlay)
 void grate_overlay_show(struct grate_overlay *overlay,
 			struct grate_framebuffer *fb, unsigned int x,
 			unsigned int y, unsigned int width,
-			unsigned int height, bool vsync)
+			unsigned int height, bool vsync, bool reflect_y)
 {
 	int err;
 
 	err = host1x_overlay_set(overlay->base, fb->front, x, y, width,
-				 height, vsync);
+				 height, vsync, reflect_y);
 	if (err < 0)
 		grate_error("host1x_overlay_set() failed: %d\n", err);
 }
