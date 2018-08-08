@@ -91,6 +91,7 @@ static struct host1x_gr2d *gr2d;
 static struct host1x_gr3d *gr3d;
 
 static enum record_compression compression;
+static struct rep_framebuffer *displayed_fb;
 
 static const char *str_actions[] = {
 	[REC_START] = "REC_START",
@@ -383,6 +384,9 @@ static void destroy_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 	list_del(&rfb->node);
 	host1x_framebuffer_free(rfb->hfb);
 	free(rfb);
+
+	if (displayed_fb == rfb)
+		displayed_fb = NULL;
 }
 
 static void display_framebuffer(struct rep_framebuffer *rfb)
@@ -391,9 +395,15 @@ static void display_framebuffer(struct rep_framebuffer *rfb)
 
 	printf("    displaying fb bo_id: %u\n", rfb->bo_id);
 
+	if (displayed_fb == rfb)
+		return;
+
 	err = host1x_overlay_set(overlay, rfb->hfb, 0, 0,
-				 rfb->width, rfb->height, false);
+				 rfb->width, rfb->height, false,
+				 rfb->reflect_y);
 	assert(err == 0);
+
+	displayed_fb = rfb;
 }
 
 static void create_job_context(unsigned int id, bool gr2d)
