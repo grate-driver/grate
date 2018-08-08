@@ -62,11 +62,11 @@ void *malloc(size_t size)
 {
 	void *ret;
 
-	printf("%s(size=%zu)\n", __func__, size);
+	PRINTF("%s(size=%zu)\n", __func__, size);
 
 	ret = __libc_malloc(size);
 
-	printf("%s() = %p\n", __func__, ret);
+	PRINTF("%s() = %p\n", __func__, ret);
 	return ret;
 }
 
@@ -74,17 +74,17 @@ void *realloc(void *ptr, size_t size)
 {
 	void *ret;
 
-	printf("%s(ptr=%p, size=%zu)\n", __func__, ptr, size);
+	PRINTF("%s(ptr=%p, size=%zu)\n", __func__, ptr, size);
 
 	ret = __libc_realloc(ptr, size);
 
-	printf("%s() = %p\n", __func__, ret);
+	PRINTF("%s() = %p\n", __func__, ret);
 	return ret;
 }
 
 void free(void *ptr)
 {
-	printf("%s(ptr=%p)\n", __func__, ptr);
+	PRINTF("%s(ptr=%p)\n", __func__, ptr);
 
 	__libc_free(ptr);
 
@@ -120,14 +120,14 @@ struct cgdrv *CgDrv_Create(void)
 	static typeof(CgDrv_Create) *orig = NULL;
 	struct cgdrv *cgdrv;
 
-	printf("%s()\n", __func__);
+	PRINTF("%s()\n", __func__);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
 	cgdrv = orig();
 
-	printf("%s() = %p\n", __func__, cgdrv);
+	PRINTF("%s() = %p\n", __func__, cgdrv);
 
 	return cgdrv;
 }
@@ -136,56 +136,56 @@ void CgDrv_Delete(struct cgdrv *cgdrv)
 {
 	static typeof(CgDrv_Delete) *orig = NULL;
 
-	printf("%s(cgdrv=%p)\n", __func__, cgdrv);
+	PRINTF("%s(cgdrv=%p)\n", __func__, cgdrv);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
 	orig(cgdrv);
 
-	printf("%s()\n", __func__);
+	PRINTF("%s()\n", __func__);
 }
 
 void CgDrv_CleanUp(struct cgdrv *cgdrv)
 {
 	static typeof(CgDrv_CleanUp) *orig = NULL;
 
-	printf("%s(cgdrv=%p)\n", __func__, cgdrv);
+	PRINTF("%s(cgdrv=%p)\n", __func__, cgdrv);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
 	orig(cgdrv);
 
-	printf("%s()\n", __func__);
+	PRINTF("%s()\n", __func__);
 }
 
 void CgDrv_NumInstructions(struct cgdrv *cgdrv)
 {
 	static typeof(CgDrv_NumInstructions) *orig = NULL;
 
-	printf("%s(cgdrv=%p)\n", __func__, cgdrv);
+	PRINTF("%s(cgdrv=%p)\n", __func__, cgdrv);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
 	orig(cgdrv);
 
-	printf("%s()\n", __func__);
+	PRINTF("%s()\n", __func__);
 }
 
 void CgDrv_GetCgBin(struct cgdrv *cgdrv)
 {
 	static typeof(CgDrv_GetCgBin) *orig = NULL;
 
-	printf("%s(cgdrv=%p)\n", __func__, cgdrv);
+	PRINTF("%s(cgdrv=%p)\n", __func__, cgdrv);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
 	orig(cgdrv);
 
-	printf("%s()\n", __func__);
+	PRINTF("%s()\n", __func__);
 }
 
 int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
@@ -195,7 +195,7 @@ int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
 	size_t i;
 	int ret;
 
-	printf("%s(cgdrv=%p, unknown=%d, type=%d, code=%p, length=%zu, unknown2=%d)\n",
+	PRINTF("%s(cgdrv=%p, unknown=%d, type=%d, code=%p, length=%zu, unknown2=%d)\n",
 	       __func__, cgdrv, unknown, type, code, length, unknown2);
 
 	fputs("  | ", stdout);
@@ -215,15 +215,15 @@ int CgDrv_Compile(struct cgdrv *cgdrv, int unknown, int type,
 	ret = orig(cgdrv, unknown, type, code, length, unknown2, unknown3);
 
 	if (cgdrv->error)
-		printf("  error: %s\n", cgdrv->error);
+		PRINTF("  error: %s\n", cgdrv->error);
 
-	printf("  %s\n", cgdrv->log);
+	PRINTF("  %s\n", cgdrv->log);
 
-	printf("  binary: %zu bytes\n", cgdrv->binary_size);
+	PRINTF("  binary: %zu bytes\n", cgdrv->binary_size);
 	print_hexdump(stdout, DUMP_PREFIX_OFFSET, "    ", cgdrv->binary,
 		      cgdrv->binary_size, 16, true);
 
-	printf("%s() = %d\n", __func__, ret);
+	PRINTF("%s() = %d\n", __func__, ret);
 
 	return ret;
 }

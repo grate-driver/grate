@@ -46,6 +46,9 @@ void print_hexdump(FILE *fp, int prefix_type, const char *prefix,
 	const unsigned char *ptr = buffer;
 	unsigned int i, j;
 
+	if (!libwrap_verbose)
+		return;
+
 	for (j = 0; j < size; j += columns) {
 		const char *space = "";
 
@@ -145,7 +148,7 @@ void file_close(int fd)
 
 	list_for_each_entry(file, &files, list) {
 		if (file->fd == fd) {
-			printf("closing %s\n", file->path);
+			PRINTF("closing %s\n", file->path);
 			list_del(&file->list);
 			file_put(file);
 			break;

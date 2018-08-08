@@ -192,17 +192,17 @@ static void host1x_gem_flags_to_string(char *str, uint32_t flags)
 static void host1x_file_enter_ioctl_syncpt_incr(struct host1x_file *host1x,
 						struct drm_tegra_syncpt_incr *args)
 {
-	printf("  SYNCPT increment:\n");
-	printf("    id: %u\n", args->id);
+	PRINTF("  SYNCPT increment:\n");
+	PRINTF("    id: %u\n", args->id);
 }
 
 static void host1x_file_enter_ioctl_syncpt_wait(struct host1x_file *host1x,
 						struct drm_tegra_syncpt_wait *args)
 {
-	printf("  SYNCPT wait:\n");
-	printf("    id: %u\n", args->id);
-	printf("    thresh: %u\n", args->thresh);
-	printf("    timeout: %u\n", args->timeout);
+	PRINTF("  SYNCPT wait:\n");
+	PRINTF("    id: %u\n", args->id);
+	PRINTF("    thresh: %u\n", args->thresh);
+	PRINTF("    timeout: %u\n", args->timeout);
 }
 
 static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
@@ -220,18 +220,18 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 	unsigned int num_handles;
 	unsigned int i, k;
 
-	printf("  SUBMIT:\n");
-	printf("    context: %llu\n", args->context);
-	printf("    num_syncpts: %u\n", args->num_syncpts);
-	printf("    num_cmdbufs: %u\n", args->num_cmdbufs);
-	printf("    num_relocs: %u\n", args->num_relocs);
-	printf("    num_waitchks: %u\n", args->num_waitchks);
-	printf("    waitchk_mask: %x\n", args->waitchk_mask);
-	printf("    timeout: %u\n", args->timeout);
-	printf("    syncpts: 0x%08llx\n", args->syncpts);
-	printf("    cmdbufs: 0x%08llx\n", args->cmdbufs);
-	printf("    relocs: 0x%08llx\n", args->relocs);
-	printf("    waitchks: 0x%08llx\n", args->waitchks);
+	PRINTF("  SUBMIT:\n");
+	PRINTF("    context: %llu\n", args->context);
+	PRINTF("    num_syncpts: %u\n", args->num_syncpts);
+	PRINTF("    num_cmdbufs: %u\n", args->num_cmdbufs);
+	PRINTF("    num_relocs: %u\n", args->num_relocs);
+	PRINTF("    num_waitchks: %u\n", args->num_waitchks);
+	PRINTF("    waitchk_mask: %x\n", args->waitchk_mask);
+	PRINTF("    timeout: %u\n", args->timeout);
+	PRINTF("    syncpts: 0x%08llx\n", args->syncpts);
+	PRINTF("    cmdbufs: 0x%08llx\n", args->cmdbufs);
+	PRINTF("    relocs: 0x%08llx\n", args->relocs);
+	PRINTF("    waitchks: 0x%08llx\n", args->waitchks);
 
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
@@ -264,7 +264,7 @@ static void host1x_file_enter_ioctl_submit(struct host1x_file *host1x,
 		}
 
 		commands = (uint32_t *)(bo->mapped + cmdbuf->offset);
-		cdma_parse_commands(commands, cmdbuf->words, true,
+		cdma_parse_commands(commands, cmdbuf->words, libwrap_verbose,
 				    &classid, &d, disasm_write_reg);
 
 		if (!recorder_enabled())
@@ -333,10 +333,10 @@ static void host1x_file_enter_ioctl_gem_set_tiling(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set GEM tiling:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    mode: %u\n", args->mode);
-	printf("    value: %u\n", args->value);
+	PRINTF("  Set GEM tiling:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    mode: %u\n", args->mode);
+	PRINTF("    value: %u\n", args->value);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -350,9 +350,9 @@ static void host1x_file_enter_ioctl_gem_set_flags(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set GEM flags:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    flags: %u\n", args->flags);
+	PRINTF("  Set GEM flags:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    flags: %u\n", args->flags);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -387,8 +387,8 @@ static void host1x_file_enter_ioctl_mode_setplane(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set plane:\n");
-	printf("    fb_id: %u\n", args->fb_id);
+	PRINTF("  Set plane:\n");
+	PRINTF("    fb_id: %u\n", args->fb_id);
 
 	if (!recorder_enabled())
 		return;
@@ -403,8 +403,8 @@ static void host1x_file_enter_ioctl_mode_setcrtc(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set CRTC:\n");
-	printf("    fb_id: %u\n", args->fb_id);
+	PRINTF("  Set CRTC:\n");
+	PRINTF("    fb_id: %u\n", args->fb_id);
 
 	if (!recorder_enabled())
 		return;
@@ -503,10 +503,10 @@ static void host1x_file_leave_ioctl_gem_create(struct host1x_file *host1x,
 
 	host1x_gem_flags_to_string(buf, args->flags);
 
-	printf("  GEM created:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    size: %llx\n", args->size);
-	printf("    flags: %x (%s )\n", args->flags, buf);
+	PRINTF("  GEM created:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    size: %llx\n", args->size);
+	PRINTF("    flags: %x (%s )\n", args->flags, buf);
 
 	bo = host1x_bo_new(host1x, args->handle, args->size, args->flags);
 	if (!bo) {
@@ -522,9 +522,9 @@ static void host1x_file_leave_ioctl_gem_mmap(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  GEM mapped:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    offset: %llx\n", args->offset);
+	PRINTF("  GEM mapped:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    offset: %llx\n", args->offset);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -545,37 +545,37 @@ static void host1x_file_leave_ioctl_gem_mmap(struct host1x_file *host1x,
 static void host1x_file_leave_ioctl_syncpt_read(struct host1x_file *host1x,
 						struct drm_tegra_syncpt_read *args)
 {
-	printf("  SYNCPT read:\n");
-	printf("    id: %u\n", args->id);
-	printf("    value: %u\n", args->value);
+	PRINTF("  SYNCPT read:\n");
+	PRINTF("    id: %u\n", args->id);
+	PRINTF("    value: %u\n", args->value);
 }
 
 static void host1x_file_leave_ioctl_syncpt_wait(struct host1x_file *host1x,
 						struct drm_tegra_syncpt_wait *args)
 {
-	printf("  SYNCPT wait:\n");
-	printf("    id: %u\n", args->id);
-	printf("    thresh: %u\n", args->thresh);
-	printf("    timeout: %u\n", args->timeout);
-	printf("    value: %u\n", args->value);
+	PRINTF("  SYNCPT wait:\n");
+	PRINTF("    id: %u\n", args->id);
+	PRINTF("    thresh: %u\n", args->thresh);
+	PRINTF("    timeout: %u\n", args->timeout);
+	PRINTF("    value: %u\n", args->value);
 }
 
 static void host1x_file_leave_ioctl_submit(struct host1x_file *host1x,
 					   struct drm_tegra_submit *args)
 {
-	printf("  SUBMIT:\n");
-	printf("    context: %llu\n", args->context);
-	printf("    num_syncpts: %u\n", args->num_syncpts);
-	printf("    num_cmdbufs: %u\n", args->num_cmdbufs);
-	printf("    num_relocs: %u\n", args->num_relocs);
-	printf("    num_waitchks: %u\n", args->num_waitchks);
-	printf("    waitchk_mask: %x\n", args->waitchk_mask);
-	printf("    timeout: %u\n", args->timeout);
-	printf("    syncpts: 0x%08llx\n", args->syncpts);
-	printf("    cmdbufs: 0x%08llx\n", args->cmdbufs);
-	printf("    relocs: 0x%08llx\n", args->relocs);
-	printf("    waitchks: 0x%08llx\n", args->waitchks);
-	printf("    fence: %u\n", args->fence);
+	PRINTF("  SUBMIT:\n");
+	PRINTF("    context: %llu\n", args->context);
+	PRINTF("    num_syncpts: %u\n", args->num_syncpts);
+	PRINTF("    num_cmdbufs: %u\n", args->num_cmdbufs);
+	PRINTF("    num_relocs: %u\n", args->num_relocs);
+	PRINTF("    num_waitchks: %u\n", args->num_waitchks);
+	PRINTF("    waitchk_mask: %x\n", args->waitchk_mask);
+	PRINTF("    timeout: %u\n", args->timeout);
+	PRINTF("    syncpts: 0x%08llx\n", args->syncpts);
+	PRINTF("    cmdbufs: 0x%08llx\n", args->cmdbufs);
+	PRINTF("    relocs: 0x%08llx\n", args->relocs);
+	PRINTF("    waitchks: 0x%08llx\n", args->waitchks);
+	PRINTF("    fence: %u\n", args->fence);
 }
 
 static void host1x_file_leave_ioctl_open_channel(struct host1x_file *host1x,
@@ -583,9 +583,9 @@ static void host1x_file_leave_ioctl_open_channel(struct host1x_file *host1x,
 {
 	struct drm_context *ctx;
 
-	printf("  Channel opened:\n");
-	printf("    client: 0x%X\n", args->client);
-	printf("    context: %llu\n", args->context);
+	PRINTF("  Channel opened:\n");
+	PRINTF("    client: 0x%X\n", args->client);
+	PRINTF("    context: %llu\n", args->context);
 
 	ctx = host1x_context_new(args->context, args->client);
 	if (!ctx) {
@@ -601,8 +601,8 @@ static void host1x_file_leave_ioctl_close_channel(struct host1x_file *host1x,
 {
 	struct drm_context *ctx;
 
-	printf("  Channel closed:\n");
-	printf("    context: %llu\n", args->context);
+	PRINTF("  Channel closed:\n");
+	PRINTF("    context: %llu\n", args->context);
 
 	ctx = host1x_file_lookup_context(host1x, args->context);
 	if (!ctx) {
@@ -616,19 +616,19 @@ static void host1x_file_leave_ioctl_close_channel(struct host1x_file *host1x,
 static void host1x_file_leave_ioctl_get_syncpt(struct host1x_file *host1x,
 					       struct drm_tegra_get_syncpt *args)
 {
-	printf("  Got SYNCPT:\n");
-	printf("    context: %llu\n", args->context);
-	printf("    index: %u\n", args->index);
-	printf("    id: %u\n", args->id);
+	PRINTF("  Got SYNCPT:\n");
+	PRINTF("    context: %llu\n", args->context);
+	PRINTF("    index: %u\n", args->index);
+	PRINTF("    id: %u\n", args->id);
 }
 
 static void host1x_file_leave_ioctl_get_syncpt_base(struct host1x_file *host1x,
 						    struct drm_tegra_get_syncpt_base *args)
 {
-	printf("  Got SYNCPT base:\n");
-	printf("    context: %llu\n", args->context);
-	printf("    syncpt: %u\n", args->syncpt);
-	printf("    id: %u\n", args->id);
+	PRINTF("  Got SYNCPT base:\n");
+	PRINTF("    context: %llu\n", args->context);
+	PRINTF("    syncpt: %u\n", args->syncpt);
+	PRINTF("    id: %u\n", args->id);
 }
 
 static void host1x_file_enter_ioctl_gem_get_tiling(struct host1x_file *host1x,
@@ -636,10 +636,10 @@ static void host1x_file_enter_ioctl_gem_get_tiling(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set GEM tiling:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    mode: %u\n", args->mode);
-	printf("    value: %u\n", args->value);
+	PRINTF("  Set GEM tiling:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    mode: %u\n", args->mode);
+	PRINTF("    value: %u\n", args->value);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -653,9 +653,9 @@ static void host1x_file_enter_ioctl_gem_get_flags(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Set GEM flags:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    flags: %u\n", args->flags);
+	PRINTF("  Set GEM flags:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    flags: %u\n", args->flags);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -672,14 +672,14 @@ static void host1x_file_leave_ioctl_create_dumb(struct host1x_file *host1x,
 
 	host1x_gem_flags_to_string(buf, args->flags);
 
-	printf("  Dumb GEM created:\n");
-	printf("    height: %u\n", args->height);
-	printf("    width: %u\n", args->width);
-	printf("    bpp: %u\n", args->bpp);
-	printf("    flags: %x\n", args->flags);
-	printf("    handle: %u\n", args->handle);
-	printf("    pitch: %u\n", args->pitch);
-	printf("    size: %llx\n", args->size);
+	PRINTF("  Dumb GEM created:\n");
+	PRINTF("    height: %u\n", args->height);
+	PRINTF("    width: %u\n", args->width);
+	PRINTF("    bpp: %u\n", args->bpp);
+	PRINTF("    flags: %x\n", args->flags);
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    pitch: %u\n", args->pitch);
+	PRINTF("    size: %llx\n", args->size);
 
 	bo = host1x_bo_new(host1x, args->handle, args->size, args->flags);
 	if (!bo) {
@@ -695,9 +695,9 @@ static void host1x_file_leave_ioctl_mmap_dumb(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  Dumb GEM mapped:\n");
-	printf("    handle: %u\n", args->handle);
-	printf("    offset: %llx\n", args->offset);
+	PRINTF("  Dumb GEM mapped:\n");
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    offset: %llx\n", args->offset);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -720,8 +720,8 @@ static void host1x_file_leave_ioctl_destroy_dumb(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  GEM destroyed:\n");
-	printf("    handle: %u\n", args->handle);
+	PRINTF("  GEM destroyed:\n");
+	PRINTF("    handle: %u\n", args->handle);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -737,8 +737,8 @@ static void host1x_file_leave_ioctl_gem_close(struct host1x_file *host1x,
 {
 	struct host1x_bo *bo;
 
-	printf("  GEM closed:\n");
-	printf("    handle: %u\n", args->handle);
+	PRINTF("  GEM closed:\n");
+	PRINTF("    handle: %u\n", args->handle);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -755,13 +755,13 @@ static void host1x_file_leave_ioctl_addfb(struct host1x_file *host1x,
 	struct host1x_bo *bo;
 	uint32_t pixel_format;
 
-	printf("  FB added:\n");
-	printf("    fb_id: %u\n", args->fb_id);
-	printf("    width: %u\n", args->width);
-	printf("    height: %u\n", args->height);
-	printf("    bpp: %u\n", args->bpp);
-	printf("    depth: %u\n", args->depth);
-	printf("    handle: %u\n", args->handle);
+	PRINTF("  FB added:\n");
+	PRINTF("    fb_id: %u\n", args->fb_id);
+	PRINTF("    width: %u\n", args->width);
+	PRINTF("    height: %u\n", args->height);
+	PRINTF("    bpp: %u\n", args->bpp);
+	PRINTF("    depth: %u\n", args->depth);
+	PRINTF("    handle: %u\n", args->handle);
 
 	bo = host1x_file_lookup_bo(host1x, args->handle);
 	if (!bo) {
@@ -794,18 +794,18 @@ static void host1x_file_leave_ioctl_addfb2(struct host1x_file *host1x,
 	struct host1x_bo *bo;
 	unsigned int i;
 
-	printf("  FB2 added:\n");
-	printf("    fb_id: %u\n", args->fb_id);
-	printf("    width: %u\n", args->width);
-	printf("    height: %u\n", args->height);
-	printf("    pixel_format: %u\n", args->pixel_format);
-	printf("    flags: %u\n", args->flags);
+	PRINTF("  FB2 added:\n");
+	PRINTF("    fb_id: %u\n", args->fb_id);
+	PRINTF("    width: %u\n", args->width);
+	PRINTF("    height: %u\n", args->height);
+	PRINTF("    pixel_format: %u\n", args->pixel_format);
+	PRINTF("    flags: %u\n", args->flags);
 
 	for (i = 0; i < 4; i++) {
-		printf("    handles[%u]: %u\n", i, args->handles[i]);
-		printf("    pitches[%u]: %u\n", i, args->pitches[i]);
-		printf("    offsets[%u]: %u\n", i, args->offsets[i]);
-		printf("    modifier[%u]: %llu\n", i, args->modifier[i]);
+		PRINTF("    handles[%u]: %u\n", i, args->handles[i]);
+		PRINTF("    pitches[%u]: %u\n", i, args->pitches[i]);
+		PRINTF("    offsets[%u]: %u\n", i, args->offsets[i]);
+		PRINTF("    modifier[%u]: %llu\n", i, args->modifier[i]);
 	}
 
 	bo = host1x_file_lookup_bo(host1x, args->handles[0]);
