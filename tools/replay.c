@@ -21,6 +21,16 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/*
+ * Usage:
+ *
+ * Make a record:
+ *	LIBWRAP_RECORD_PATH=/path/record.bin LD_PRELOAD=libgrate-wrap.so /path/app
+ *
+ * Replay a record:
+ *	tools/replay --recfile /path/record.bin
+ */
+
 #define _LARGEFILE64_SOURCE
 
 #include <assert.h>
