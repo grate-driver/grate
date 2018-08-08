@@ -104,6 +104,7 @@ static const char *str_actions[] = {
 	[REC_BO_SET_FLAGS] = "REC_BO_SET_FLAGS",
 	[REC_ADD_FRAMEBUFFER] = "REC_ADD_FRAMEBUFFER",
 	[REC_DEL_FRAMEBUFFER] = "REC_DEL_FRAMEBUFFER",
+	[REC_DISP_FRAMEBUFFER] = "REC_DISP_FRAMEBUFFER",
 	[REC_JOB_CTX_CREATE] = "REC_JOB_CTX_CREATE",
 	[REC_JOB_CTX_DESTROY] = "REC_JOB_CTX_DESTROY",
 	[REC_JOB_SUBMIT] = "REC_JOB_SUBMIT",
@@ -390,8 +391,10 @@ static void destroy_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 		displayed_fb = NULL;
 }
 
-static void display_framebuffer(struct rep_framebuffer *rfb)
+static void display_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 {
+	struct rep_framebuffer *rfb = lookup_framebuffer(bo_id, ctx_id);
+	assert(rfb != NULL);
 	int err;
 
 	printf("    displaying fb bo_id: %u\n", rfb->bo_id);
@@ -581,9 +584,6 @@ static int submit_job(unsigned int ctx_id,
 	ret = HOST1X_CLIENT_WAIT(client, fence, ~0u);
 	if (ret < 0)
 		abort();
-
-	if (rfb)
-		display_framebuffer(rfb);
 
 	return 0;
 }
@@ -849,6 +849,19 @@ int main(int argc, char *argv[])
 
 			break;
 
+		case REC_DISP_FRAMEBUFFER:
+			ret = fread(&r.data, sizeof(r.data.disp_framebuffer), 1, recfile);
+			if (ret != 1)
+				goto err_act_data;
+
+			printf("    bo_id: %u\n", r.data.disp_framebuffer.bo_id);
+			printf("    ctx_id: %u\n", r.data.disp_framebuffer.ctx_id);
+
+			display_framebuffer(r.data.disp_framebuffer.bo_id,
+					    r.data.disp_framebuffer.ctx_id);
+
+			break;
+
 		case REC_JOB_CTX_CREATE:
 			ret = fread(&r.data, sizeof(r.data.job_ctx_create), 1, recfile);
 			if (ret != 1)
@@ -903,7 +916,7 @@ int main(int argc, char *argv[])
 				    strlen(REC_MAGIC) != 0))
 				goto err_invalid_header;
 
-			if (r.data.header.version != 3)
+			if (r.data.header.version != 4)
 				goto err_invalid_version;
 
 			break;

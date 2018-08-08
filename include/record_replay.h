@@ -39,6 +39,7 @@ enum record_action {
 	REC_BO_SET_FLAGS,
 	REC_ADD_FRAMEBUFFER,
 	REC_DEL_FRAMEBUFFER,
+	REC_DISP_FRAMEBUFFER,
 	REC_JOB_CTX_CREATE,
 	REC_JOB_CTX_DESTROY,
 	REC_JOB_SUBMIT,
@@ -128,6 +129,11 @@ struct __attribute__((packed)) record_act {
 			uint16_t bo_id;
 			uint16_t ctx_id;
 		} del_framebuffer;
+
+		struct disp_framebuffer {
+			uint16_t bo_id;
+			uint16_t ctx_id;
+		} disp_framebuffer;
 
 		struct job_ctx_create {
 			uint16_t id;

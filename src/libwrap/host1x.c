@@ -97,6 +97,9 @@ static const struct ioctl host1x_ioctls[] = {
 	IOCTL(DRM_IOCTL_MODE_ADDFB),
 	IOCTL(DRM_IOCTL_MODE_ADDFB2),
 	IOCTL(DRM_IOCTL_MODE_RMFB),
+	IOCTL(DRM_IOCTL_MODE_SETPLANE),
+	IOCTL(DRM_IOCTL_MODE_SETCRTC),
+	IOCTL(DRM_IOCTL_MODE_PAGE_FLIP),
 };
 
 static struct host1x_bo *host1x_bo_new(struct host1x_file *host1x,
@@ -363,6 +366,70 @@ static void host1x_file_enter_ioctl_gem_set_flags(struct host1x_file *host1x,
 	record_set_bo_flags(bo->rec_bo, args->flags);
 }
 
+static struct host1x_bo *host1x_file_lookup_fb(struct host1x_file *host1x,
+					       unsigned long fb_id)
+{
+	struct host1x_bo *bo;
+
+	if (!fb_id)
+		return NULL;
+
+	list_for_each_entry(bo, &host1x->bos, list)
+		if (bo->rec_bo->fb_id == fb_id &&
+		    bo->rec_bo->ctx->id == host1x->rec_ctx->id)
+			return bo;
+
+	return NULL;
+}
+
+static void host1x_file_enter_ioctl_mode_setplane(struct host1x_file *host1x,
+						  struct drm_mode_set_plane *args)
+{
+	struct host1x_bo *bo;
+
+	printf("  Set plane:\n");
+	printf("    fb_id: %u\n", args->fb_id);
+
+	if (!recorder_enabled())
+		return;
+
+	bo = host1x_file_lookup_fb(host1x, args->fb_id);
+	if (bo)
+		return record_display_framebuffer(bo->rec_bo);
+}
+
+static void host1x_file_enter_ioctl_mode_setcrtc(struct host1x_file *host1x,
+						 struct drm_mode_crtc *args)
+{
+	struct host1x_bo *bo;
+
+	printf("  Set CRTC:\n");
+	printf("    fb_id: %u\n", args->fb_id);
+
+	if (!recorder_enabled())
+		return;
+
+	bo = host1x_file_lookup_fb(host1x, args->fb_id);
+	if (bo)
+		return record_display_framebuffer(bo->rec_bo);
+}
+
+static void host1x_file_enter_ioctl_mode_page_flip(struct host1x_file *host1x,
+						   struct drm_mode_crtc_page_flip *args)
+{
+	struct host1x_bo *bo;
+
+	PRINTF("  Flip CRTC:\n");
+	PRINTF("    fb_id: %u\n", args->fb_id);
+
+	if (!recorder_enabled())
+		return;
+
+	bo = host1x_file_lookup_fb(host1x, args->fb_id);
+	if (bo)
+		return record_display_framebuffer(bo->rec_bo);
+}
+
 static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
@@ -387,6 +454,18 @@ static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
 
 	case DRM_IOCTL_TEGRA_GEM_SET_FLAGS:
 		host1x_file_enter_ioctl_gem_set_flags(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_SETPLANE:
+		host1x_file_enter_ioctl_mode_setplane(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_SETCRTC:
+		host1x_file_enter_ioctl_mode_setcrtc(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_PAGE_FLIP:
+		host1x_file_enter_ioctl_mode_page_flip(host1x, arg);
 		break;
 
 	default:

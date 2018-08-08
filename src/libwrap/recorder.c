@@ -100,6 +100,10 @@ static void record_write_action(struct record_act *r)
 		size += sizeof(r->data.del_framebuffer);
 		break;
 
+	case REC_DISP_FRAMEBUFFER:
+		size += sizeof(r->data.disp_framebuffer);
+		break;
+
 	case REC_JOB_CTX_CREATE:
 		size += sizeof(r->data.job_ctx_create);
 		break;
@@ -454,10 +458,25 @@ void record_del_framebuffer(struct bo_rec *bo)
 		return;
 
 	bo->is_framebuffer = false;
+	bo->fb_id = 0;
 
 	r.act = REC_DEL_FRAMEBUFFER;
 	r.data.del_framebuffer.bo_id = bo->id;
 	r.data.del_framebuffer.ctx_id = bo->ctx->id;
+
+	record_write_action(&r);
+}
+
+void record_display_framebuffer(struct bo_rec *bo)
+{
+	struct record_act r;
+
+	if (!recorder_enabled())
+		return;
+
+	r.act = REC_DISP_FRAMEBUFFER;
+	r.data.disp_framebuffer.bo_id = bo->id;
+	r.data.disp_framebuffer.ctx_id = bo->ctx->id;
 
 	record_write_action(&r);
 }
