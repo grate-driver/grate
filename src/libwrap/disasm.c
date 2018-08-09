@@ -26,6 +26,7 @@
 
 #include "tgr_3d.xml.h"
 #include "disasm.h"
+#include "utils.h"
 
 static void disasm_reset_vp(struct disasm_state *d)
 {
@@ -60,6 +61,9 @@ void disasm_write_reg(void *opaque, uint32_t host1x_class,
 		      uint32_t offset, uint32_t value)
 {
 	struct disasm_state *d = opaque;
+
+	if (!libwrap_verbose)
+		return;
 
 	if (host1x_class != 0x60)
 		return;

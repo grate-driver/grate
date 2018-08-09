@@ -68,7 +68,9 @@ struct drm_display {
 	drmModeModeInfo mode;
 	uint32_t connector;
 	unsigned int pipe;
+	uint32_t plane;
 	uint32_t crtc;
+	bool reflected;
 };
 
 static inline struct drm_display *to_drm_display(struct host1x_display *display)
@@ -86,6 +88,7 @@ struct drm_overlay {
 	unsigned int width;
 	unsigned int height;
 	uint32_t format;
+	bool reflected;
 };
 
 static inline struct drm_overlay *to_drm_overlay(struct host1x_overlay *overlay)
@@ -191,6 +194,7 @@ static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
 	drmModeObjectPropertiesPtr properties;
 	drmModePropertyPtr property;
 	drmModeAtomicReqPtr req;
+	unsigned int reflect_flag;
 	unsigned int i;
 	int ret;
 
@@ -213,11 +217,16 @@ static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
 		if (!property)
 			continue;
 
+		if (reflect)
+			reflect_flag = DRM_MODE_REFLECT_Y;
+		else
+			reflect_flag = 0;
+
 		if (!strcmp(property->name, "rotation")) {
 			ret = drmModeAtomicAddProperty(req, plane_id,
 						       property->prop_id,
 						       DRM_MODE_ROTATE_0 |
-						       DRM_MODE_REFLECT_Y);
+						       reflect_flag);
 			if (ret < 0)
 				host1x_error("drmModeAtomicAddProperty() failed: %d\n",
 					     ret);
@@ -262,12 +271,17 @@ static int drm_overlay_close(struct host1x_overlay *overlay)
 static int drm_overlay_set(struct host1x_overlay *overlay,
 			   struct host1x_framebuffer *fb, unsigned int x,
 			   unsigned int y, unsigned int width,
-			   unsigned int height, bool vsync)
+			   unsigned int height, bool vsync, bool reflect_y)
 {
 	struct drm_overlay *plane = to_drm_overlay(overlay);
 	struct drm_display *display = plane->display;
 	struct drm *drm = display->drm;
 	int err;
+
+	if (plane->reflected != reflect_y) {
+		drm_overlay_reflect_y(drm, plane->plane, reflect_y);
+		plane->reflected = reflect_y;
+	}
 
 	if (vsync) {
 		drmVBlank vblank = {
@@ -324,8 +338,6 @@ static int drm_overlay_create(struct host1x_display *display,
 
 	*overlayp = &overlay->base;
 
-	drm_overlay_reflect_y(drm->drm, plane, true);
-
 	return 0;
 }
 
@@ -342,10 +354,16 @@ static void drm_display_on_vblank(int fd, unsigned int frame,
 }
 
 static int drm_display_set(struct host1x_display *display,
-			   struct host1x_framebuffer *fb, bool vsync)
+			   struct host1x_framebuffer *fb,
+			   bool vsync, bool reflect_y)
 {
 	struct drm_display *drm = to_drm_display(display);
 	int err;
+
+	if (drm->reflected != reflect_y) {
+		drm_overlay_reflect_y(drm->drm, drm->plane, reflect_y);
+		drm->reflected = reflect_y;
+	}
 
 	if (vsync) {
 		struct timeval timeout;
@@ -453,19 +471,9 @@ static int drm_display_setup(struct drm_display *display)
 
 	drmModeFreeResources(res);
 
-#ifdef DRM_MODE_REFLECT_Y
-	if (ret == 0) {
-		uint32_t plane;
-		int err;
-
-		err = drm_display_find_plane(display, &plane,
+	if (ret == 0)
+		ret = drm_display_find_plane(display, &display->plane,
 					     DRM_PLANE_TYPE_PRIMARY);
-		if (err == 0)
-			drm_overlay_reflect_y(drm, plane, true);
-		else
-			host1x_error("failed to get primary plane: %d\n", err);
-	}
-#endif
 
 	return ret;
 }
@@ -731,6 +739,9 @@ static int drm_framebuffer_init(struct host1x *host1x,
 		break;
 	case PIX_BUF_FMT_RGBA8888:
 		format = DRM_FORMAT_XBGR8888;
+		break;
+	case PIX_BUF_FMT_BGRA8888:
+		format = DRM_FORMAT_XRGB8888;
 		break;
 	default:
 		host1x_error("Unsupported framebuffer format\n");

@@ -36,14 +36,15 @@ void grate_display_close(struct grate_display *display);
 void grate_display_get_resolution(struct grate_display *display,
 				  unsigned int *width, unsigned int *height);
 void grate_display_show(struct grate_display *display,
-			struct grate_framebuffer *fb, bool vsync);
+			struct grate_framebuffer *fb,
+			bool vsync, bool reflect_y);
 
 struct grate_overlay *grate_overlay_create(struct grate_display *display);
 void grate_overlay_free(struct grate_overlay *overlay);
 void grate_overlay_show(struct grate_overlay *overlay,
 			struct grate_framebuffer *fb, unsigned int x,
 			unsigned int y, unsigned int width,
-			unsigned int height, bool vsync);
+			unsigned int height, bool vsync, bool reflect_y);
 
 #define grate_error(fmt, args...) \
 	fprintf(stderr, "ERROR: %s: " fmt, __func__, ##args)

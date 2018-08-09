@@ -31,6 +31,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -43,6 +44,7 @@
 #include "list.h"
 
 static pthread_mutex_t ioctl_lock = PTHREAD_MUTEX_INITIALIZER;
+bool libwrap_verbose = true;
 
 static void *dlopen_helper(const char *name)
 {
@@ -65,6 +67,14 @@ static void *dlsym_helper(const char *name)
 	return dlsym(libc, name);
 }
 
+static void init_verbosity(void)
+{
+	const char *str = getenv("LIBWRAP_SILENT");
+
+	if (str && strcmp(str, "1") == 0)
+		libwrap_verbose = false;
+}
+
 int open(const char *pathname, int flags, ...)
 {
 	static typeof(open) *orig = NULL;
@@ -72,12 +82,13 @@ int open(const char *pathname, int flags, ...)
 	int ret;
 
 	if (!initialized) {
+		init_verbosity();
 		nvhost_register();
 		host1x_register();
 		initialized = true;
 	}
 
-	printf("%s(pathname=%s, flags=%x)\n", __func__, pathname, flags);
+	PRINTF("%s(pathname=%s, flags=%x)\n", __func__, pathname, flags);
 
 	if (!orig)
 		orig = dlsym_helper(__func__);
@@ -98,7 +109,7 @@ int open(const char *pathname, int flags, ...)
 	if (ret >= 0)
 		file_open(pathname, ret);
 
-	printf("%s() = %d\n", __func__, ret);
+	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
 }
 
@@ -122,12 +133,12 @@ int close(int fd)
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
-	printf("%s(fd=%d)\n", __func__, fd);
+	PRINTF("%s(fd=%d)\n", __func__, fd);
 
 	ret = orig(fd);
 	file_close(fd);
 
-	printf("%s() = %d\n", __func__, ret);
+	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
 }
 
@@ -139,11 +150,11 @@ ssize_t read(int fd, void *buffer, size_t size)
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
-	printf("%s(fd=%d, buffer=%p, size=%zu)\n", __func__, fd, buffer, size);
+	PRINTF("%s(fd=%d, buffer=%p, size=%zu)\n", __func__, fd, buffer, size);
 
 	ret = orig(fd, buffer, size);
 
-	printf("%s() = %zd\n", __func__, ret);
+	PRINTF("%s() = %zd\n", __func__, ret);
 	return ret;
 }
 
@@ -156,7 +167,7 @@ ssize_t write(int fd, const void *buffer, size_t size)
 	if (!orig)
 		orig = dlsym_helper(__func__);
 
-	printf("%s(fd=%d, buffer=%p, size=%zu)\n", __func__, fd, buffer, size);
+	PRINTF("%s(fd=%d, buffer=%p, size=%zu)\n", __func__, fd, buffer, size);
 
 	print_hexdump(stdout, DUMP_PREFIX_OFFSET, "  ", buffer, size, 16,
 		      true);
@@ -168,7 +179,7 @@ ssize_t write(int fd, const void *buffer, size_t size)
 
 	ret = orig(fd, buffer, size);
 
-	printf("%s() = %zd\n", __func__, ret);
+	PRINTF("%s() = %zd\n", __func__, ret);
 	return ret;
 }
 
@@ -215,7 +226,7 @@ int ioctl(int fd, unsigned long request, ...)
 	arg = va_arg(ap, void *);
 	va_end(ap);
 
-	printf("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
+	PRINTF("%s(fd=%d, request=%#lx, arg=%p)\n", __func__, fd, request, arg);
 
 	if (file && file->ops && file->ops->enter_ioctl) {
 		pthread_mutex_lock(&ioctl_lock);
@@ -236,15 +247,15 @@ int ioctl(int fd, unsigned long request, ...)
 	}
 
 	if (!ioc) {
-		printf("  dir:%lx type:'%c' nr:%lx size:%lu\n",
+		PRINTF("  dir:%lx type:'%c' nr:%lx size:%lu\n",
 		       _IOC_DIR(request), (char)_IOC_TYPE(request),
 		       _IOC_NR(request), _IOC_SIZE(request));
 	} else {
 		diff = timespec_diff_in_us(&t1, &t2);
-		printf("  %s (%'ld us)\n", ioc->name, diff);
+		PRINTF("  %s (%'ld us)\n", ioc->name, diff);
 	}
 
-	printf("%s() = %d\n", __func__, ret);
+	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
 }
 
@@ -262,12 +273,12 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
 	void *ret;
 
-	printf("%s(addr=%p, length=%zu, prot=%#x, flags=%#x, fd=%d, offset=%lu)\n",
+	PRINTF("%s(addr=%p, length=%zu, prot=%#x, flags=%#x, fd=%d, offset=%lu)\n",
 	       __func__, addr, length, prot, flags, fd, offset);
 
 	ret = mmap_orig(addr, length, prot, flags, fd, offset);
 
-	printf("%s() = %p\n", __func__, ret);
+	PRINTF("%s() = %p\n", __func__, ret);
 	return ret;
 }
 
@@ -285,10 +296,10 @@ int munmap(void *addr, size_t length)
 {
 	int ret;
 
-	printf("%s(addr=%p, length=%zu)\n", __func__, addr, length);
+	PRINTF("%s(addr=%p, length=%zu)\n", __func__, addr, length);
 
 	ret = munmap_orig(addr, length);
 
-	printf("%s() = %d\n", __func__, ret);
+	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
 }

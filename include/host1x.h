@@ -99,9 +99,10 @@ enum pixel_format {
     PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16),
     PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16),
     PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32),
-    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(10, 32),
-    PIX_BUF_FMT_ARGB8888      = PIX_BUF_FMT(11, 32),
-    PIX_BUF_FMT_ABGR8888      = PIX_BUF_FMT(12, 32),
+    PIX_BUF_FMT_BGRA8888      = PIX_BUF_FMT(10, 32),
+    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(11, 32),
+    PIX_BUF_FMT_ARGB8888      = PIX_BUF_FMT(12, 32),
+    PIX_BUF_FMT_ABGR8888      = PIX_BUF_FMT(13, 32),
 };
 
 enum layout_format {
@@ -155,7 +156,8 @@ struct host1x_framebuffer {
 int host1x_display_get_resolution(struct host1x_display *display,
 				  unsigned int *width, unsigned int *height);
 int host1x_display_set(struct host1x_display *display,
-		       struct host1x_framebuffer *fb, bool vsync);
+		       struct host1x_framebuffer *fb,
+		       bool vsync, bool reflect_y);
 
 int host1x_overlay_create(struct host1x_overlay **overlayp,
 			  struct host1x_display *display);
@@ -163,7 +165,7 @@ int host1x_overlay_close(struct host1x_overlay *overlay);
 int host1x_overlay_set(struct host1x_overlay *overlay,
 		       struct host1x_framebuffer *fb, unsigned int x,
 		       unsigned int y, unsigned int width,
-		       unsigned int height, bool vsync);
+		       unsigned int height, bool vsync, bool reflect_y);
 
 struct host1x_bo *host1x_bo_create(struct host1x *host1x, size_t size,
 				   unsigned long flags);

@@ -19,7 +19,12 @@ PKG_PROG_PKG_CONFIG
 PKG_CHECK_MODULES(DevIL, ILU)
 PKG_CHECK_MODULES(PNG, libpng)
 PKG_CHECK_MODULES(DRM, libdrm)
-PKG_CHECK_MODULES(ZLIB, zlib)
+
+AC_CHECK_LIB([z], [adler32], [enable_zlib=yes], [enable_zlib=no])
+AM_CONDITIONAL([ENABLE_ZLIB], [test "x$enable_zlib" = "xyes"])
+
+AC_CHECK_LIB([lz4], [LZ4_compress_default], [enable_lz4=yes], [enable_lz4=no])
+AM_CONDITIONAL([ENABLE_LZ4], [test "x$enable_lz4" = "xyes"])
 
 AC_ARG_ENABLE([gles-tests],
 	[AS_HELP_STRING([--enable-gles-tests],

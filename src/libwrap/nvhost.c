@@ -108,19 +108,19 @@ static struct nvmap_handle *nvmap_file_lookup_handle(struct nvmap_file *nvmap,
 static void nvmap_file_enter_ioctl_create(struct nvmap_file *nvmap,
 					  struct nvmap_create_handle *args)
 {
-	printf("  Creating handle:\n");
-	printf("    size: %u\n", args->size);
-	printf("    handle: %x\n", args->handle);
+	PRINTF("  Creating handle:\n");
+	PRINTF("    size: %u\n", args->size);
+	PRINTF("    handle: %x\n", args->handle);
 }
 
 static void nvmap_file_enter_ioctl_alloc(struct nvmap_file *nvmap,
 					 struct nvmap_alloc_handle *args)
 {
-	printf("  Allocating handle:\n");
-	printf("    handle: %x\n", args->handle);
-	printf("    heap_mask: %x\n", args->heap_mask);
-	printf("    flags: %x\n", args->flags);
-	printf("    align: %x\n", args->align);
+	PRINTF("  Allocating handle:\n");
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    heap_mask: %x\n", args->heap_mask);
+	PRINTF("    flags: %x\n", args->flags);
+	PRINTF("    align: %x\n", args->align);
 }
 
 static void nvmap_file_enter_ioctl_mmap(struct nvmap_file *nvmap,
@@ -128,12 +128,12 @@ static void nvmap_file_enter_ioctl_mmap(struct nvmap_file *nvmap,
 {
 	struct nvmap_handle *handle;
 
-	printf("  Mapping handle:\n");
-	printf("    handle: %x\n", args->handle);
-	printf("    offset: %x\n", args->offset);
-	printf("    length: %u\n", args->length);
-	printf("    flags: %x\n", args->flags);
-	printf("    address: %x\n", args->addr);
+	PRINTF("  Mapping handle:\n");
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    offset: %x\n", args->offset);
+	PRINTF("    length: %u\n", args->length);
+	PRINTF("    flags: %x\n", args->flags);
+	PRINTF("    address: %x\n", args->addr);
 
 	handle = nvmap_file_lookup_handle(nvmap, args->handle);
 	if (!handle) {
@@ -151,14 +151,14 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 	uint8_t *src, *dest, *end;
 	unsigned int i;
 
-	printf("  Write operation:\n");
-	printf("    address: %x\n", op->addr);
-	printf("    handle: %x\n", op->handle);
-	printf("    offset: %x\n", op->offset);
-	printf("    elem_size: %u\n", op->elem_size);
-	printf("    hmem_stride: %u\n", op->hmem_stride);
-	printf("    user_stride: %u\n", op->user_stride);
-	printf("    count: %u\n", op->count);
+	PRINTF("  Write operation:\n");
+	PRINTF("    address: %x\n", op->addr);
+	PRINTF("    handle: %x\n", op->handle);
+	PRINTF("    offset: %x\n", op->offset);
+	PRINTF("    elem_size: %u\n", op->elem_size);
+	PRINTF("    hmem_stride: %u\n", op->hmem_stride);
+	PRINTF("    user_stride: %u\n", op->user_stride);
+	PRINTF("    count: %u\n", op->count);
 
 	handle = nvmap_file_lookup_handle(nvmap, op->handle);
 	if (!handle) {
@@ -189,18 +189,18 @@ static void nvmap_file_enter_ioctl_write(struct nvmap_file *nvmap,
 static void nvmap_file_enter_ioctl_param(struct nvmap_file *nvmap,
 					 struct nvmap_handle_param *args)
 {
-	printf("  Parameter:\n");
-	printf("    handle: %x\n", args->handle);
-	printf("    param: %x\n", args->param);
+	PRINTF("  Parameter:\n");
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    param: %x\n", args->param);
 }
 
 static void nvmap_file_enter_ioctl_pin(struct nvmap_file *nvmap,
 				       struct nvmap_pin_handle *args)
 {
-	printf("  Pinning handle:\n");
-	printf("    handles: %x\n", args->handles);
-	printf("    addr: %x\n", args->addr);
-	printf("    count: %u\n", args->count);
+	PRINTF("  Pinning handle:\n");
+	PRINTF("    handles: %x\n", args->handles);
+	PRINTF("    addr: %x\n", args->addr);
+	PRINTF("    count: %u\n", args->count);
 }
 
 static const char *cache_op_names[] = {
@@ -212,11 +212,11 @@ static const char *cache_op_names[] = {
 static void nvmap_file_enter_ioctl_cache(struct nvmap_file *nvmap,
 					 struct nvmap_cache_op *args)
 {
-	printf("  Cache maintenance:\n");
-	printf("    address: %x\n", args->addr);
-	printf("    handle: %x\n", args->handle);
-	printf("    length: %u\n", args->length);
-	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
+	PRINTF("  Cache maintenance:\n");
+	PRINTF("    address: %x\n", args->addr);
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    length: %u\n", args->length);
+	PRINTF("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 }
 
 static int nvmap_file_enter_ioctl(struct file *file, unsigned long request,
@@ -262,9 +262,9 @@ static void nvmap_file_leave_ioctl_create(struct nvmap_file *nvmap,
 {
 	struct nvmap_handle *handle;
 
-	printf("  Handle created:\n");
-	printf("    size: %u\n", args->size);
-	printf("    handle: %x\n", args->handle);
+	PRINTF("  Handle created:\n");
+	PRINTF("    size: %u\n", args->size);
+	PRINTF("    handle: %x\n", args->handle);
 
 	handle = nvmap_handle_new(args->handle, args->size);
 	if (!handle) {
@@ -278,38 +278,38 @@ static void nvmap_file_leave_ioctl_create(struct nvmap_file *nvmap,
 static void nvmap_file_leave_ioctl_alloc(struct nvmap_file *nvmap,
 					 struct nvmap_alloc_handle *args)
 {
-	printf("  Handle allocated:\n");
-	printf("    handle: %x\n", args->handle);
-	printf("    heap_mask: %x\n", args->heap_mask);
-	printf("    flags: %x\n", args->flags);
-	printf("    align: %x\n", args->align);
+	PRINTF("  Handle allocated:\n");
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    heap_mask: %x\n", args->heap_mask);
+	PRINTF("    flags: %x\n", args->flags);
+	PRINTF("    align: %x\n", args->align);
 }
 
 static void nvmap_file_leave_ioctl_mmap(struct nvmap_file *nvmap,
 					struct nvmap_map_caller *args)
 {
-	printf("  Handle mapped:\n");
-	printf("    handle: %x\n", args->handle);
-	printf("    offset: %x\n", args->offset);
-	printf("    length: %u\n", args->length);
-	printf("    flags: %x\n", args->flags);
-	printf("    address: %x\n", args->addr);
+	PRINTF("  Handle mapped:\n");
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    offset: %x\n", args->offset);
+	PRINTF("    length: %u\n", args->length);
+	PRINTF("    flags: %x\n", args->flags);
+	PRINTF("    address: %x\n", args->addr);
 }
 
 static void nvmap_file_leave_ioctl_param(struct nvmap_file *nvmap,
 					 struct nvmap_handle_param *args)
 {
-	printf("  Parameter obtained:\n");
-	printf("    result: %u\n", args->result);
+	PRINTF("  Parameter obtained:\n");
+	PRINTF("    result: %u\n", args->result);
 }
 
 static void nvmap_file_leave_ioctl_pin(struct nvmap_file *nvmap,
 				       struct nvmap_pin_handle *args)
 {
-	printf("  Handle pinned:\n");
-	printf("    handles: %x\n", args->handles);
-	printf("    addr: %x\n", args->addr);
-	printf("    count: %u\n", args->count);
+	PRINTF("  Handle pinned:\n");
+	PRINTF("    handles: %x\n", args->handles);
+	PRINTF("    addr: %x\n", args->addr);
+	PRINTF("    count: %u\n", args->count);
 }
 
 static void nvmap_file_leave_ioctl_cache(struct nvmap_file *nvmap,
@@ -317,11 +317,11 @@ static void nvmap_file_leave_ioctl_cache(struct nvmap_file *nvmap,
 {
 	void *virt = (void *)(uintptr_t)args->addr;
 
-	printf("  Maintenance complete:\n");
-	printf("    address: %x\n", args->addr);
-	printf("    handle: %x\n", args->handle);
-	printf("    length: %u\n", args->length);
-	printf("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
+	PRINTF("  Maintenance complete:\n");
+	PRINTF("    address: %x\n", args->addr);
+	PRINTF("    handle: %x\n", args->handle);
+	PRINTF("    length: %u\n", args->length);
+	PRINTF("    op: %x (%s)\n", args->op, cache_op_names[args->op]);
 
 	print_hexdump(stdout, DUMP_PREFIX_OFFSET, "    ", virt, args->length,
 		      16, true);
@@ -416,16 +416,16 @@ static inline struct nvhost_ctrl_file *to_nvhost_ctrl_file(struct file *file)
 static void nvhost_ctrl_file_enter_ioctl_syncpt_read(struct file *file,
 						     struct nvhost_ctrl_syncpt_read_args *args)
 {
-	printf("  Reading sync point %u\n", args->id);
-	printf("    value: %u\n", args->value);
+	PRINTF("  Reading sync point %u\n", args->id);
+	PRINTF("    value: %u\n", args->value);
 }
 
 static void nvhost_ctrl_file_enter_ioctl_syncpt_waitex(struct file *file,
 						       struct nvhost_ctrl_syncpt_waitex_args *args)
 {
-	printf("  Waiting for sync point %u to reach %u, timeout %u\n",
+	PRINTF("  Waiting for sync point %u to reach %u, timeout %u\n",
 	       args->id, args->thresh, args->timeout);
-	printf("    value: %u\n", args->value);
+	PRINTF("    value: %u\n", args->value);
 }
 
 static int nvhost_ctrl_file_enter_ioctl(struct file *file,
@@ -447,17 +447,17 @@ static int nvhost_ctrl_file_enter_ioctl(struct file *file,
 static void nvhost_ctrl_file_leave_ioctl_syncpt_read(struct file *file,
 						     struct nvhost_ctrl_syncpt_read_args *args)
 {
-	printf("  ID: %u\n", args->id);
-	printf("  Value: %u\n", args->value);
+	PRINTF("  ID: %u\n", args->id);
+	PRINTF("  Value: %u\n", args->value);
 }
 
 static void nvhost_ctrl_file_leave_ioctl_syncpt_waitex(struct file *file,
 						       struct nvhost_ctrl_syncpt_waitex_args *args)
 {
-	printf("  ID: %u\n", args->id);
-	printf("  Threshold: %u\n", args->thresh);
-	printf("  Timeout: %u\n", args->timeout);
-	printf("  Value: %u\n", args->value);
+	PRINTF("  ID: %u\n", args->id);
+	PRINTF("  Threshold: %u\n", args->thresh);
+	PRINTF("  Timeout: %u\n", args->timeout);
+	PRINTF("  Value: %u\n", args->value);
 }
 
 static int nvhost_ctrl_file_leave_ioctl(struct file *file,
@@ -666,8 +666,8 @@ static void nvhost_job_add_pushbuf(struct nvhost_file *nvhost,
 
 	nvmap = to_nvmap_file(file);
 
-	printf("  Command Buffer:\n");
-	printf("    mem: %x, offset: %x, words: %u\n", cmdbuf->mem,
+	PRINTF("  Command Buffer:\n");
+	PRINTF("    mem: %x, offset: %x, words: %u\n", cmdbuf->mem,
 	       cmdbuf->offset, cmdbuf->words);
 
 	if (file) {
@@ -693,12 +693,12 @@ static void nvhost_job_add_pushbuf(struct nvhost_file *nvhost,
 static void nvhost_job_add_reloc(struct nvhost_job *job, unsigned int index,
 				 const struct nvhost_reloc *reloc)
 {
-	printf("  Relocation:\n");
-	printf("    command buffer:\n");
-	printf("      %x, offset: %x\n", reloc->cmdbuf_mem,
+	PRINTF("  Relocation:\n");
+	PRINTF("    command buffer:\n");
+	PRINTF("      %x, offset: %x\n", reloc->cmdbuf_mem,
 	       reloc->cmdbuf_offset);
-	printf("    target:\n");
-	printf("      %x, offset: %x\n", reloc->target_mem,
+	PRINTF("    target:\n");
+	PRINTF("      %x, offset: %x\n", reloc->target_mem,
 	       reloc->target_offset);
 
 	memcpy(&job->relocs[index], reloc, sizeof(*reloc));
@@ -707,25 +707,25 @@ static void nvhost_job_add_reloc(struct nvhost_job *job, unsigned int index,
 static void nvhost_job_add_wait_check(struct nvhost_job *job, unsigned int index,
 				      const struct nvhost_wait_check *check)
 {
-	printf("  Wait Check:\n");
-	printf("    mem: %x, offset: %x\n", check->mem,
+	PRINTF("  Wait Check:\n");
+	PRINTF("    mem: %x, offset: %x\n", check->mem,
 	       check->offset);
-	printf("    syncpt: %x, threshold: %x\n",
+	PRINTF("    syncpt: %x, threshold: %x\n",
 	       check->syncpt, check->thresh);
 }
 
 static void nvhost_job_add_shift(struct nvhost_job *job, unsigned int index,
 				 const struct nvhost_reloc_shift *shift)
 {
-	printf("  Relocation Shift:\n");
-	printf("    %x\n", shift->shift);
+	PRINTF("  Relocation Shift:\n");
+	PRINTF("    %x\n", shift->shift);
 }
 
 static void nvhost_file_enter_ioctl_channel_set_nvmap_fd(struct file *file,
 							 struct nvhost_set_nvmap_fd_args *args)
 {
-	printf("  Setting NVMAP file descriptor:\n");
-	printf("    file descriptor: %d\n", args->fd);
+	PRINTF("  Setting NVMAP file descriptor:\n");
+	PRINTF("    file descriptor: %d\n", args->fd);
 }
 
 static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
@@ -735,7 +735,7 @@ static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
 	struct nvhost_job *job = nvhost->job;
 	unsigned int i;
 
-	printf("  Flushing channel:\n");
+	PRINTF("  Flushing channel:\n");
 
 	for (i = 0; i < job->num_relocs; i++) {
 		struct nvhost_reloc *reloc = &job->relocs[i];
@@ -751,28 +751,28 @@ static void nvhost_file_enter_ioctl_channel_flush(struct file *file,
 		cmdbuf = nvmap_file_lookup_handle(nvmap, reloc->cmdbuf_mem);
 		target = nvmap_file_lookup_handle(nvmap, reloc->target_mem);
 
-		printf("    relocating: %x, offset:%x -> %x, offset:%x\n",
+		PRINTF("    relocating: %x, offset:%x -> %x, offset:%x\n",
 		       reloc->cmdbuf_mem, reloc->cmdbuf_offset,
 		       reloc->target_mem, reloc->target_offset);
 
 		if (cmdbuf)
-			printf("      cmdbuf: id:%lx, size:%zu\n", cmdbuf->id, cmdbuf->size);
+			PRINTF("      cmdbuf: id:%lx, size:%zu\n", cmdbuf->id, cmdbuf->size);
 
 		if (target)
-			printf("      target: id:%lx, size:%zu\n", target->id, target->size);
+			PRINTF("      target: id:%lx, size:%zu\n", target->id, target->size);
 	}
 }
 
 static void nvhost_file_enter_ioctl_channel_get_syncpoints(struct file *file,
 							   struct nvhost_get_param_args *args)
 {
-	printf("  Getting syncpoints: %x\n", args->value);
+	PRINTF("  Getting syncpoints: %x\n", args->value);
 }
 
 static void nvhost_file_enter_ioctl_channel_get_waitbases(struct file *file,
 							  struct nvhost_get_param_args *args)
 {
-	printf("  Getting waitbases: %x\n", args->value);
+	PRINTF("  Getting waitbases: %x\n", args->value);
 }
 
 static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
@@ -780,14 +780,14 @@ static void nvhost_file_enter_ioctl_channel_submit(struct file *file,
 {
 	struct nvhost_file *nvhost = to_nvhost_file(file);
 
-	printf("  submit header:\n");
-	printf("    syncpt: %u, increments: %u\n", submit->syncpt_id,
+	PRINTF("  submit header:\n");
+	PRINTF("    syncpt: %u, increments: %u\n", submit->syncpt_id,
 	       submit->syncpt_incrs);
-	printf("    command buffers: %u\n", submit->num_cmdbufs);
-	printf("    relocations: %u\n", submit->num_relocs);
-	printf("    version: %u\n", submit->submit_version);
-	printf("    wait checks: %u\n", submit->num_waitchks);
-	printf("    wait check mask: %x\n", submit->waitchk_mask);
+	PRINTF("    command buffers: %u\n", submit->num_cmdbufs);
+	PRINTF("    relocations: %u\n", submit->num_relocs);
+	PRINTF("    version: %u\n", submit->submit_version);
+	PRINTF("    wait checks: %u\n", submit->num_waitchks);
+	PRINTF("    wait check mask: %x\n", submit->waitchk_mask);
 
 	if (nvhost->job)
 		nvhost_job_free(nvhost->job);
@@ -833,20 +833,20 @@ static int nvhost_file_enter_ioctl(struct file *file, unsigned long request,
 static void nvhost_file_leave_ioctl_channel_flush(struct file *file,
 						  struct nvhost_get_param_args *args)
 {
-	printf("  Channel flushed\n");
-	printf("    Fence: %x, %u\n", args->value, args->value);
+	PRINTF("  Channel flushed\n");
+	PRINTF("    Fence: %x, %u\n", args->value, args->value);
 }
 
 static void nvhost_file_leave_ioctl_channel_get_syncpoints(struct file *file,
 							   struct nvhost_get_param_args *args)
 {
-	printf("  Syncpoints received: %x\n", args->value);
+	PRINTF("  Syncpoints received: %x\n", args->value);
 }
 
 static void nvhost_file_leave_ioctl_channel_get_waitbases(struct file *file,
 							  struct nvhost_get_param_args *args)
 {
-	printf("  Waitbases received: %x\n", args->value);
+	PRINTF("  Waitbases received: %x\n", args->value);
 }
 
 static int nvhost_file_leave_ioctl(struct file *file, unsigned long request,

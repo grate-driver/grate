@@ -8,7 +8,15 @@ if ENABLE_RNN
 libgrate_wrap_la_CPPFLAGS += -DENABLE_RNN
 endif
 
-libgrate_wrap_la_CFLAGS = -pthread $(ZLIB_CFLAGS)
+if ENABLE_ZLIB
+libgrate_wrap_la_CPPFLAGS += -DENABLE_ZLIB
+endif
+
+if ENABLE_LZ4
+libgrate_wrap_la_CPPFLAGS += -DENABLE_LZ4
+endif
+
+libgrate_wrap_la_CFLAGS = -pthread $(ZLIB_CFLAGS) $(LZ4_CFLAGS)
 
 libgrate_wrap_la_SOURCES = \
 	cdma_parser.c \
@@ -42,7 +50,13 @@ libgrate_wrap_la_SOURCES += \
 	../libgrate/vertex_disasm.c \
 	../libgrate/vpe_vliw.h
 
-libgrate_wrap_la_LIBADD = -ldl -lz
+libgrate_wrap_la_LIBADD = -ldl
 if ENABLE_RNN
 libgrate_wrap_la_LIBADD += -lrnn -lenvyutil -lxml2
+endif
+if ENABLE_ZLIB
+libgrate_wrap_la_LIBADD += -lz
+endif
+if ENABLE_LZ4
+libgrate_wrap_la_LIBADD += -llz4
 endif

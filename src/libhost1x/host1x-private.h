@@ -68,7 +68,7 @@ struct host1x_display {
 	int (*create_overlay)(struct host1x_display *display,
 			      struct host1x_overlay **overlayp);
 	int (*set)(struct host1x_display *display,
-		   struct host1x_framebuffer *fb, bool vsync);
+		   struct host1x_framebuffer *fb, bool vsync, bool reflect_y);
 };
 
 struct host1x_overlay {
@@ -76,7 +76,7 @@ struct host1x_overlay {
 	int (*set)(struct host1x_overlay *overlay,
 		   struct host1x_framebuffer *fb, unsigned int x,
 		   unsigned int y, unsigned int width, unsigned int height,
-		   bool vsync);
+		   bool vsync, bool reflect_y);
 };
 
 struct host1x_client {

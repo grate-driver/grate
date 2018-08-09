@@ -80,7 +80,7 @@ struct job_rec {
 	struct job_ctx_rec *ctx;
 };
 
-#define REC_VER		0x0002
+#define REC_VER		0x0004
 
 struct recorder {
 	bool inited;
@@ -104,6 +104,7 @@ void record_capture_bo_data(struct bo_rec *bo, bool force);
 void record_set_bo_flags(struct bo_rec *bo, uint32_t flags);
 void record_add_framebuffer(struct bo_rec *bo, uint32_t flags);
 void record_del_framebuffer(struct bo_rec *bo);
+void record_display_framebuffer(struct bo_rec *bo);
 struct job_ctx_rec *record_job_ctx_create(bool gr2d);
 void record_job_ctx_destroy(struct job_ctx_rec *ctx);
 void record_job_submit(struct job_rec *job);

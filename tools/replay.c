@@ -21,13 +21,30 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+/*
+ * Usage:
+ *
+ * Make a record:
+ *	LIBWRAP_RECORD_PATH=/path/record.bin LD_PRELOAD=libgrate-wrap.so /path/app
+ *
+ * Replay a record:
+ *	tools/replay --recfile /path/record.bin
+ */
+
 #define _LARGEFILE64_SOURCE
 
 #include <assert.h>
 #include <errno.h>
 #include <getopt.h>
 #include <string.h>
+
+#ifdef ENABLE_ZLIB
 #include <zlib.h>
+#endif
+
+#ifdef ENABLE_LZ4
+#include <lz4.h>
+#endif
 
 #include <libdrm/drm_fourcc.h>
 
@@ -48,6 +65,7 @@ struct rep_bo {
 	unsigned int refcnt;
 	unsigned int ctx_id;
 	unsigned int id;
+	uint32_t flags;
 	char *map;
 };
 
@@ -60,6 +78,7 @@ struct rep_framebuffer {
 	unsigned width;
 	unsigned height;
 	unsigned pitch;
+	bool reflect_y;
 };
 
 struct rep_job_ctx {
@@ -81,6 +100,9 @@ static struct host1x_overlay *overlay;
 static struct host1x_gr2d *gr2d;
 static struct host1x_gr3d *gr3d;
 
+static enum record_compression compression;
+static struct rep_framebuffer *displayed_fb;
+
 static const char *str_actions[] = {
 	[REC_START] = "REC_START",
 	[REC_INFO] = "REC_INFO",
@@ -91,6 +113,8 @@ static const char *str_actions[] = {
 	[REC_BO_LOAD_DATA] = "REC_BO_LOAD_DATA",
 	[REC_BO_SET_FLAGS] = "REC_BO_SET_FLAGS",
 	[REC_ADD_FRAMEBUFFER] = "REC_ADD_FRAMEBUFFER",
+	[REC_DEL_FRAMEBUFFER] = "REC_DEL_FRAMEBUFFER",
+	[REC_DISP_FRAMEBUFFER] = "REC_DISP_FRAMEBUFFER",
 	[REC_JOB_CTX_CREATE] = "REC_JOB_CTX_CREATE",
 	[REC_JOB_CTX_DESTROY] = "REC_JOB_CTX_DESTROY",
 	[REC_JOB_SUBMIT] = "REC_JOB_SUBMIT",
@@ -132,7 +156,6 @@ static void create_bo(unsigned int id, unsigned int ctx_id,
 {
 	struct rep_ctx *ctx;
 	struct rep_bo *rbo;
-	uint32_t grate_flags = 0;
 
 	ctx = lookup_context(ctx_id);
 	assert(ctx != NULL);
@@ -141,13 +164,13 @@ static void create_bo(unsigned int id, unsigned int ctx_id,
 	assert(rbo != NULL);
 
 	if (flags & DRM_TEGRA_GEM_CREATE_TILED)
-		grate_flags |= HOST1X_BO_CREATE_FLAG_TILED;
+		rbo->flags |= HOST1X_BO_CREATE_FLAG_TILED;
 
 	if (flags & DRM_TEGRA_GEM_CREATE_BOTTOM_UP)
-		grate_flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
+		rbo->flags |= HOST1X_BO_CREATE_FLAG_BOTTOM_UP;
 
 	rbo->id = id;
-	rbo->bo = HOST1X_BO_CREATE(host1x, size, grate_flags);
+	rbo->bo = HOST1X_BO_CREATE(host1x, size, rbo->flags);
 	assert(rbo->bo != NULL);
 
 	HOST1X_BO_MMAP(rbo->bo, (void *)&rbo->map);
@@ -177,8 +200,9 @@ static void destroy_bo(unsigned int id, unsigned int ctx_id)
 	free(rbo);
 }
 
-static void decompress_data(void *in, void *out,
-			    size_t in_size, size_t out_size)
+#ifdef ENABLE_ZLIB
+static void decompress_data_zlib(void *in, void *out,
+				 size_t in_size, size_t out_size)
 {
 	z_stream strm;
 	void *buf;
@@ -206,12 +230,50 @@ static void decompress_data(void *in, void *out,
 
 	memcpy(out, buf, out_size);
 }
+#endif
+
+#ifdef ENABLE_LZ4
+static void decompress_data_lz4(void *in, void *out,
+				size_t in_size, size_t out_size)
+{
+	void *buf;
+	int ret;
+
+	/* utilizing CPU cache is way much faster than uncached DRAM */
+	buf = alloca(out_size + 512);
+
+	ret = LZ4_decompress_safe(in, buf, in_size, out_size + 512);
+	assert(ret >= 0);
+
+	memcpy(out, buf, out_size);
+}
+#endif
+
+static int decompress_data(void *in, void *out,
+			    size_t in_size, size_t out_size)
+{
+#ifdef ENABLE_ZLIB
+	if (compression == REC_ZLIB) {
+		decompress_data_zlib(in, out, in_size, out_size);
+		return 1;
+	}
+#endif
+
+#ifdef ENABLE_LZ4
+	if (compression == REC_LZ4) {
+		decompress_data_lz4(in, out, in_size, out_size);
+		return 1;
+	}
+#endif
+
+	return 0;
+}
 
 static int load_bo(unsigned int id, unsigned int ctx_id,
 		   unsigned int page, unsigned int size)
 {
 	struct rep_bo *rbo = lookup_bo(id, ctx_id);
-	uint8_t compressed[4096];
+	uint8_t compressed[size];
 	void *dest;
 	int ret;
 
@@ -222,7 +284,7 @@ static int load_bo(unsigned int id, unsigned int ctx_id,
 	if (size) {
 		ret = fread(compressed, size, 1, recfile);
 		if (ret == 1)
-			decompress_data(compressed, dest, size, 4096);
+			ret = decompress_data(compressed, dest, size, 4096);
 	} else {
 		ret = fread(dest, 4096, 1, recfile);
 	}
@@ -266,7 +328,7 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 		break;
 
 	case DRM_FORMAT_XRGB8888:
-		format = PIX_BUF_FMT_RGBA8888;
+		format = PIX_BUF_FMT_BGRA8888;
 		break;
 
 	case DRM_FORMAT_RGB565:
@@ -289,6 +351,9 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 	hfb->pixbuf = pb;
 	hfb->flags = flags;
 
+	if (rbo->flags & HOST1X_BO_CREATE_FLAG_TILED)
+		pb->layout = PIX_BUF_LAYOUT_TILED_16x16;
+
 	if (host1x->framebuffer_init) {
 		err = host1x->framebuffer_init(host1x, hfb);
 		if (err != 0) {
@@ -305,6 +370,7 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 	rfb->width = width;
 	rfb->height = height;
 	rfb->pitch = pitch;
+	rfb->reflect_y = !!(rbo->flags & HOST1X_BO_CREATE_FLAG_BOTTOM_UP);
 
 	INIT_LIST_HEAD(&rfb->node);
 	list_add_tail(&rfb->node, &fb_list);
@@ -328,19 +394,31 @@ static void destroy_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 	assert(rfb != NULL);
 
 	list_del(&rfb->node);
-	host1x_framebuffer_free(rfb->hfb);
+	free(rfb->hfb->pixbuf);
+	free(rfb->hfb);
 	free(rfb);
+
+	if (displayed_fb == rfb)
+		displayed_fb = NULL;
 }
 
-static void display_framebuffer(struct rep_framebuffer *rfb)
+static void display_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 {
+	struct rep_framebuffer *rfb = lookup_framebuffer(bo_id, ctx_id);
+	assert(rfb != NULL);
 	int err;
 
 	printf("    displaying fb bo_id: %u\n", rfb->bo_id);
 
+	if (displayed_fb == rfb)
+		return;
+
 	err = host1x_overlay_set(overlay, rfb->hfb, 0, 0,
-				 rfb->width, rfb->height, false);
+				 rfb->width, rfb->height, false,
+				 rfb->reflect_y);
 	assert(err == 0);
+
+	displayed_fb = rfb;
 }
 
 static void create_job_context(unsigned int id, bool gr2d)
@@ -518,9 +596,6 @@ static int submit_job(unsigned int ctx_id,
 	if (ret < 0)
 		abort();
 
-	if (rfb)
-		display_framebuffer(rfb);
-
 	return 0;
 }
 
@@ -658,6 +733,13 @@ int main(int argc, char *argv[])
 			if (!r.data.record_info.drm)
 				goto err_bad_info;
 
+			compression = r.data.record_info.compression;
+
+			printf("    compression: %u\n", compression);
+
+			if (compression > REC_LZ4)
+				goto err_bad_info;
+
 			break;
 
 		case REC_CTX_CREATE:
@@ -778,6 +860,19 @@ int main(int argc, char *argv[])
 
 			break;
 
+		case REC_DISP_FRAMEBUFFER:
+			ret = fread(&r.data, sizeof(r.data.disp_framebuffer), 1, recfile);
+			if (ret != 1)
+				goto err_act_data;
+
+			printf("    bo_id: %u\n", r.data.disp_framebuffer.bo_id);
+			printf("    ctx_id: %u\n", r.data.disp_framebuffer.ctx_id);
+
+			display_framebuffer(r.data.disp_framebuffer.bo_id,
+					    r.data.disp_framebuffer.ctx_id);
+
+			break;
+
 		case REC_JOB_CTX_CREATE:
 			ret = fread(&r.data, sizeof(r.data.job_ctx_create), 1, recfile);
 			if (ret != 1)
@@ -832,7 +927,7 @@ int main(int argc, char *argv[])
 				    strlen(REC_MAGIC) != 0))
 				goto err_invalid_header;
 
-			if (r.data.header.version != 2)
+			if (r.data.header.version != 4)
 				goto err_invalid_version;
 
 			break;
