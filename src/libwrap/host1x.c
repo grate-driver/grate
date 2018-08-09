@@ -430,6 +430,22 @@ static void host1x_file_enter_ioctl_mode_page_flip(struct host1x_file *host1x,
 		return record_display_framebuffer(bo->rec_bo);
 }
 
+static void host1x_file_enter_ioctl_rmfb(struct host1x_file *host1x,
+					 unsigned long *fb_id)
+{
+	struct host1x_bo *bo;
+
+	PRINTF("  Remove FB:\n");
+	PRINTF("    fb_id: %lu\n", *fb_id);
+
+	if (!recorder_enabled())
+		return;
+
+	bo = host1x_file_lookup_fb(host1x, *fb_id);
+	if (bo)
+		return record_del_framebuffer(bo->rec_bo);
+}
+
 static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
@@ -466,6 +482,10 @@ static int host1x_file_enter_ioctl(struct file *file, unsigned long request,
 
 	case DRM_IOCTL_MODE_PAGE_FLIP:
 		host1x_file_enter_ioctl_mode_page_flip(host1x, arg);
+		break;
+
+	case DRM_IOCTL_MODE_RMFB:
+		host1x_file_enter_ioctl_rmfb(host1x, arg);
 		break;
 
 	default:
@@ -811,19 +831,6 @@ static void host1x_file_leave_ioctl_addfb2(struct host1x_file *host1x,
 	record_add_framebuffer(bo->rec_bo, args->flags);
 }
 
-static void host1x_file_leave_ioctl_rmfb(struct host1x_file *host1x,
-					 unsigned int fb_id)
-{
-	struct host1x_bo *bo;
-
-	if (!recorder_enabled())
-		return;
-
-	list_for_each_entry(bo, &host1x->bos, list)
-		if (bo->rec_bo->fb_id == fb_id)
-			return record_del_framebuffer(bo->rec_bo);
-}
-
 static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
@@ -896,10 +903,6 @@ static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 
 	case DRM_IOCTL_MODE_ADDFB2:
 		host1x_file_leave_ioctl_addfb2(host1x, arg);
-		break;
-
-	case DRM_IOCTL_MODE_RMFB:
-		host1x_file_leave_ioctl_rmfb(host1x, (unsigned long)arg);
 		break;
 
 	default:
