@@ -394,7 +394,8 @@ static void destroy_framebuffer(unsigned int bo_id, unsigned int ctx_id)
 	assert(rfb != NULL);
 
 	list_del(&rfb->node);
-	host1x_framebuffer_free(rfb->hfb);
+	free(rfb->hfb->pixbuf);
+	free(rfb->hfb);
 	free(rfb);
 
 	if (displayed_fb == rfb)
