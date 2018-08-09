@@ -181,7 +181,7 @@ int fcntl(int fd, int cmd, ...)
 			if (ret >= 0) {
 				file = file_lookup(fd);
 				if (file)
-					file_open(file, ret);
+					file_dup(file, ret);
 			}
 		}
 	} else {

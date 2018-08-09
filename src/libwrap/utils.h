@@ -63,7 +63,9 @@ struct file_ops;
 struct file {
 	struct list_head list;
 	char *path;
+
 	int fd;
+	int dup_fds[8];
 
 	const struct ioctl *ioctls;
 	unsigned int num_ioctls;
@@ -83,6 +85,7 @@ struct file *file_open(const char *path, int fd);
 struct file *file_lookup(int fd);
 struct file *file_find(const char *path);
 void file_close(int fd);
+void file_dup(struct file *file, int fd);
 
 struct file_table {
 	const char *path;

@@ -102,6 +102,7 @@ struct file *file_open(const char *path, int fd)
 {
 	struct file_table_entry *entry;
 	struct file *file;
+	unsigned int i;
 
 	list_for_each_entry(entry, &file_table, list) {
 		if (strcmp(entry->path, path) == 0) {
@@ -110,6 +111,9 @@ struct file *file_open(const char *path, int fd)
 				fprintf(stderr, "failed to wrap `%s'\n", path);
 				return NULL;
 			}
+
+			for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++)
+				file->dup_fds[i] = -1;
 
 			list_add_tail(&file->list, &files);
 			return file;
@@ -124,10 +128,16 @@ struct file *file_open(const char *path, int fd)
 struct file *file_lookup(int fd)
 {
 	struct file *file;
+	unsigned int i;
 
-	list_for_each_entry(file, &files, list)
+	list_for_each_entry(file, &files, list) {
 		if (file->fd == fd)
 			return file;
+
+		for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++)
+			if (file->dup_fds[i] == fd)
+				return file;
+	}
 
 	return NULL;
 }
@@ -146,13 +156,39 @@ struct file *file_find(const char *path)
 void file_close(int fd)
 {
 	struct file *file;
+	unsigned int i;
 
 	list_for_each_entry(file, &files, list) {
 		if (file->fd == fd) {
+			file->fd = -1;
+
+			for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++)
+				if (file->dup_fds[i] >= 0)
+					return;
+
 			PRINTF("closing %s\n", file->path);
 			list_del(&file->list);
 			file_put(file);
-			break;
+			return;
+		}
+
+		for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++) {
+			if (file->dup_fds[i] != fd)
+				continue;
+
+			file->dup_fds[i] = -1;
+
+			if (file->fd != -1)
+				return;
+
+			for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++)
+				if (file->dup_fds[i] != -1)
+					return;
+
+			PRINTF("closing %s\n", file->path);
+			list_del(&file->list);
+			file_put(file);
+			return;
 		}
 	}
 }
@@ -176,4 +212,19 @@ void file_table_register(const struct file_table *table, unsigned int count)
 
 		list_add_tail(&entry->list, &file_table);
 	}
+}
+
+void file_dup(struct file *file, int fd)
+{
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(file->dup_fds); i++) {
+		if (file->dup_fds[i] < 0) {
+			PRINTF("duplicating %s\n", file->path);
+			file->dup_fds[i] = fd;
+			return;
+		}
+	}
+
+	fprintf(stderr, "out of FD slots\n");
 }
