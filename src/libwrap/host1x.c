@@ -100,6 +100,7 @@ static const struct ioctl host1x_ioctls[] = {
 	IOCTL(DRM_IOCTL_MODE_SETPLANE),
 	IOCTL(DRM_IOCTL_MODE_SETCRTC),
 	IOCTL(DRM_IOCTL_MODE_PAGE_FLIP),
+	IOCTL(DRM_IOCTL_GEM_OPEN),
 };
 
 static struct host1x_bo *host1x_bo_new(struct host1x_file *host1x,
@@ -831,6 +832,25 @@ static void host1x_file_leave_ioctl_addfb2(struct host1x_file *host1x,
 	record_add_framebuffer(bo->rec_bo, args->flags);
 }
 
+static void host1x_file_leave_ioctl_gem_open(struct host1x_file *host1x,
+					     struct drm_gem_open *args)
+{
+	struct host1x_bo *bo;
+
+	PRINTF("  GEM imported:\n");
+	PRINTF("    name: %u\n", args->name);
+	PRINTF("    handle: %u\n", args->handle);
+	PRINTF("    size: %llx\n", args->size);
+
+	bo = host1x_bo_new(host1x, args->handle, args->size, 0);
+	if (!bo) {
+		fprintf(stderr, "failed to create bo\n");
+		abort();
+	}
+
+	list_add_tail(&bo->list, &host1x->bos);
+}
+
 static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 				   void *arg)
 {
@@ -903,6 +923,10 @@ static int host1x_file_leave_ioctl(struct file *file, unsigned long request,
 
 	case DRM_IOCTL_MODE_ADDFB2:
 		host1x_file_leave_ioctl_addfb2(host1x, arg);
+		break;
+
+	case DRM_IOCTL_GEM_OPEN:
+		host1x_file_leave_ioctl_gem_open(host1x, arg);
 		break;
 
 	default:
