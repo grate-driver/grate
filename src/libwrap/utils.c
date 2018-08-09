@@ -116,7 +116,8 @@ struct file *file_open(const char *path, int fd)
 		}
 	}
 
-	fprintf(stderr, "no wrapper for file `%s'\n", path);
+	if (libwrap_verbose)
+		fprintf(stderr, "no wrapper for file `%s'\n", path);
 	return NULL;
 }
 
