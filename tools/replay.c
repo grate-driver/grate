@@ -328,7 +328,7 @@ static void create_framebuffer(unsigned int bo_id, unsigned int ctx_id,
 		break;
 
 	case DRM_FORMAT_XRGB8888:
-		format = PIX_BUF_FMT_RGBA8888;
+		format = PIX_BUF_FMT_BGRA8888;
 		break;
 
 	case DRM_FORMAT_RGB565:

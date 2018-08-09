@@ -740,6 +740,9 @@ static int drm_framebuffer_init(struct host1x *host1x,
 	case PIX_BUF_FMT_RGBA8888:
 		format = DRM_FORMAT_XBGR8888;
 		break;
+	case PIX_BUF_FMT_BGRA8888:
+		format = DRM_FORMAT_XRGB8888;
+		break;
 	default:
 		host1x_error("Unsupported framebuffer format\n");
 		return -EINVAL;
