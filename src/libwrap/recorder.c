@@ -340,7 +340,7 @@ static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 	struct record_act r;
 	unsigned long chksum;
 	uint16_t data_size;
-	uint8_t compressed[4608];
+	uint8_t compressed[3328];
 	uint8_t buf[4096];
 	void *data;
 
@@ -354,7 +354,7 @@ static bool check_and_load_page(struct bo_rec *bo, unsigned int page)
 #endif
 
 	/* size 0 means go uncompressed */
-	data_size = compress_data(buf, compressed, 4096, 4608);
+	data_size = compress_data(buf, compressed, 4096, 3328);
 	data = data_size ? compressed : buf;
 
 	r.act = REC_BO_LOAD_DATA;
