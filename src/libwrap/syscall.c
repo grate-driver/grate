@@ -23,6 +23,7 @@
  */
 
 #define _LARGEFILE64_SOURCE
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -137,6 +138,55 @@ int close(int fd)
 
 	ret = orig(fd);
 	file_close(fd);
+
+	PRINTF("%s() = %d\n", __func__, ret);
+	return ret;
+}
+
+int fcntl(int fd, int cmd, ...)
+{
+	static typeof(fcntl) *orig = NULL;
+	struct file *file;
+	va_list argp;
+	void *arg;
+	int ret;
+
+	PRINTF("%s(fd=%d, cmd=%d)\n", __func__, fd, cmd);
+
+	if (!orig)
+		orig = dlsym_helper(__func__);
+
+	if (cmd == F_DUPFD ||
+	    cmd == F_SETFD ||
+	    cmd == F_SETFL ||
+	    cmd == F_DUPFD_CLOEXEC ||
+	    cmd == F_SETLK ||
+	    cmd == F_SETLKW ||
+	    cmd == F_GETLK ||
+	    cmd == F_SETOWN ||
+	    cmd == F_GETOWN_EX ||
+	    cmd == F_SETOWN_EX ||
+	    cmd == F_SETSIG ||
+	    cmd == F_NOTIFY ||
+	    cmd == F_SETPIPE_SZ)
+	{
+		va_start(argp, cmd);
+		arg = va_arg(argp, void *);
+		va_end(argp);
+
+		ret = orig(fd, cmd, arg);
+
+		if (cmd == F_DUPFD ||
+		    cmd == F_DUPFD_CLOEXEC) {
+			if (ret >= 0) {
+				file = file_lookup(fd);
+				if (file)
+					file_open(file, ret);
+			}
+		}
+	} else {
+		ret = orig(fd, cmd);
+	}
 
 	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
