@@ -23,6 +23,7 @@
  */
 
 #define _LARGEFILE64_SOURCE
+#define _GNU_SOURCE
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -44,6 +45,7 @@
 #include "list.h"
 
 static pthread_mutex_t ioctl_lock = PTHREAD_MUTEX_INITIALIZER;
+static bool initialized = false;
 bool libwrap_verbose = true;
 
 static void *dlopen_helper(const char *name)
@@ -78,7 +80,6 @@ static void init_verbosity(void)
 int open(const char *pathname, int flags, ...)
 {
 	static typeof(open) *orig = NULL;
-	static bool initialized = false;
 	int ret;
 
 	if (!initialized) {
@@ -115,13 +116,38 @@ int open(const char *pathname, int flags, ...)
 
 int open64(const char *pathname, int flags, ...)
 {
-	va_list argp;
+	static typeof(open64) *orig = NULL;
 	int ret;
 
-	va_start(argp, flags);
-	ret = open(pathname, flags | O_LARGEFILE, argp);
-	va_end(argp);
+	if (!initialized) {
+		init_verbosity();
+		nvhost_register();
+		host1x_register();
+		initialized = true;
+	}
 
+	PRINTF("%s(pathname=%s, flags=%x)\n", __func__, pathname, flags);
+
+	if (!orig)
+		orig = dlsym_helper(__func__);
+
+	if (flags & O_CREAT) {
+		mode_t mode;
+		va_list ap;
+
+		va_start(ap, flags);
+		mode = (mode_t)va_arg(ap, int);
+		va_end(ap);
+
+		ret = orig(pathname, flags, mode);
+	} else {
+		ret = orig(pathname, flags);
+	}
+
+	if (ret >= 0)
+		file_open(pathname, ret);
+
+	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;
 }
 
@@ -137,6 +163,55 @@ int close(int fd)
 
 	ret = orig(fd);
 	file_close(fd);
+
+	PRINTF("%s() = %d\n", __func__, ret);
+	return ret;
+}
+
+int fcntl(int fd, int cmd, ...)
+{
+	static typeof(fcntl) *orig = NULL;
+	struct file *file;
+	va_list argp;
+	void *arg;
+	int ret;
+
+	PRINTF("%s(fd=%d, cmd=%d)\n", __func__, fd, cmd);
+
+	if (!orig)
+		orig = dlsym_helper(__func__);
+
+	if (cmd == F_DUPFD ||
+	    cmd == F_SETFD ||
+	    cmd == F_SETFL ||
+	    cmd == F_DUPFD_CLOEXEC ||
+	    cmd == F_SETLK ||
+	    cmd == F_SETLKW ||
+	    cmd == F_GETLK ||
+	    cmd == F_SETOWN ||
+	    cmd == F_GETOWN_EX ||
+	    cmd == F_SETOWN_EX ||
+	    cmd == F_SETSIG ||
+	    cmd == F_NOTIFY ||
+	    cmd == F_SETPIPE_SZ)
+	{
+		va_start(argp, cmd);
+		arg = va_arg(argp, void *);
+		va_end(argp);
+
+		ret = orig(fd, cmd, arg);
+
+		if (cmd == F_DUPFD ||
+		    cmd == F_DUPFD_CLOEXEC) {
+			if (ret >= 0) {
+				file = file_lookup(fd);
+				if (file)
+					file_dup(file, ret);
+			}
+		}
+	} else {
+		ret = orig(fd, cmd);
+	}
 
 	PRINTF("%s() = %d\n", __func__, ret);
 	return ret;

@@ -47,6 +47,19 @@ static void *dlopen_helper(const char *name)
 	return ret;
 }
 
+static void *__dlsym(void *handle, const char *name)
+{
+	static typeof(dlsym) *orig = NULL;
+
+	if (orig == NULL)
+		orig = _dl_sym(RTLD_NEXT, "dlsym", dlsym);
+
+	if (!strcmp(name, "dlsym"))
+		return (void*)dlsym;
+
+	return orig(handle, name);
+}
+
 static void *dlsym_helper(const char *name)
 {
 	static void *cgdrv = NULL;
@@ -54,7 +67,7 @@ static void *dlsym_helper(const char *name)
 	if (!cgdrv)
 		cgdrv = dlopen_helper("libcgdrv.so");
 
-	return _dl_sym(cgdrv, name, dlsym);
+	return __dlsym(cgdrv, name);
 }
 
 #if 0
@@ -245,5 +258,5 @@ void *dlsym(void *handle, const char *name)
 	if (strcmp(name, "CgDrv_Compile") == 0)
 		return CgDrv_Compile;
 
-	return _dl_sym(handle, name, dlsym);
+	return __dlsym(handle, name);
 }
