@@ -12,6 +12,10 @@
 
 [https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa](https://code.launchpad.net/~grate-driver/+archive/ubuntu/ppa)
 
+### Fedora repository
+
+[https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo](https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo)
+
 # Build it yourself
 
 ## General rules:
