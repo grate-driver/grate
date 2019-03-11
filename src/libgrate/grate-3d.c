@@ -401,6 +401,16 @@ static void grate_3d_set_draw_params(struct host1x_pushbuf *pb,
 	unsigned first_vtx = 0;
 	uint32_t value = 0;
 
+	/*
+	 * Tegra30 has glitches without this, probably some cache / internal
+	 * state maintenance.
+	 */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x00000001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x00000001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x00000002));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe41, 0x00000003));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x00000003));
+
 	value |= TGR3D_VAL(DRAW_PARAMS, INDEX_MODE, index_mode);
 	value |= TGR3D_VAL(DRAW_PARAMS, PROVOKING_VERTEX,
 			   !!ctx->provoking_vtx_last);
