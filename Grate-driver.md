@@ -1,5 +1,10 @@
 # Grate-driver packages
 
+# Important
+
+:exclamation: The GRATE drivers are for older NVIDIA Tegra20/30/114 SoCs only! If you're looking for drivers for TK1/TX1, then you should use [Nouveau drivers](https://nouveau.freedesktop.org/wiki/). 
+***
+
 ### Arch Linux AUR
 
 [https://aur.archlinux.org/packages/?K=aa13q&SeB=m](https://aur.archlinux.org/packages/?K=aa13q&SeB=m)
@@ -44,8 +49,50 @@
 
   1. `git clone https://github.com/grate-driver/mesa.git`
   2. `cd mesa`
-  3. `sh autogen.sh --prefix=/usr --enable-dri --enable-glx --enable-shared-glapi --enable-texture-float --disable-nine --enable-debug --enable-dri3 --enable-egl --enable-gbm --enable-gles1 --enable-gles2 --enable-glx-tls --enable-valgrind=auto --enable-llvm-shared-libs --with-dri-drivers=swrast --with-gallium-drivers=swrast,grate --with-vulkan-drivers= --with-egl-platforms=x11,drm --disable-nine --disable-llvm --disable-omx-bellagio --disable-va --disable-vdpau --disable-xa --disable-xvmc --disable-gallium-osmesa --disable-libunwind`
-  4. `make install`
+  3. `meson -Dprefix=/usr -Dgallium-drivers=grate -Ddri-drivers=swrast -Dplatforms=x11,drm -Dshared-glapi=true -Dgbm=true -Dglx=dri -Dosmesa=none -Dgles1=false -Dgles2=true -Degl=true -Dgallium-xa=false -Dgallium-vdpau=false -Dgallium-va=false -Dgallium-xvmc=false -Duse-elf-tls=false -Dgallium-nine=false -Db_ndebug=true -Dvulkan-drivers= -Dlibunwind=false -Dllvm=false build`
+  4. `cd build/`
+  5. `ninja && ninja install`
+
+#### Example cross-file for meson:
+
+```
+[binaries]
+ar = ['armv7a-hardfloat-linux-gnueabi-ar']
+c = ['armv7a-hardfloat-linux-gnueabi-gcc']
+cpp = ['armv7a-hardfloat-linux-gnueabi-g++']
+fortran = ['gfortran']
+llvm-config = 'llvm-config'
+objc = ['cc']
+objcpp = ['armv7a-hardfloat-linux-gnueabi-c++']
+pkgconfig = 'armv7a-hardfloat-linux-gnueabi-pkg-config'
+strip = ['armv7a-hardfloat-linux-gnueabi-strip']
+windres = ['windres']
+
+[properties]
+c_args = ['-O2', '-pipe', '-g', '-fPIC', '-mcpu=cortex-a9', '-mfpu=vfpv3-d16', '-mfloat-abi=hard']
+c_link_args = ['-O2', '-pipe', '-g', '-fPIC', '-mcpu=cortex-a9', '-mfpu=vfpv3-d16', '-mfloat-abi=hard', '-L/usr/armv7a-hardfloat-linux-gnueabi/', '-L/usr/armv7a-hardfloat-linux-gnueabi/lib', '-L/usr/armv7a-hardfloat-linux-gnueabi/usr/lib', '-Wl,-O1', '-Wl,--as-needed']
+cpp_args = ['-O2', '-pipe', '-g', '-fPIC', '-mcpu=cortex-a9', '-mfpu=vfpv3-d16', '-mfloat-abi=hard']
+cpp_link_args = ['-O2', '-pipe', '-g', '-fPIC', '-mcpu=cortex-a9', '-mfpu=vfpv3-d16', '-mfloat-abi=hard', '-L/usr/armv7a-hardfloat-linux-gnueabi/', '-L/usr/armv7a-hardfloat-linux-gnueabi/lib', '-L/usr/armv7a-hardfloat-linux-gnueabi/usr/lib', '-Wl,-O1', '-Wl,--as-needed']
+fortran_args = ['-O2', '-pipe', '-march=armv7-a']
+fortran_link_args = ['-O2', '-pipe', '-march=armv7-a', '-L/usr/armv7a-hardfloat-linux-gnueabi/', '-L/usr/armv7a-hardfloat-linux-gnueabi/lib', '-L/usr/armv7a-hardfloat-linux-gnueabi/usr/lib', '-Wl,-O1', '-Wl,--as-needed']
+objc_args = []
+objc_link_args = ['-L/usr/armv7a-hardfloat-linux-gnueabi/', '-L/usr/armv7a-hardfloat-linux-gnueabi/lib', '-L/usr/armv7a-hardfloat-linux-gnueabi/usr/lib', '-Wl,-O1', '-Wl,--as-needed']
+objcpp_args = []
+objcpp_link_args = ['-L/usr/armv7a-hardfloat-linux-gnueabi/', '-L/usr/armv7a-hardfloat-linux-gnueabi/lib', '-L/usr/armv7a-hardfloat-linux-gnueabi/usr/lib', '-Wl,-O1', '-Wl,--as-needed']
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'armv7a'
+endian = 'little'
+```
+
+Outdated instructions: 
+  1. **for older Mesa versions only!**
+  2. `git clone https://github.com/grate-driver/mesa.git`
+  3. `cd mesa`
+  4. ~~`sh autogen.sh --prefix=/usr --enable-dri --enable-glx --enable-shared-glapi --enable-texture-float --disable-nine --enable-debug --enable-dri3 --enable-egl --enable-gbm --enable-gles1 --enable-gles2 --enable-glx-tls --enable-valgrind=auto --enable-llvm-shared-libs --with-dri-drivers=swrast --with-gallium-drivers=swrast,grate --with-vulkan-drivers= --with-egl-platforms=x11,drm --disable-nine --disable-llvm --disable-omx-bellagio --disable-va --disable-vdpau --disable-xa --disable-xvmc --disable-gallium-osmesa --disable-libunwind`~~
+  5. ~~`make install`~~
 
 ### Libvdpau-tegra:
 
