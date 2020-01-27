@@ -91,8 +91,8 @@ Outdated instructions:
   1. **for older Mesa versions only!**
   2. `git clone https://github.com/grate-driver/mesa.git`
   3. `cd mesa`
-  4. ~~`sh autogen.sh --prefix=/usr --enable-dri --enable-glx --enable-shared-glapi --enable-texture-float --disable-nine --enable-debug --enable-dri3 --enable-egl --enable-gbm --enable-gles1 --enable-gles2 --enable-glx-tls --enable-valgrind=auto --enable-llvm-shared-libs --with-dri-drivers=swrast --with-gallium-drivers=swrast,grate --with-vulkan-drivers= --with-egl-platforms=x11,drm --disable-nine --disable-llvm --disable-omx-bellagio --disable-va --disable-vdpau --disable-xa --disable-xvmc --disable-gallium-osmesa --disable-libunwind`~~
-  5. ~~`make install`~~
+  4. `sh autogen.sh --prefix=/usr --enable-dri --enable-glx --enable-shared-glapi --enable-texture-float --disable-nine --enable-debug --enable-dri3 --enable-egl --enable-gbm --enable-gles1 --enable-gles2 --enable-glx-tls --enable-valgrind=auto --enable-llvm-shared-libs --with-dri-drivers=swrast --with-gallium-drivers=swrast,grate --with-vulkan-drivers= --with-egl-platforms=x11,drm --disable-nine --disable-llvm --disable-omx-bellagio --disable-va --disable-vdpau --disable-xa --disable-xvmc --disable-gallium-osmesa --disable-libunwind`
+  5. `make install`
 
 ### Libvdpau-tegra:
 
