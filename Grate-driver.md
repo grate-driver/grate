@@ -100,3 +100,4 @@ Outdated instructions:
   2. `cd libvdpau-tegra`
   3. `sh autogen.sh --prefix=/usr`
   4. `make install`
+  5. `udevadm trigger`
