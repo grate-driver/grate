@@ -8,7 +8,7 @@ libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS) $(DevIL_LIBS) -lm
 
 AM_CFLAGS = -I$(top_srcdir)/src/libgrate $(GLES2_CFLAGS) $(PNG_CFLAGS)
 AM_LDFLAGS = -static
-LDADD = libcommon.la
+LDADD = libcommon.la $(top_builddir)/src/libgrate/libgrate.la
 
 noinst_PROGRAMS = \
 	egl-clear \
@@ -30,34 +30,7 @@ noinst_PROGRAMS = \
 	gles-pbuffer-vertex-offset \
 	gles-quad-textured \
 	gles-quad-textured2 \
+	gles-quad-textured3 \
 	gles-shader-fill \
 	gles-stencil \
 	gles2-info
-
-gles_cube_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_cube_textured_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_pbuffer_triangle_rotate_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_pbuffer_cube_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_quad_textured_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_quad_textured2_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la
-
-gles_stencil_LDADD = \
-	$(top_builddir)/src/libgrate/libgrate.la \
-	libcommon.la

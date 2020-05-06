@@ -681,31 +681,45 @@ struct gles_texture *gles_texture_load(const char *filename)
 	return &texture->base;
 }
 
-struct gles_texture *gles_texture_load2(const char *filename,
-					unsigned width, unsigned height)
+struct gles_texture *gles_texture_load3(const char *filename,
+					unsigned width, unsigned height,
+					unsigned gl_format)
 {
 	struct texture *texture;
 	ILuint ImageTex;
+	ILuint tex_size;
+	ILenum il_fmt;
+	uint8_t *tex_data;
 	int err;
 
 	texture = calloc(1, sizeof(*texture));
 	if (!texture)
 		return NULL;
 
+	if (gl_format == ETC1_RGB8_OES)
+		il_fmt = IL_RGB;
+	else
+		il_fmt = IL_RGBA;
+
 	ilInit();
 	ilGenImages(1, &ImageTex);
 	ilBindImage(ImageTex);
 	ilLoadImage(filename);
-	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+	ilConvertImage(il_fmt, IL_UNSIGNED_BYTE);
 	iluScale(width, height, 0);
 
-	err = ilGetError();
-	if (err != IL_NO_ERROR) {
-		free(texture);
-		return NULL;
-	}
+	/*
+	 * ilOriginFunc() doesn't work properly in conjunction with
+	 * ilCompressDXT(), image isn't rotated and colors are shifted.
+	 */
+	iluRotate(180.0f);
 
-	texture->base.format = GL_RGBA;
+	err = ilGetError();
+	if (err != IL_NO_ERROR)
+		goto del_image;
+
+	tex_data = ilGetData();
+	texture->base.format = gl_format;
 
 	glGenTextures(1, &texture->base.id);
 	glBindTexture(GL_TEXTURE_2D, texture->base.id);
@@ -715,11 +729,95 @@ struct gles_texture *gles_texture_load2(const char *filename,
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, texture->base.format,
-		     width, height, 0, texture->base.format, GL_UNSIGNED_BYTE,
-		     ilGetData());
+	switch (gl_format) {
+	case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+	{
+		ILenum DXTCFormat;
+
+		switch (gl_format) {
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+			DXTCFormat = IL_DXT1;
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+			DXTCFormat = IL_DXT3;
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+			DXTCFormat = IL_DXT5;
+			break;
+		}
+
+		ilEnable(IL_SQUISH_COMPRESS);
+
+		tex_data = ilCompressDXT(tex_data, width, height, 1,
+					 DXTCFormat, &tex_size);
+		err = ilGetError();
+		if (err != IL_NO_ERROR) {
+			fprintf(stderr, "%s: \"%s\" compression failed 0x%04X\n",
+				__func__, filename, err);
+			goto free_tex_data;
+		}
+
+		ilDeleteImage(ImageTex);
+
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, texture->base.format,
+				       width, height, 0, tex_size, tex_data);
+		break;
+	}
+
+	case ETC1_RGB8_OES: {
+		uint8_t *etc1_data;
+
+		tex_size  = etc1_get_encoded_data_size(width, height);
+		etc1_data = malloc(tex_size);
+		if (!etc1_data)
+			goto del_image;
+
+		err = etc1_encode_image(tex_data, width, height, 3, width * 3,
+					etc1_data);
+		if (err) {
+			fprintf(stderr, "%s: \"%s\" compression failed 0x%04X\n",
+				__func__, filename, err);
+			goto del_image;
+		}
+
+		ilDeleteImage(ImageTex);
+
+		glCompressedTexImage2D(GL_TEXTURE_2D, 0, texture->base.format,
+				       width, height, 0, tex_size, etc1_data);
+		break;
+	}
+
+	case GL_RGBA:
+		glTexImage2D(GL_TEXTURE_2D, 0, texture->base.format,
+			     width, height, 0, texture->base.format,
+			     GL_UNSIGNED_BYTE, tex_data);
+		break;
+
+	default:
+		fprintf(stderr, "%s: \"%s\" unsupported format 0x%X\n",
+			__func__, filename, gl_format);
+		goto del_image;
+	}
 
 	return &texture->base;
+
+free_tex_data:
+	free(tex_data);
+del_image:
+	ilDeleteImage(ImageTex);
+	free(texture);
+
+	fprintf(stderr, "%s: \"%s\" failed\n", __func__, filename);
+
+	return NULL;
+}
+
+struct gles_texture *gles_texture_load2(const char *filename,
+					unsigned width, unsigned height)
+{
+	return gles_texture_load3(filename, width, height, GL_RGBA);
 }
 
 void texture_free(struct texture *texture)

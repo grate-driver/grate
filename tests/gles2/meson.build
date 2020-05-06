@@ -18,6 +18,7 @@ tests = [
 	'gles-pbuffer-vertex-offset',
 	'gles-quad-textured',
 	'gles-quad-textured2',
+	'gles-quad-textured3',
 	'gles-shader-fill',
 	'gles-stencil',
 	'gles2-info'
