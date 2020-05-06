@@ -230,6 +230,7 @@ int host1x_gr2d_blit(struct host1x_gr2d *gr2d,
 	unsigned yflip = 0;
 	unsigned xdir = 0;
 	unsigned ydir = 0;
+	unsigned bytes;
 	uint32_t fence;
 	int err;
 
@@ -311,6 +312,38 @@ yflip_setup:
 	if (yflip && !ydir)
 		dy += height - 1;
 
+	if (PIX_BUF_FORMAT_COMPRESSED(dst->format)) {
+		unsigned tw, th, tscale;
+
+		tw = PIX_BUF_FORMAT_TEXEL_WIDTH(dst->format);
+		th = PIX_BUF_FORMAT_TEXEL_HEIGHT(dst->format);
+
+		if (((sx | dx | width)  & (tw - 1)) ||
+		    ((sy | dy | height) & (th - 1))) {
+			host1x_error("Coords unaligned\n");
+			return -EINVAL;
+		}
+
+		/*
+		 * Compressed texel represents a block of 4x4 pixels.
+		 * Pixbuf uses original texture width/height, but pitch
+		 * is set to the size of a line of 4x4 blocks.
+		 *
+		 * GR2D doesn't natively handle 128/64bit data, so we use
+		 * 32bit to transfer bigger blocks of data.
+		 */
+		bytes  = 4;
+		tscale = PIX_BUF_FORMAT_BYTES(dst->format) / bytes;
+		width  = ALIGN(width,  tw) / tw * tscale;
+		height = ALIGN(height, th) / th;
+		sx = ALIGN(sx, tw) / tw * tscale;
+		sy = ALIGN(sy, th) / th;
+		dx = ALIGN(dx, tw) / tw * tscale;
+		dy = ALIGN(dy, th) / th;
+	} else {
+		bytes = PIX_BUF_FORMAT_BYTES(dst->format);
+	}
+
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
 		return -ENOMEM;
@@ -335,7 +368,7 @@ yflip_setup:
 	 */
 	host1x_pushbuf_push(pb, /* controlmain */
 			1 << 20 |
-			(PIX_BUF_FORMAT_BYTES(dst->format) >> 1) << 16 |
+			(bytes >> 1) << 16 |
 			yflip << 14 | ydir << 10 | xdir << 9);
 	host1x_pushbuf_push(pb, 0x000000cc); /* ropfade */
 

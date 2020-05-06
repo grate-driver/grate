@@ -28,9 +28,6 @@
 #include <string.h>
 #include "host1x-private.h"
 
-#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
-
 static bool pixbuf_guard_disabled;
 
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(

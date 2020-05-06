@@ -1,5 +1,7 @@
 libgrate_sources = files(
 	'display.c',
+	'etc1.cpp',
+	'etc1.h',
 	'fragment_asm.h',
 	'grate.c',
 	'grate.h',

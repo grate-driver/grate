@@ -8,6 +8,8 @@ libgrate_la_CFLAGS = \
 
 libgrate_la_SOURCES = \
 	display.c \
+	etc1.cpp \
+	etc1.h \
 	fragment_asm.h \
 	grate.c \
 	grate.h \

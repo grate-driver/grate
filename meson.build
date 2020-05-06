@@ -1,4 +1,4 @@
-project('grate', 'c')
+project('grate', 'c', 'cpp')
 
 cc = meson.get_compiler('c')
 lex = find_program('lex')

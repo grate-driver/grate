@@ -672,6 +672,7 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 {
 	int log2_width = log2_size(pixbuf->width);
 	int log2_height = log2_size(pixbuf->height);
+	bool compressed = false;
 	unsigned pixel_format;
 	uint32_t value = 0;
 
@@ -709,6 +710,22 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 	case PIX_BUF_FMT_RGBA_FP32:
 		pixel_format = TGR3D_PIXEL_FORMAT_RGBA_FP32;
 		break;
+	case PIX_BUF_FMT_ETC1:
+		pixel_format = TGR3D_PIXEL_FORMAT_ETC1;
+		compressed = true;
+		break;
+	case PIX_BUF_FMT_DXT1:
+		pixel_format = TGR3D_PIXEL_FORMAT_DXT1;
+		compressed = true;
+		break;
+	case PIX_BUF_FMT_DXT3:
+		pixel_format = TGR3D_PIXEL_FORMAT_DXT3;
+		compressed = true;
+		break;
+	case PIX_BUF_FMT_DXT5:
+		pixel_format = TGR3D_PIXEL_FORMAT_DXT5;
+		compressed = true;
+		break;
 	default:
 		grate_error("Invalid format %u\n", pixbuf->format);
 		return;
@@ -726,6 +743,9 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 			    HOST1X_OPCODE_INCR(TGR3D_TEXTURE_DESC1(index), 2));
 
 	value  = TGR3D_VAL(TEXTURE_DESC1, FORMAT, pixel_format);
+
+	value |= TGR3D_BOOL(TEXTURE_DESC1, COMPRESSED,
+			    compressed);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_WITHIN,
 			    min_filter_enabled);
 	value |= TGR3D_BOOL(TEXTURE_DESC1, MINFILTER_LINEAR_BETWEEN,
