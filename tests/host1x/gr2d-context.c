@@ -45,7 +45,7 @@ static struct ctx2d *create_context()
 {
 	struct ctx2d *ctx = calloc(1, sizeof(struct ctx2d));
 
-	ctx->host1x = host1x_open(true, -1);
+	ctx->host1x = host1x_open(true, -1, -1);
 	if (!ctx->host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		abort();
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 	int err;
 	int i;
 
-	host1x = host1x_open(true, -1);
+	host1x = host1x_open(true, -1, -1);
 	if (!host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		return 1;

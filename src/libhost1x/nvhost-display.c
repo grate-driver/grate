@@ -176,7 +176,8 @@ static int display_set(struct host1x_display *displayp,
 			   vsync, reflect_y);
 }
 
-struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
+struct nvhost_display * nvhost_display_create(struct nvhost *nvhost,
+					      int display_id)
 {
 	struct tegra_dc_ext_control_output_properties output_properties;
 	struct fb_var_screeninfo fb_info;
@@ -197,6 +198,7 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 		return NULL;
 	}
 
+retry_output:
 	for (output = 0; output < num_outputs; output++) {
 		output_properties.handle = output;
 
@@ -205,8 +207,16 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 		if (err < 0)
 			continue;
 
-		if (!output_properties.connected)
+		if (!output_properties.connected ||
+		    (display_id > -1 && output != display_id))
+		{
+			if (output == display_id) {
+				host1x_info("selected display is unconnected, skipping\n");
+				display_id = -1;
+				goto retry_output;
+			}
 			continue;
+		}
 
 		break;
 	}

@@ -73,6 +73,7 @@ struct grate_options {
 	bool fullscreen;
 	bool nodisplay;
 	bool vsync;
+	int display_id;
 };
 
 bool grate_parse_command_line(struct grate_options *options, int argc,

@@ -419,7 +419,7 @@ static int drm_display_set(struct host1x_display *display,
 	return 0;
 }
 
-static int drm_display_setup(struct drm_display *display)
+static int drm_display_setup(struct drm_display *display, int display_id)
 {
 	struct drm *drm = display->drm;
 	int ret = -ENODEV;
@@ -430,6 +430,7 @@ static int drm_display_setup(struct drm_display *display)
 	if (!res)
 		return -ENODEV;
 
+retry_connector:
 	for (i = 0; i < res->count_connectors; i++) {
 		drmModeConnector *connector;
 		drmModeEncoder *encoder;
@@ -438,8 +439,16 @@ static int drm_display_setup(struct drm_display *display)
 		if (!connector)
 			continue;
 
-		if (connector->connection != DRM_MODE_CONNECTED) {
+		if (connector->connection != DRM_MODE_CONNECTED ||
+		    (display_id > -1 && i != display_id))
+		{
 			drmModeFreeConnector(connector);
+
+			if (i == display_id) {
+				host1x_info("selected display is unconnected, skipping\n");
+				display_id = -1;
+				goto retry_connector;
+			}
 			continue;
 		}
 
@@ -483,7 +492,8 @@ static int drm_display_setup(struct drm_display *display)
 	return ret;
 }
 
-static int drm_display_create(struct drm_display **displayp, struct drm *drm)
+static int drm_display_create(struct drm_display **displayp, struct drm *drm,
+			      int display_id)
 {
 	struct drm_display *display;
 	int err;
@@ -507,7 +517,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
 			     err);
 
-	err = drm_display_setup(display);
+	err = drm_display_setup(display, display_id);
 	if (err < 0)
 		goto try_x11;
 
@@ -1109,12 +1119,12 @@ struct host1x *host1x_drm_open(int fd)
 	return &drm->base;
 }
 
-void host1x_drm_display_init(struct host1x *host1x)
+void host1x_drm_display_init(struct host1x *host1x, int display_id)
 {
 	struct drm *drm = to_drm(host1x);
 	int err;
 
-	err = drm_display_create(&drm->display, drm);
+	err = drm_display_create(&drm->display, drm, display_id);
 	if (err < 0) {
 		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {

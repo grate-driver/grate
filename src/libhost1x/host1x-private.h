@@ -124,10 +124,10 @@ struct host1x {
 };
 
 struct host1x *host1x_nvhost_open(void);
-void host1x_nvhost_display_init(struct host1x *host1x);
+void host1x_nvhost_display_init(struct host1x *host1x, int display_id);
 
 struct host1x *host1x_drm_open(int fd);
-void host1x_drm_display_init(struct host1x *host1x);
+void host1x_drm_display_init(struct host1x *host1x, int display_id);
 
 struct host1x *host1x_dummy_open(void);
 

@@ -29,7 +29,7 @@
 #include "host1x.h"
 #include "host1x-private.h"
 
-struct host1x *host1x_open(bool open_display, int fd)
+struct host1x *host1x_open(bool open_display, int fd, int display_id)
 {
 	struct host1x *host1x;
 
@@ -40,7 +40,7 @@ struct host1x *host1x_open(bool open_display, int fd)
 	if (host1x) {
 		printf("found\n");
 		if (open_display)
-			host1x_drm_display_init(host1x);
+			host1x_drm_display_init(host1x, display_id);
 		return host1x;
 	}
 
@@ -52,7 +52,7 @@ struct host1x *host1x_open(bool open_display, int fd)
 	if (host1x) {
 		printf("found\n");
 		if (open_display)
-			host1x_nvhost_display_init(host1x);
+			host1x_nvhost_display_init(host1x, display_id);
 		return host1x;
 	}
 

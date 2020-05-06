@@ -96,9 +96,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "nodisplay", 0, NULL, 'n' },
 		{ "singlebuffered", 0, NULL, 's' },
 		{ "guard", 0, NULL, 'g' },
+		{ "display", 1, NULL, 'd' },
 		{ /* Sentinel */ },
 	};
-	static const char opts[] = "fw:h:vnsg";
+	static const char opts[] = "fw:h:vnsgd:";
 	int opt;
 
 	options->singlebuffered = false;
@@ -110,6 +111,7 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	options->y = 0;
 	options->width = 256;
 	options->height = 256;
+	options->display_id = -1;
 
 	while ((opt = getopt_long(argc, argv, opts, long_opts, NULL)) != -1) {
 		switch (opt) {
@@ -141,6 +143,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->pixbuf_guard = true;
 			break;
 
+		case 'd':
+			options->display_id = strtoul(optarg, NULL, 10);
+			break;
+
 		default:
 			return false;
 		}
@@ -157,7 +163,8 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open(!options->nodisplay, fd);
+	grate->host1x = host1x_open(!options->nodisplay, fd,
+				    options->display_id);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;
