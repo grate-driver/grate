@@ -514,35 +514,35 @@ void grate_3d_ctx_set_depth_func(struct grate_3d_ctx *ctx,
 {
 	switch (func) {
 	case GRATE_3D_CTX_DEPTH_FUNC_NEVER:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_NEVER;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_NEVER;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_LESS:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_LESS;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_LESS;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_EQUAL:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_EQUAL;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_LEQUAL:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_LEQUAL;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_LEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_GREATER:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_GREATER;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_GREATER;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_NOTEQUAL:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_NOTEQUAL;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_NOTEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_GEQUAL:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_GEQUAL;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_GEQUAL;
 		break;
 
 	case GRATE_3D_CTX_DEPTH_FUNC_ALWAYS:
-		ctx->depth_func = TGR3D_DEPTH_FUNC_ALWAYS;
+		ctx->depth_func = TGR3D_COMPARE_FUNC_ALWAYS;
 		break;
 	default:
 		grate_error("Invalid depth function %u\n", func);
@@ -607,35 +607,35 @@ void grate_3d_ctx_set_stencil_func(struct grate_3d_ctx *ctx,
 
 	switch (func) {
 	case GRATE_3D_CTX_STENCIL_TEST_NEVER:
-		stencil_func = TGR3D_STENCIL_FUNC_NEVER;
+		stencil_func = TGR3D_COMPARE_FUNC_NEVER;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_ALWAYS:
-		stencil_func = TGR3D_STENCIL_FUNC_ALWAYS;
+		stencil_func = TGR3D_COMPARE_FUNC_ALWAYS;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_EQUAL:
-		stencil_func = TGR3D_STENCIL_FUNC_EQUAL;
+		stencil_func = TGR3D_COMPARE_FUNC_EQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_NOTEQUAL:
-		stencil_func = TGR3D_STENCIL_FUNC_NOTEQUAL;
+		stencil_func = TGR3D_COMPARE_FUNC_NOTEQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_LEQUAL:
-		stencil_func = TGR3D_STENCIL_FUNC_LESS_EQUAL;
+		stencil_func = TGR3D_COMPARE_FUNC_LEQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_GEQUAL:
-		stencil_func = TGR3D_STENCIL_FUNC_GREATER_EQUAL;
+		stencil_func = TGR3D_COMPARE_FUNC_GEQUAL;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_GREATER:
-		stencil_func = TGR3D_STENCIL_FUNC_GREATER;
+		stencil_func = TGR3D_COMPARE_FUNC_GREATER;
 		break;
 
 	case GRATE_3D_CTX_STENCIL_TEST_LESS:
-		stencil_func = TGR3D_STENCIL_FUNC_LESS;
+		stencil_func = TGR3D_COMPARE_FUNC_LESS;
 		break;
 	default:
 		grate_error("Invalid stencil function %u\n", func);
