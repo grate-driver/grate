@@ -27,6 +27,10 @@ libgrate_la_SOURCES = \
 	shader-cgc.c \
 	vpe_vliw.h
 
+libgrate_la_DEPENDENCIES = \
+	../libcgc/libcgc.la \
+	../libhost1x/libhost1x.la
+
 libgrate_la_LIBADD = \
 	../libcgc/libcgc.la \
 	../libhost1x/libhost1x.la \
