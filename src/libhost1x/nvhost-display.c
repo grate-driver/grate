@@ -157,11 +157,19 @@ static int display_set(struct host1x_display *displayp,
 		       bool vsync, bool reflect_y)
 {
 	struct nvhost_display *display = to_nvhost_display(displayp);
+	int plane;
 	int err;
 
-	err = ioctl(display->fd, TEGRA_DC_EXT_GET_WINDOW, display->plane);
+	for (plane = 0; plane < TEGRA_DC_EXT_FLIP_N_WINDOWS; plane++) {
+		err = ioctl(display->fd, TEGRA_DC_EXT_GET_WINDOW, plane);
+		if (err == 0)
+			break;
+	}
+
 	if (err < 0)
 		return -errno;
+
+	display->plane = plane;
 
 	return overlay_set(&display->overlay, fb, 0, 0,
 			   displayp->width, displayp->height,
