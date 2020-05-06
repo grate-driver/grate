@@ -38,6 +38,19 @@
 #include "tegra_drm.h"
 #include "x11-display.h"
 
+#ifndef DRM_PLANE_TYPE_OVERLAY
+#define DRM_PLANE_TYPE_OVERLAY			0
+#endif
+#ifndef DRM_PLANE_TYPE_PRIMARY
+#define DRM_PLANE_TYPE_PRIMARY			1
+#endif
+#ifndef DRM_CLIENT_CAP_UNIVERSAL_PLANES
+#define DRM_CLIENT_CAP_UNIVERSAL_PLANES		2
+#endif
+#ifndef DRM_CLIENT_CAP_ATOMIC
+#define DRM_CLIENT_CAP_ATOMIC			3
+#endif
+
 struct drm;
 
 struct drm_bo {
@@ -123,7 +136,6 @@ static struct drm *to_drm(struct host1x *host1x)
 
 static int drm_plane_type(struct drm *drm, drmModePlane *p)
 {
-#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
 	drmModeObjectPropertiesPtr props;
 	drmModePropertyPtr prop;
 	int type = -EINVAL;
@@ -147,9 +159,6 @@ static int drm_plane_type(struct drm *drm, drmModePlane *p)
 	drmModeFreeObjectProperties(props);
 
 	return type;
-#else
-	return 0;
-#endif
 }
 
 static int drm_display_find_plane(struct drm_display *display,
@@ -319,9 +328,6 @@ static int drm_overlay_create(struct host1x_display *display,
 	uint32_t plane = 0;
 	int err;
 
-#ifndef DRM_PLANE_TYPE_OVERLAY
-#define DRM_PLANE_TYPE_OVERLAY 0
-#endif
 	err = drm_display_find_plane(drm, &plane, DRM_PLANE_TYPE_OVERLAY);
 	if (err < 0)
 		return err;
@@ -474,7 +480,6 @@ static int drm_display_setup(struct drm_display *display)
 	if (ret == 0)
 		ret = drm_display_find_plane(display, &display->plane,
 					     DRM_PLANE_TYPE_PRIMARY);
-
 	return ret;
 }
 
@@ -493,18 +498,14 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	if (err < 0)
 		goto try_x11;
 
-#ifdef DRM_CLIENT_CAP_ATOMIC
 	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_ATOMIC, 1);
 	if (err)
 		host1x_error("drmSetClientCap(ATOMIC) failed: %d\n", err);
-#endif
 
-#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
 	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
 	if (err)
 		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
 			     err);
-#endif
 
 	err = drm_display_setup(display);
 	if (err < 0)
