@@ -102,6 +102,14 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	static const char opts[] = "fw:h:vnsgd:";
 	int opt;
 
+	printf("\nINFO: Available cmdline arguments:\n");
+	for (opt = 0; long_opts[opt].name; opt++)
+		printf("\t--%s -%c%s\n",
+		       long_opts[opt].name,
+		       long_opts[opt].val,
+		       long_opts[opt].has_arg ? " value" : "");
+	printf("\n");
+
 	options->singlebuffered = false;
 	options->pixbuf_guard = false;
 	options->fullscreen = false;
