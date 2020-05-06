@@ -20,7 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <libgen.h>
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -277,13 +276,7 @@ int main(int argc, char *argv[])
 {
 	struct grate_texture *cube_texture, *galaxy_texture, *sky_texture;
 
-	if (access("tests/grate/asm/cube2_vs.txt", F_OK) == -1) {
-		if (chdir( dirname(argv[0]) ) == -1)
-			fprintf(stderr, "chdir failed\n");
-
-		if (chdir("../../") == -1)
-			fprintf(stderr, "chdir failed\n");
-	}
+	grate_init_data_path(argv[0]);
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;

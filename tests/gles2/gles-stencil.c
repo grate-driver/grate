@@ -24,7 +24,6 @@
  */
 
 #include <getopt.h>
-#include <libgen.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -190,11 +189,7 @@ int main(int argc, char *argv[])
 	static const char opts[] = "u:r:m:f:z:p:sn:o:";
 	int opt;
 
-	if (chdir( dirname(argv[0]) ) == -1)
-		fprintf(stderr, "chdir failed\n");
-
-	if (chdir("../../") == -1)
-		fprintf(stderr, "chdir failed\n");
+	grate_init_data_path(argv[0]);
 
 	while ((opt = getopt_long(argc, argv, opts, long_opts, NULL)) != -1) {
 		switch (opt) {

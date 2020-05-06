@@ -219,4 +219,6 @@ void grate_3d_printf(struct grate *grate,
 		     float x, float y, float scale,
 		     const char *fmt, ...);
 
+void grate_init_data_path(char *fpath);
+
 #endif

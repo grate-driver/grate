@@ -28,6 +28,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -419,4 +420,29 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 struct host1x *grate_get_host1x(struct grate *grate)
 {
 	return grate->host1x;
+}
+
+#define GRATE_FILE	"data/tegra.png"
+
+void grate_init_data_path(char *fpath)
+{
+	if (access(GRATE_FILE, F_OK) != -1) {
+		grate_info("OK\n");
+		return;
+	}
+
+	grate_info(GRATE_FILE " not found, trying relative path\n");
+
+	if (chdir( dirname(fpath) ) == -1)
+		grate_error("chdir failed\n");
+
+	if (chdir("../../") == -1)
+		grate_error("chdir failed\n");
+
+	if (access(GRATE_FILE, F_OK) != -1) {
+		grate_info("OK\n");
+		return;
+	}
+
+	grate_error("invalid working directory, " GRATE_FILE " not found\n");
 }

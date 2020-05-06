@@ -23,7 +23,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include <libgen.h>
 #include <math.h>
 #include <stdbool.h>
 #include <string.h>
@@ -169,11 +168,7 @@ int main(int argc, char *argv[])
 	int cube_mvp_loc, grate_mvp_loc;
 	float aspect, elapsed;
 
-	if (chdir( dirname(argv[0]) ) == -1)
-		fprintf(stderr, "chdir failed\n");
-
-	if (chdir("../../") == -1)
-		fprintf(stderr, "chdir failed\n");
+	grate_init_data_path(argv[0]);
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;

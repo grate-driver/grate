@@ -31,6 +31,7 @@
 #include <EGL/egl.h>
 
 #include "etc1.h"
+#include "grate.h"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 

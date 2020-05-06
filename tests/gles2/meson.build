@@ -24,12 +24,17 @@ tests = [
 	'gles2-info'
 ]
 
+include_dirs = [
+	'../../include',
+	'../../src/libgrate',
+]
+
 foreach test : tests
 	src = test + '.c'
 	executable(
 		test,
 		[src, 'common.c'],
-		include_directories : include_directories('../../src/libgrate'),
+		include_directories : include_directories(include_dirs),
 		dependencies : [math, egl, x11, gles2, libpng, devil],
 		link_with : libgrate
 	)

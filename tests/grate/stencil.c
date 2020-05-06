@@ -21,7 +21,6 @@
  */
 
 #include <assert.h>
-#include <libgen.h>
 #include <unistd.h>
 
 #include "grate.h"
@@ -85,11 +84,7 @@ int main(int argc, char *argv[])
 	volatile uint8_t *stencil_data;
 	int location;
 
-	if (chdir( dirname(argv[0]) ) == -1)
-		fprintf(stderr, "chdir failed\n");
-
-	if (chdir("../../") == -1)
-		fprintf(stderr, "chdir failed\n");
+	grate_init_data_path(argv[0]);
 
 	if (!grate_parse_command_line(&options, argc, argv))
 		return 1;
