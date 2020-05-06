@@ -3,6 +3,7 @@ noinst_PROGRAMS = \
 	cube \
 	cube-textured \
 	cube-textured2 \
+	cube-textured3 \
 	interactive \
 	quad \
 	stencil \

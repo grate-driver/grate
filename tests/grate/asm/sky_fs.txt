@@ -1,0 +1,37 @@
+/*
+ * Fragment shader for /grate/tests/cube-textured3
+ */
+
+pseq_to_dw_exec_nb = 2
+alu_buffer_size = 1
+
+.uniforms
+	[0].l = "day";
+	[0].h = "night";
+
+.asm
+
+EXEC
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, NOP, NOP
+
+	TEX:	tex r2, r3, tex0, r0, r1, r2
+
+	ALU:
+		ALU1:	MAD  r3.l*,  r3.l, u0.l, #0 // Blue
+		ALU2:	MAD  r2.*h,  r2.h, u0.l, #0 // Green
+		ALU3:	MAD  r2.l*,  r2.l, u0.l, #0 // Red
+;
+
+EXEC
+	TEX:	tex r0, r1, tex1, r0, r1, r2
+
+	ALU:
+		ALU1:	MAD  r3.l*,  r1.l, u0.h, r3.l // Blue
+		ALU2:	MAD  r2.*h,  r0.h, u0.h, r2.h // Green
+		ALU3:	MAD  r2.l*,  r0.l, u0.h, r2.l // Red
+
+	DW:	store rt1, r2, r3
+;
