@@ -134,4 +134,7 @@ struct host1x *host1x_dummy_open(void);
 #define host1x_error(fmt, args...) \
 	fprintf(stderr, "ERROR: %s: %d: " fmt, __func__, __LINE__, ##args)
 
+#define host1x_info(fmt, args...) \
+	fprintf(stdout, "INFO: %s: %d: " fmt, __func__, __LINE__, ##args)
+
 #endif
