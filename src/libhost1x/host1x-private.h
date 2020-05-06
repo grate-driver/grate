@@ -132,7 +132,8 @@ void host1x_drm_display_init(struct host1x *host1x);
 struct host1x *host1x_dummy_open(void);
 
 #define host1x_error(fmt, args...) \
-	fprintf(stderr, "ERROR: %s: %d: " fmt, __func__, __LINE__, ##args)
+	fprintf(stderr, "\033[31mERROR: %s: %d: " fmt "\033[0m", \
+		__func__, __LINE__, ##args)
 
 #define host1x_info(fmt, args...) \
 	fprintf(stdout, "INFO: %s: %d: " fmt, __func__, __LINE__, ##args)
