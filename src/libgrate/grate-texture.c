@@ -127,8 +127,10 @@ static int grate_texture_load_internal(struct grate *grate,
 					    ilGetInteger(IL_IMAGE_WIDTH),
 					    ilGetInteger(IL_IMAGE_HEIGHT),
 					    format, layout);
-		if (!(*tex))
+		if (!(*tex)) {
+			err = -12;
 			goto out;
+		}
 	} else {
 		iluScale((*tex)->pixbuf->width, (*tex)->pixbuf->height, 0);
 	}
@@ -205,6 +207,7 @@ static int grate_texture_load_internal(struct grate *grate,
 		default:
 			grate_error("\"%s\" unsupported compression format %u\n",
 				    path, format);
+			err = -1;
 			goto out;
 		}
 
