@@ -711,6 +711,9 @@ struct gles_texture *gles_texture_load3(const char *filename,
 	/*
 	 * ilOriginFunc() doesn't work properly in conjunction with
 	 * ilCompressDXT(), image isn't rotated and colors are shifted.
+	 *
+	 * Note that iluRotate(180) only flips vertically! It's a DevIL's
+	 * oddity that comes handy here.
 	 */
 	iluRotate(180.0f);
 

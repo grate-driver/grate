@@ -136,6 +136,9 @@ static int grate_texture_load_internal(struct grate *grate,
 	/*
 	 * ilOriginFunc() doesn't work properly in conjunction with
 	 * ilCompressDXT(), image isn't rotated and colors are shifted.
+	 *
+	 * Note that iluRotate(180) only flips vertically! It's a DevIL's
+	 * oddity that comes handy here.
 	 */
 	iluRotate(180.0f);
 
