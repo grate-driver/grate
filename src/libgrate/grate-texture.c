@@ -79,6 +79,8 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	tex->pixbuf = host1x_pixelbuffer_create(grate->host1x, width, height,
 						pitch, format, layout);
 	if (!tex->pixbuf) {
+		grate_error("failed to allocate texture %ux%u bpp:%u pitch:%u\n",
+			    width, height, PIX_BUF_FORMAT_BYTES(format), pitch);
 		free(tex);
 		return NULL;
 	}
