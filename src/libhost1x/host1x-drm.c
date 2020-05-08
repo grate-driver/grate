@@ -530,7 +530,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm,
 
 	return 0;
 try_x11:
-	err = x11_display_create(&drm->base, &display->base);
+	err = x11_display_create(&drm->base, &display->base, drm->fd);
 	if (err < 0) {
 		free(display);
 		return err;

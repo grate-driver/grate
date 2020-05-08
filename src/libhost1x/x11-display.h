@@ -25,6 +25,29 @@
 
 #include "host1x-private.h"
 
-int x11_display_create(struct host1x *host1x, struct host1x_display *base);
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_XCB
+
+#include <xcb/xcb.h>
+#include <xcb/xcb_image.h>
+
+struct xcb_stuff {
+	struct host1x_pixelbuffer *pixbuf;
+	struct host1x *host1x;
+	xcb_connection_t *disp;
+	xcb_gcontext_t gc;
+	xcb_window_t win;
+	xcb_image_t *img;
+	int drm_fd;
+};
+
+void dri2_display_create(struct xcb_stuff *stuff, struct host1x_display *disp);
+#endif
+
+int x11_display_create(struct host1x *host1x, struct host1x_display *base,
+		       int drm_fd);
 
 #endif

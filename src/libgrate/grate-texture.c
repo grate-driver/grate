@@ -23,6 +23,7 @@
 
 #include <assert.h>
 #include <byteswap.h>
+#include <string.h>
 
 #include <IL/il.h>
 #include <IL/ilu.h>
@@ -474,6 +475,8 @@ static void setup_lod_pixbuf(struct host1x_pixelbuffer *mipmap,
 	unsigned long size = 0;
 	unsigned w, h, bpp;
 	unsigned i;
+
+	memset(dst, 0, sizeof(*dst));
 
 	bpp = PIX_BUF_FORMAT_BYTES(mipmap->format);
 

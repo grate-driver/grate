@@ -20,28 +20,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 #include "x11-display.h"
 
 #ifdef HAVE_XCB
 
 #include <errno.h>
-#include <xcb/xcb.h>
-#include <xcb/xcb_image.h>
 
 #define WIN_WIDTH	720
 #define WIN_HEIGHT	576
-
-struct xcb_stuff {
-	struct host1x_pixelbuffer *pixbuf;
-	struct host1x *host1x;
-	xcb_connection_t *disp;
-	xcb_gcontext_t gc;
-	xcb_window_t win;
-	xcb_image_t *img;
-};
 
 static int x11_overlay_create(struct host1x_display *display,
 			      struct host1x_overlay **overlayp)
@@ -108,7 +94,8 @@ static int x11_display_set(struct host1x_display *displayp,
 	return 0;
 }
 
-int x11_display_create(struct host1x *host1x, struct host1x_display *base)
+int x11_display_create(struct host1x *host1x, struct host1x_display *base,
+		       int drm_fd)
 {
 	struct xcb_stuff *stuff;
 	xcb_void_cookie_t cookie;
@@ -119,6 +106,7 @@ int x11_display_create(struct host1x *host1x, struct host1x_display *base)
 		return -ENOMEM;
 
 	stuff->host1x = host1x;
+	stuff->drm_fd = drm_fd;
 
 	stuff->img = xcb_image_create(WIN_WIDTH, WIN_HEIGHT,
 				      XCB_IMAGE_FORMAT_Z_PIXMAP,
@@ -171,6 +159,9 @@ int x11_display_create(struct host1x *host1x, struct host1x_display *base)
 	base->set = x11_display_set;
 	base->priv = stuff;
 	base->needs_explicit_vsync = true;
+	host1x->framebuffer_init = NULL;
+
+	dri2_display_create(stuff, base);
 
 	return 0;
 }

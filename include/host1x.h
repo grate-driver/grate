@@ -137,6 +137,7 @@ struct host1x_pixelbuffer {
 	unsigned width;
 	unsigned height;
 	unsigned pitch;
+	bool guarded;
 };
 
 #define PIXBUF_GUARD_AREA_SIZE	0x4000

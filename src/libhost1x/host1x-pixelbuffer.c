@@ -180,6 +180,8 @@ void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
 
 	HOST1X_BO_FLUSH(pixbuf->bo, pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE,
 			PIXBUF_GUARD_AREA_SIZE);
+
+	pixbuf->guarded = true;
 }
 
 void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
@@ -190,7 +192,7 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 	uint32_t value;
 	unsigned i;
 
-	if (pixbuf_guard_disabled)
+	if (!pixbuf->guarded)
 		return;
 
 	orig_bo = pixbuf->bo->wrapped ?: pixbuf->bo;
