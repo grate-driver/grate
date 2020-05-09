@@ -8,7 +8,7 @@ http://github.com/envytools/envytools/
 git clone https://github.com/envytools/envytools.git
 
 The rules-ng-ng source files this header was generated from are:
-- /home/dima/vl/envytools/rnndb//tgr_3d.xml          (  14696 bytes, from 2020-05-05 03:06:59)
+- /home/dima/vl/envytools/rnndb//tgr_3d.xml          (  14736 bytes, from 2020-05-08 22:06:23)
 - /home/dima/vl/envytools/rnndb//grate_copyright.xml (   1556 bytes, from 2020-04-28 17:09:29)
 
 Copyright (C) 2012-2020 by the following authors:
@@ -78,6 +78,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TGR3D_PIXEL_FORMAT_D16_LINEAR				0x0000000b
 #define TGR3D_PIXEL_FORMAT_D16_NONLINEAR			0x0000000c
 #define TGR3D_PIXEL_FORMAT_RGBA8888				0x0000000d
+#define TGR3D_PIXEL_FORMAT_BGRA8888				0x0000000e
 #define TGR3D_PIXEL_FORMAT_RGBA_FP32				0x00000012
 #define TGR3D_PIXEL_FORMAT_DXT1					0x00000016
 #define TGR3D_PIXEL_FORMAT_DXT3					0x00000018
