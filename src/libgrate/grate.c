@@ -28,6 +28,7 @@
 
 #include <errno.h>
 #include <getopt.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -95,10 +96,19 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "nodisplay", 0, NULL, 'n' },
 		{ "singlebuffered", 0, NULL, 's' },
 		{ "guard", 0, NULL, 'g' },
+		{ "display", 1, NULL, 'd' },
 		{ /* Sentinel */ },
 	};
-	static const char opts[] = "fw:h:vnsg";
+	static const char opts[] = "fw:h:vnsgd:";
 	int opt;
+
+	printf("\nINFO: Available cmdline arguments:\n");
+	for (opt = 0; long_opts[opt].name; opt++)
+		printf("\t--%s -%c%s\n",
+		       long_opts[opt].name,
+		       long_opts[opt].val,
+		       long_opts[opt].has_arg ? " value" : "");
+	printf("\n");
 
 	options->singlebuffered = false;
 	options->pixbuf_guard = false;
@@ -109,6 +119,7 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	options->y = 0;
 	options->width = 256;
 	options->height = 256;
+	options->display_id = -1;
 
 	while ((opt = getopt_long(argc, argv, opts, long_opts, NULL)) != -1) {
 		switch (opt) {
@@ -140,6 +151,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->pixbuf_guard = true;
 			break;
 
+		case 'd':
+			options->display_id = strtoul(optarg, NULL, 10);
+			break;
+
 		default:
 			return false;
 		}
@@ -156,7 +171,8 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open(!options->nodisplay, fd);
+	grate->host1x = host1x_open(!options->nodisplay, fd,
+				    options->display_id);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;
@@ -419,4 +435,29 @@ void *grate_framebuffer_data(struct grate_framebuffer *fb, bool front)
 struct host1x *grate_get_host1x(struct grate *grate)
 {
 	return grate->host1x;
+}
+
+#define GRATE_FILE	"data/tegra.png"
+
+void grate_init_data_path(char *fpath)
+{
+	if (access(GRATE_FILE, F_OK) != -1) {
+		grate_info("OK\n");
+		return;
+	}
+
+	grate_info(GRATE_FILE " not found, trying relative path\n");
+
+	if (chdir( dirname(fpath) ) == -1)
+		grate_error("chdir failed\n");
+
+	if (chdir("../../") == -1)
+		grate_error("chdir failed\n");
+
+	if (access(GRATE_FILE, F_OK) != -1) {
+		grate_info("OK\n");
+		return;
+	}
+
+	grate_error("invalid working directory, " GRATE_FILE " not found\n");
 }

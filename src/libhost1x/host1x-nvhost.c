@@ -209,11 +209,11 @@ struct host1x *host1x_nvhost_open(void)
 	return &nvhost->base;
 }
 
-void host1x_nvhost_display_init(struct host1x *host1x)
+void host1x_nvhost_display_init(struct host1x *host1x, int display_id)
 {
 	struct nvhost *nvhost = to_nvhost(host1x);
 
-	nvhost->display = nvhost_display_create(nvhost);
+	nvhost->display = nvhost_display_create(nvhost, display_id);
 	if (!nvhost->display) {
 		host1x_error("nvhost_display_create() failed\n");
 	} else {

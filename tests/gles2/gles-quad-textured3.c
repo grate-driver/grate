@@ -30,6 +30,9 @@
 
 #include <GLES2/gl2.h>
 
+#include <IL/il.h>
+#include <IL/ilu.h>
+
 #include "common.h"
 #include "matrix.h"
 
@@ -111,7 +114,14 @@ static void window_setup(struct window *window)
 			      2 * sizeof(GLfloat), uv);
 	glEnableVertexAttribArray(texcoord);
 
-	texture = gles_texture_load("data/tegra.png");
+	/*
+	 * GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+	 * GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+	 * GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+	 * ETC1_RGB8_OES
+	 */
+	texture = gles_texture_load3("data/tegra.png", 300, 300,
+				     ETC1_RGB8_OES);
 	if (!texture)
 		return;
 
@@ -177,6 +187,8 @@ int main(int argc, char *argv[])
 			break;
 
 		window_draw(window);
+
+		break;
 	}
 
 	window_close(window);

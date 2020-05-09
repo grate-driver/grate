@@ -152,16 +152,25 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 		return -ENOMEM;
 
 	/* Tegra30 specific stuff */
-	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x750, 0x0010));
-	for (i = 0; i < 16; i++)
-		host1x_pushbuf_push(pb, 0x00000000);
-
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x907, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x908, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x909, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x90a, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x90b, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb00, 0x0003));
+
+	/*
+	 * 0x75x should be written after 0xb00, otherwise non-pow2
+	 * textures are corrupted. Reason is unknown. Looks like
+	 * combination of 0x75x register bits affects the texture size.
+	 *
+	 * The 0x75x registers contain garbage after machine's power-off,
+	 * but values are retained on soft reboot.
+	 */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x750, 0x0010));
+	for (i = 0; i < 16; i++)
+		host1x_pushbuf_push(pb, 0x00000000);
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb01, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb04, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb06, 0x0000));

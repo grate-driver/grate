@@ -73,6 +73,7 @@ struct grate_options {
 	bool fullscreen;
 	bool nodisplay;
 	bool vsync;
+	int display_id;
 };
 
 bool grate_parse_command_line(struct grate_options *options, int argc,
@@ -218,5 +219,7 @@ void grate_3d_printf(struct grate *grate,
 		     unsigned render_target,
 		     float x, float y, float scale,
 		     const char *fmt, ...);
+
+void grate_init_data_path(char *fpath);
 
 #endif

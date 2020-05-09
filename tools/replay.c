@@ -633,7 +633,7 @@ int main(int argc, char *argv[])
 	int ret;
 	int c;
 
-	host1x = host1x_open(true, -1);
+	host1x = host1x_open(true, -1, -1);
 	if (!host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		abort();

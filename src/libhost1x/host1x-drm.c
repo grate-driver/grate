@@ -38,6 +38,19 @@
 #include "tegra_drm.h"
 #include "x11-display.h"
 
+#ifndef DRM_PLANE_TYPE_OVERLAY
+#define DRM_PLANE_TYPE_OVERLAY			0
+#endif
+#ifndef DRM_PLANE_TYPE_PRIMARY
+#define DRM_PLANE_TYPE_PRIMARY			1
+#endif
+#ifndef DRM_CLIENT_CAP_UNIVERSAL_PLANES
+#define DRM_CLIENT_CAP_UNIVERSAL_PLANES		2
+#endif
+#ifndef DRM_CLIENT_CAP_ATOMIC
+#define DRM_CLIENT_CAP_ATOMIC			3
+#endif
+
 struct drm;
 
 struct drm_bo {
@@ -123,7 +136,6 @@ static struct drm *to_drm(struct host1x *host1x)
 
 static int drm_plane_type(struct drm *drm, drmModePlane *p)
 {
-#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
 	drmModeObjectPropertiesPtr props;
 	drmModePropertyPtr prop;
 	int type = -EINVAL;
@@ -147,9 +159,6 @@ static int drm_plane_type(struct drm *drm, drmModePlane *p)
 	drmModeFreeObjectProperties(props);
 
 	return type;
-#else
-	return 0;
-#endif
 }
 
 static int drm_display_find_plane(struct drm_display *display,
@@ -319,9 +328,6 @@ static int drm_overlay_create(struct host1x_display *display,
 	uint32_t plane = 0;
 	int err;
 
-#ifndef DRM_PLANE_TYPE_OVERLAY
-#define DRM_PLANE_TYPE_OVERLAY 0
-#endif
 	err = drm_display_find_plane(drm, &plane, DRM_PLANE_TYPE_OVERLAY);
 	if (err < 0)
 		return err;
@@ -413,7 +419,7 @@ static int drm_display_set(struct host1x_display *display,
 	return 0;
 }
 
-static int drm_display_setup(struct drm_display *display)
+static int drm_display_setup(struct drm_display *display, int display_id)
 {
 	struct drm *drm = display->drm;
 	int ret = -ENODEV;
@@ -424,6 +430,7 @@ static int drm_display_setup(struct drm_display *display)
 	if (!res)
 		return -ENODEV;
 
+retry_connector:
 	for (i = 0; i < res->count_connectors; i++) {
 		drmModeConnector *connector;
 		drmModeEncoder *encoder;
@@ -432,8 +439,16 @@ static int drm_display_setup(struct drm_display *display)
 		if (!connector)
 			continue;
 
-		if (connector->connection != DRM_MODE_CONNECTED) {
+		if (connector->connection != DRM_MODE_CONNECTED ||
+		    (display_id > -1 && i != display_id))
+		{
 			drmModeFreeConnector(connector);
+
+			if (i == display_id) {
+				host1x_info("selected display is unconnected, skipping\n");
+				display_id = -1;
+				goto retry_connector;
+			}
 			continue;
 		}
 
@@ -474,11 +489,11 @@ static int drm_display_setup(struct drm_display *display)
 	if (ret == 0)
 		ret = drm_display_find_plane(display, &display->plane,
 					     DRM_PLANE_TYPE_PRIMARY);
-
 	return ret;
 }
 
-static int drm_display_create(struct drm_display **displayp, struct drm *drm)
+static int drm_display_create(struct drm_display **displayp, struct drm *drm,
+			      int display_id)
 {
 	struct drm_display *display;
 	int err;
@@ -493,20 +508,16 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	if (err < 0)
 		goto try_x11;
 
-#ifdef DRM_CLIENT_CAP_ATOMIC
 	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_ATOMIC, 1);
 	if (err)
 		host1x_error("drmSetClientCap(ATOMIC) failed: %d\n", err);
-#endif
 
-#ifdef DRM_CLIENT_CAP_UNIVERSAL_PLANES
 	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1);
 	if (err)
 		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
 			     err);
-#endif
 
-	err = drm_display_setup(display);
+	err = drm_display_setup(display, display_id);
 	if (err < 0)
 		goto try_x11;
 
@@ -519,7 +530,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 
 	return 0;
 try_x11:
-	err = x11_display_create(&drm->base, &display->base);
+	err = x11_display_create(&drm->base, &display->base, drm->fd);
 	if (err < 0) {
 		free(display);
 		return err;
@@ -1108,12 +1119,12 @@ struct host1x *host1x_drm_open(int fd)
 	return &drm->base;
 }
 
-void host1x_drm_display_init(struct host1x *host1x)
+void host1x_drm_display_init(struct host1x *host1x, int display_id)
 {
 	struct drm *drm = to_drm(host1x);
 	int err;
 
-	err = drm_display_create(&drm->display, drm);
+	err = drm_display_create(&drm->display, drm, display_id);
 	if (err < 0) {
 		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {

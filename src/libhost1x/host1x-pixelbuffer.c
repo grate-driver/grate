@@ -28,9 +28,6 @@
 #include <string.h>
 #include "host1x-private.h"
 
-#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
-
 static bool pixbuf_guard_disabled;
 
 struct host1x_pixelbuffer *host1x_pixelbuffer_create(
@@ -103,16 +100,31 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	void *map;
 	int err;
 
-	if (pixbuf->format != data_format)
+	host1x_info("width %u height %u data_format 0x%08x data_pitch %u layout %u data_size %lu\n",
+		    pixbuf->width, pixbuf->height,
+		    data_format, data_pitch, data_layout, data_size);
+
+	if (pixbuf->format != data_format) {
+		host1x_error("invalid: pixbuf->format (0x%08x) != data_format (0x%08x)\n",
+			     pixbuf->format, data_format);
 		return -1;
+	}
 
-	if (pixbuf->layout != data_layout)
+	if (pixbuf->layout != data_layout) {
+		host1x_info("blit cause: pixbuf->layout (%u) != data_layout (%u)\n",
+			    pixbuf->layout, data_layout);
 		blit = true;
+	}
 
-	if (pixbuf->pitch != data_pitch)
+	if (pixbuf->pitch != data_pitch) {
+		host1x_info("blit cause: pixbuf->pitch (%u) != data_pitch (%u)\n",
+			    pixbuf->pitch, data_pitch);
 		blit = true;
+	}
 
 	if (blit) {
+		host1x_info("using 2-pass blit-load\n");
+
 		tmp = host1x_pixelbuffer_create(host1x,
 						pixbuf->width, pixbuf->height,
 						data_pitch, data_format,
@@ -120,6 +132,7 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 		if (!tmp)
 			return -1;
 	} else {
+		host1x_info("using direct load\n");
 		tmp = pixbuf;
 	}
 
@@ -127,16 +140,20 @@ int host1x_pixelbuffer_load_data(struct host1x *host1x,
 	if (err)
 		return err;
 
+	host1x_info("loading data\n");
 	memcpy(map + tmp->bo->offset, data, data_size);
 
 	HOST1X_BO_FLUSH(tmp->bo, tmp->bo->offset, data_size);
 
 	if (blit) {
+		host1x_info("blitting\n");
 		err = host1x_gr2d_blit(host1x->gr2d, tmp, pixbuf,
 				       0, 0, 0, 0,
 				       pixbuf->width, pixbuf->height);
 		host1x_pixelbuffer_free(tmp);
 	}
+
+	host1x_info("success\n");
 
 	return err;
 }
@@ -163,6 +180,8 @@ void host1x_pixelbuffer_setup_guard(struct host1x_pixelbuffer *pixbuf)
 
 	HOST1X_BO_FLUSH(pixbuf->bo, pixbuf->bo->size - PIXBUF_GUARD_AREA_SIZE,
 			PIXBUF_GUARD_AREA_SIZE);
+
+	pixbuf->guarded = true;
 }
 
 void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
@@ -173,7 +192,7 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf)
 	uint32_t value;
 	unsigned i;
 
-	if (pixbuf_guard_disabled)
+	if (!pixbuf->guarded)
 		return;
 
 	orig_bo = pixbuf->bo->wrapped ?: pixbuf->bo;

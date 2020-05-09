@@ -22,17 +22,17 @@
  */
 
 #include <assert.h>
+#include <byteswap.h>
+#include <string.h>
 
 #include <IL/il.h>
 #include <IL/ilu.h>
 
+#include "etc1.h"
 #include "grate.h"
 #include "grate-3d.h"
 
 #include "libgrate-private.h"
-
-#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
-#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
 #define MAX(a, b)		(((a) > (b)) ? (a) : (b))
 #define MIN(a, b)		(((a) < (b)) ? (a) : (b))
@@ -50,6 +50,10 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	case PIX_BUF_FMT_RGBA8888:
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:
+	case PIX_BUF_FMT_DXT1:
+	case PIX_BUF_FMT_DXT3:
+	case PIX_BUF_FMT_DXT5:
+	case PIX_BUF_FMT_ETC1:
 		break;
 	default:
 		grate_error("Invalid format %u\n", format);
@@ -69,12 +73,15 @@ struct grate_texture *grate_create_texture(struct grate *grate,
 	if (!tex)
 		return NULL;
 
-	/* Pitch needs to be aligned to 64 bytes */
-	pitch = ALIGN(width * PIX_BUF_FORMAT_BYTES(format), 64);
+	pitch = PIX_BUF_FORMAT_BYTES(format) * width;
+	pitch = pitch / PIX_BUF_FORMAT_TEXEL_WIDTH(format);
+	pitch = ALIGN(pitch, PIX_BUF_FORMAT_ALIGNMENT(format));
 
 	tex->pixbuf = host1x_pixelbuffer_create(grate->host1x, width, height,
 						pitch, format, layout);
 	if (!tex->pixbuf) {
+		grate_error("failed to allocate texture %ux%u bpp:%u pitch:%u\n",
+			    width, height, PIX_BUF_FORMAT_BYTES(format), pitch);
 		free(tex);
 		return NULL;
 	}
@@ -88,16 +95,29 @@ static int grate_texture_load_internal(struct grate *grate,
 				       enum pixel_format format,
 				       enum layout_format layout)
 {
+	unsigned tex_pitch;
+	unsigned tex_bpp;
+	unsigned tw, bpp;
+	void *tex_data;
+	ILuint tex_size;
 	ILuint ImageTex;
+	ILenum il_fmt;
+	unsigned i;
 	int err;
 
+	grate_info("loading \"%s\" pixbuf format 0x%08x layout %u\n",
+		   path, format, layout);
+
+	if (format == PIX_BUF_FMT_ETC1)
+		il_fmt = IL_RGB;
+	else
+		il_fmt = IL_RGBA;
+
 	ilInit();
-	ilEnable(IL_ORIGIN_SET);
-	ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
 	ilGenImages(1, &ImageTex);
 	ilBindImage(ImageTex);
 	ilLoadImage(path);
-	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
+	ilConvertImage(il_fmt, IL_UNSIGNED_BYTE);
 
 	err = ilGetError();
 	if (err != IL_NO_ERROR) {
@@ -110,11 +130,22 @@ static int grate_texture_load_internal(struct grate *grate,
 					    ilGetInteger(IL_IMAGE_WIDTH),
 					    ilGetInteger(IL_IMAGE_HEIGHT),
 					    format, layout);
-		if (!(*tex))
+		if (!(*tex)) {
+			err = -12;
 			goto out;
+		}
 	} else {
 		iluScale((*tex)->pixbuf->width, (*tex)->pixbuf->height, 0);
 	}
+
+	/*
+	 * ilOriginFunc() doesn't work properly in conjunction with
+	 * ilCompressDXT(), image isn't rotated and colors are shifted.
+	 *
+	 * Note that iluRotate(180) only flips vertically! It's a DevIL's
+	 * oddity that comes handy here.
+	 */
+	iluRotate(180.0f);
 
 	err = ilGetError();
 	if (err != IL_NO_ERROR) {
@@ -122,14 +153,100 @@ static int grate_texture_load_internal(struct grate *grate,
 		goto out;
 	}
 
+	tex_data  = ilGetData();
+	tex_size  = ilGetInteger(IL_IMAGE_SIZE_OF_DATA);
+	tex_bpp   = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
+	tex_pitch = ilGetInteger(IL_IMAGE_WIDTH) * tex_bpp;
+
+	if (PIX_BUF_FORMAT_COMPRESSED(format)) {
+		etc1_byte *etc1_data;
+		ILenum DXTCFormat;
+		ILuint dxtSize;
+
+		switch (format) {
+		case PIX_BUF_FMT_DXT1:
+			grate_info("compressing data to DXT1\n");
+			DXTCFormat = IL_DXT1;
+			break;
+		case PIX_BUF_FMT_DXT3:
+			grate_info("compressing data to DXT3\n");
+			DXTCFormat = IL_DXT3;
+			break;
+		case PIX_BUF_FMT_DXT5:
+			grate_info("compressing data to DXT5\n");
+			DXTCFormat = IL_DXT5;
+			break;
+		case PIX_BUF_FMT_ETC1:
+			grate_info("compressing data to ETC1\n");
+			dxtSize = etc1_get_encoded_data_size(
+						ilGetInteger(IL_IMAGE_WIDTH),
+						ilGetInteger(IL_IMAGE_HEIGHT));
+
+			etc1_data = malloc(dxtSize);
+			if (!etc1_data) {
+				err = -1;
+				goto out;
+			}
+
+			err = etc1_encode_image(tex_data,
+						ilGetInteger(IL_IMAGE_WIDTH),
+						ilGetInteger(IL_IMAGE_HEIGHT),
+						tex_bpp, tex_pitch, etc1_data);
+			if (err)
+				goto err_compression;
+
+			/* Tegra's GR3D uses a different layout for ETC1 data */
+			for (i = 0; i < dxtSize / 8; i++) {
+				uint64_t *etc1_word64 = (uint64_t*) etc1_data;
+				uint64_t a = bswap_32(etc1_word64[i] >> 32);
+				uint64_t b = bswap_32(etc1_word64[i]);
+
+				etc1_word64[i] = (b << 32) | a;
+			}
+
+			tex_data = etc1_data;
+
+			goto done_compression;
+		default:
+			grate_error("\"%s\" unsupported compression format %u\n",
+				    path, format);
+			err = -1;
+			goto out;
+		}
+
+		ilEnable(IL_SQUISH_COMPRESS);
+
+		tex_data = ilCompressDXT(tex_data,
+					 ilGetInteger(IL_IMAGE_WIDTH),
+					 ilGetInteger(IL_IMAGE_HEIGHT), 1,
+					 DXTCFormat, &dxtSize);
+		err = ilGetError();
+err_compression:
+		if (err != IL_NO_ERROR) {
+			grate_error("\"%s\" compression failed 0x%04X\n",
+				    path, err);
+			goto out;
+		}
+done_compression:
+		grate_info("compressed \"%s\" size tex_size %u -> %u\n",
+			   path, tex_size, dxtSize);
+
+		tw        = PIX_BUF_FORMAT_TEXEL_WIDTH(format);
+		bpp       = PIX_BUF_FORMAT_BYTES(format);
+		tex_pitch = ALIGN(ilGetInteger(IL_IMAGE_WIDTH), tw) / tw * bpp;
+		tex_size  = dxtSize;
+	}
+
 	err = host1x_pixelbuffer_load_data(grate->host1x, (*tex)->pixbuf,
-					   ilGetData(),
-					   ilGetInteger(IL_IMAGE_WIDTH) * 4,
-					   ilGetInteger(IL_IMAGE_SIZE_OF_DATA),
-					   PIX_BUF_FMT_RGBA8888,
-					   PIX_BUF_LAYOUT_LINEAR);
+					   tex_data, tex_pitch, tex_size,
+					   format, PIX_BUF_LAYOUT_LINEAR);
 out:
 	ilDeleteImage(ImageTex);
+
+	if (err)
+		grate_error("failed to load \"%s\"\n", path);
+	else
+		grate_info("loaded \"%s\"\n", path);
 
 	return err;
 }
@@ -138,8 +255,8 @@ int grate_texture_load(struct grate *grate, struct grate_texture *tex,
 		       const char *path)
 {
 	return grate_texture_load_internal(grate, &tex, path, false,
-					   PIX_BUF_FMT_RGBA8888,
-					   PIX_BUF_LAYOUT_LINEAR);
+					   tex->pixbuf->format,
+					   tex->pixbuf->layout);
 }
 
 struct grate_texture *grate_create_texture2(struct grate *grate,
@@ -359,6 +476,8 @@ static void setup_lod_pixbuf(struct host1x_pixelbuffer *mipmap,
 	unsigned w, h, bpp;
 	unsigned i;
 
+	memset(dst, 0, sizeof(*dst));
+
 	bpp = PIX_BUF_FORMAT_BYTES(mipmap->format);
 
 	for (i = 0; i <= level; i++) {
@@ -448,13 +567,17 @@ int grate_texture_load_miplevel(struct grate *grate,
 	setup_lod_pixbuf(tex->mipmap_pixbuf, &dst_pixbuf,
 			 MIN(level, tex->max_lod));
 	ilInit();
-	ilEnable(IL_ORIGIN_SET);
-	ilOriginFunc(IL_ORIGIN_LOWER_LEFT);
 	ilGenImages(1, &ImageTex);
 	ilBindImage(ImageTex);
 	ilLoadImage(path);
 	ilConvertImage(IL_RGBA, IL_UNSIGNED_BYTE);
 	iluScale(dst_pixbuf.width, dst_pixbuf.height, 0);
+
+	/*
+	 * ilOriginFunc() doesn't work properly in conjunction with
+	 * ilCompressDXT().
+	 */
+	iluRotate(180.0f);
 
 	err = ilGetError();
 	if (err != IL_NO_ERROR) {

@@ -8,6 +8,8 @@ libgrate_la_CFLAGS = \
 
 libgrate_la_SOURCES = \
 	display.c \
+	etc1.cpp \
+	etc1.h \
 	fragment_asm.h \
 	grate.c \
 	grate.h \
@@ -26,6 +28,10 @@ libgrate_la_SOURCES = \
 	profile.c \
 	shader-cgc.c \
 	vpe_vliw.h
+
+libgrate_la_DEPENDENCIES = \
+	../libcgc/libcgc.la \
+	../libhost1x/libhost1x.la
 
 libgrate_la_LIBADD = \
 	../libcgc/libcgc.la \

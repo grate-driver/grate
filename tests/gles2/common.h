@@ -30,6 +30,9 @@
 #include <X11/Xlib.h>
 #include <EGL/egl.h>
 
+#include "etc1.h"
+#include "grate.h"
+
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 struct gles_options {
@@ -99,9 +102,22 @@ struct gles_texture {
 	GLuint id;
 };
 
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 0x83F1
+#endif
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT 0x83F2
+#endif
+#ifndef GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT 0x83F3
+#endif
+
 struct gles_texture *gles_texture_load(const char *filename);
 struct gles_texture *gles_texture_load2(const char *filename,
 					unsigned width, unsigned height);
+struct gles_texture *gles_texture_load3(const char *filename,
+					unsigned width, unsigned height,
+					unsigned gl_format);
 void gles_texture_free(struct gles_texture *texture);
 
 #endif

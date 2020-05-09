@@ -1,4 +1,5 @@
 libhost1x_sources =  files(
+	'dri-display.c',
 	'host1x.c',
 	'host1x-drm.c',
 	'host1x-dummy.c',
@@ -22,8 +23,20 @@ libhost1x_sources =  files(
 	'x11-display.h'
 )
 
+libhost1x_c_args = []
+libhost1x_deps = [libdrm, libpng]
+
+libxcb = dependency('xcb-image', required : false)
+if libxcb.found()
+	libhost1x_c_args += '-DHAVE_XCB'
+	libhost1x_deps += libxcb
+	libhost1x_deps += dependency('xcb-image')
+	libhost1x_deps += dependency('xcb-dri2')
+endif
+
 libhost1x = shared_library('host1x',
 	libhost1x_sources,
 	include_directories : include_directories('../../include'),
-	dependencies : [ libdrm, libpng ]
+	dependencies : [libhost1x_deps],
+	c_args : [libhost1x_c_args],
 )

@@ -10,6 +10,7 @@ libhost1x_la_CFLAGS = \
 	$(XCB_CFLAGS)
 
 libhost1x_la_SOURCES = \
+	dri-display.c \
 	host1x.c \
 	host1x-drm.c \
 	host1x-dummy.c \

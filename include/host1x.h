@@ -34,6 +34,9 @@
 #define BIT(x) (1 << (x))
 #endif
 
+#define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
+#define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
+
 enum host1x_class {
 	HOST1X_CLASS_GR2D = 0x51,
 	HOST1X_CLASS_GR3D = 0x60,
@@ -79,8 +82,9 @@ struct host1x_bo {
 	void *ptr;
 };
 
-#define PIX_BUF_FMT(id, bpp) \
-	((id) << 8 | (bpp))
+#define PIX_BUF_FMT(id, bpp, compressed, align_bytes, tex_w, tex_h) \
+	((tex_h) << 26 | (tex_w) << 23 | (align_bytes) << 16 | \
+	 !!(compressed) << 14 | (id) << 8 | (bpp))
 
 #define PIX_BUF_FORMAT_BITS(f) \
 	((f) & 0xff)
@@ -88,21 +92,47 @@ struct host1x_bo {
 #define PIX_BUF_FORMAT_BYTES(f) \
 	(PIX_BUF_FORMAT_BITS(f) >> 3)
 
+#define PIX_BUF_FORMAT_COMPRESSED(f) \
+	(((f) >> 14) & 1)
+
+#define PIX_BUF_FORMAT_ALIGNMENT(f) \
+	(((f) >> 16) & 127)
+
+#define PIX_BUF_FORMAT_TEXEL_WIDTH(f) \
+	(((f) >> 23) & 7)
+
+#define PIX_BUF_FORMAT_TEXEL_HEIGHT(f) \
+	(((f) >> 26) & 7)
+
 enum pixel_format {
-    PIX_BUF_FMT_A8            = PIX_BUF_FMT(0, 8),
-    PIX_BUF_FMT_L8            = PIX_BUF_FMT(1, 8),
-    PIX_BUF_FMT_S8            = PIX_BUF_FMT(2, 8),
-    PIX_BUF_FMT_LA88          = PIX_BUF_FMT(3, 16),
-    PIX_BUF_FMT_RGB565        = PIX_BUF_FMT(4, 16),
-    PIX_BUF_FMT_RGBA5551      = PIX_BUF_FMT(5, 16),
-    PIX_BUF_FMT_RGBA4444      = PIX_BUF_FMT(6, 16),
-    PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16),
-    PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16),
-    PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32),
-    PIX_BUF_FMT_BGRA8888      = PIX_BUF_FMT(10, 32),
-    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(11, 32),
-    PIX_BUF_FMT_ARGB8888      = PIX_BUF_FMT(12, 32),
-    PIX_BUF_FMT_ABGR8888      = PIX_BUF_FMT(13, 32),
+    PIX_BUF_FMT_A8            = PIX_BUF_FMT(0, 8, 0, 64, 1, 1),
+    PIX_BUF_FMT_L8            = PIX_BUF_FMT(1, 8, 0, 64, 1, 1),
+    PIX_BUF_FMT_S8            = PIX_BUF_FMT(2, 8, 0, 64, 1, 1),
+    PIX_BUF_FMT_LA88          = PIX_BUF_FMT(3, 16, 0, 64, 1, 1),
+    PIX_BUF_FMT_RGB565        = PIX_BUF_FMT(4, 16, 0, 64, 1, 1),
+    PIX_BUF_FMT_RGBA5551      = PIX_BUF_FMT(5, 16, 0, 64, 1, 1),
+    PIX_BUF_FMT_RGBA4444      = PIX_BUF_FMT(6, 16, 0, 64, 1, 1),
+    PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16, 0, 64, 1, 1),
+    PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16, 0, 64, 1, 1),
+    /*
+     * Note that ours byte-ordering follows the OpenGL convention,
+     * DRM uses the opposite ordering in the name.
+     *
+     * Hence DRM_ABGR = GL_RGBA.
+     *
+     * Tegra's TRM mixes RGBA and ARGB notions, while actually
+     * always talking about the same format that matches GL_RGBA.
+     *
+     * The Red component of PIX_BUF_FMT_RGBA8888 lays in bits [7:0]
+     * of a little-endian word.
+     */
+    PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32, 0, 64, 1, 1),
+    PIX_BUF_FMT_BGRA8888      = PIX_BUF_FMT(10, 32, 0, 64, 1, 1),
+    PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(11, 32, 0, 64, 1, 1),
+    PIX_BUF_FMT_ETC1          = PIX_BUF_FMT(14, 64, 1, 64, 4, 4),
+    PIX_BUF_FMT_DXT1          = PIX_BUF_FMT(15, 64, 1, 64, 4, 4),
+    PIX_BUF_FMT_DXT3          = PIX_BUF_FMT(16, 128, 1, 64, 4, 4),
+    PIX_BUF_FMT_DXT5          = PIX_BUF_FMT(17, 128, 1, 64, 4, 4),
 };
 
 enum layout_format {
@@ -117,6 +147,7 @@ struct host1x_pixelbuffer {
 	unsigned width;
 	unsigned height;
 	unsigned pitch;
+	bool guarded;
 };
 
 #define PIXBUF_GUARD_AREA_SIZE	0x4000
@@ -140,7 +171,7 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf);
 void host1x_pixelbuffer_disable_bo_guard(void);
 bool host1x_pixelbuffer_bo_guard_disabled(void);
 
-struct host1x *host1x_open(bool open_display, int fd);
+struct host1x *host1x_open(bool open_display, int fd, int display_id);
 void host1x_close(struct host1x *host1x);
 
 struct host1x_display *host1x_get_display(struct host1x *host1x);

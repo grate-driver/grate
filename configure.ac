@@ -11,6 +11,7 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_PROG_LIBTOOL
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_PROG_CXX
 AC_PROG_INSTALL
 AM_PROG_LEX
 AC_PROG_YACC
@@ -44,7 +45,7 @@ AC_ARG_ENABLE([x11-display],
 		[enable_x11="$enableval"],
 		[enable_x11=yes])
 AS_IF([test "x$enable_x11" = "xyes"], [
-	PKG_CHECK_MODULES(XCB, [xcb xcb-image], [AC_DEFINE([HAVE_XCB], [1], [Use XCB])])
+	PKG_CHECK_MODULES(XCB, [xcb xcb-image xcb-dri2], [AC_DEFINE([HAVE_XCB], [1], [Use XCB])])
 ])
 
 CFLAGS="$CFLAGS -Wall"
