@@ -170,6 +170,7 @@ int grate_3d_ctx_bind_render_target(struct grate_3d_ctx *ctx,
 	case PIX_BUF_FMT_D16_LINEAR:
 	case PIX_BUF_FMT_D16_NONLINEAR:
 	case PIX_BUF_FMT_RGBA8888:
+	case PIX_BUF_FMT_BGRA8888:
 	case PIX_BUF_FMT_RGBA_FP32:
 		break;
 	default:

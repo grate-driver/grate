@@ -227,6 +227,9 @@ static int grate_3d_set_render_target_params(struct host1x_pushbuf *pb,
 	case PIX_BUF_FMT_RGBA8888:
 		pixel_format = TGR3D_PIXEL_FORMAT_RGBA8888;
 		break;
+	case PIX_BUF_FMT_BGRA8888:
+		pixel_format = TGR3D_PIXEL_FORMAT_BGRA8888;
+		break;
 	case PIX_BUF_FMT_RGBA_FP32:
 		pixel_format = TGR3D_PIXEL_FORMAT_RGBA_FP32;
 		break;
@@ -706,6 +709,9 @@ static void grate_3d_set_texture_desc(struct host1x_pushbuf *pb,
 		break;
 	case PIX_BUF_FMT_RGBA8888:
 		pixel_format = TGR3D_PIXEL_FORMAT_RGBA8888;
+		break;
+	case PIX_BUF_FMT_BGRA8888:
+		pixel_format = TGR3D_PIXEL_FORMAT_BGRA8888;
 		break;
 	case PIX_BUF_FMT_RGBA_FP32:
 		pixel_format = TGR3D_PIXEL_FORMAT_RGBA_FP32;
