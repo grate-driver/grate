@@ -480,22 +480,11 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-	/*
-	 * GR2DSB doesn't support this format. Not sure that this is fine
-	 * to do, but scaled result looks correct.
-	 */
-	if (src->format == dst->format &&
-	    src->format == PIX_BUF_FMT_RGBA8888) {
-		src_fmt = 14;
-		dst_fmt = 14;
-		goto coords_check;
-	}
-
 	switch (src->format) {
-	case PIX_BUF_FMT_ABGR8888:
+	case PIX_BUF_FMT_BGRA8888:
 		src_fmt = 14;
 		break;
-	case PIX_BUF_FMT_ARGB8888:
+	case PIX_BUF_FMT_RGBA8888:
 		src_fmt = 15;
 		break;
 	default:
@@ -504,10 +493,10 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	}
 
 	switch (dst->format) {
-	case PIX_BUF_FMT_ABGR8888:
+	case PIX_BUF_FMT_BGRA8888:
 		dst_fmt = 14;
 		break;
-	case PIX_BUF_FMT_ARGB8888:
+	case PIX_BUF_FMT_RGBA8888:
 		dst_fmt = 15;
 		break;
 	default:
@@ -515,7 +504,6 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-coords_check:
 	if (dst_height < 0) {
 		yflip = 1;
 		dst_height = -dst_height;

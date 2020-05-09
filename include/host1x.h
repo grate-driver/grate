@@ -114,11 +114,21 @@ enum pixel_format {
     PIX_BUF_FMT_RGBA4444      = PIX_BUF_FMT(6, 16, 0, 64, 1, 1),
     PIX_BUF_FMT_D16_LINEAR    = PIX_BUF_FMT(7, 16, 0, 64, 1, 1),
     PIX_BUF_FMT_D16_NONLINEAR = PIX_BUF_FMT(8, 16, 0, 64, 1, 1),
+    /*
+     * Note that ours byte-ordering follows the OpenGL convention,
+     * DRM uses the opposite ordering in the name.
+     *
+     * Hence DRM_ABGR = GL_RGBA.
+     *
+     * Tegra's TRM mixes RGBA and ARGB notions, while actually
+     * always talking about the same format that matches GL_RGBA.
+     *
+     * The Red component of PIX_BUF_FMT_RGBA8888 lays in bits [7:0]
+     * of a little-endian word.
+     */
     PIX_BUF_FMT_RGBA8888      = PIX_BUF_FMT(9, 32, 0, 64, 1, 1),
     PIX_BUF_FMT_BGRA8888      = PIX_BUF_FMT(10, 32, 0, 64, 1, 1),
     PIX_BUF_FMT_RGBA_FP32     = PIX_BUF_FMT(11, 32, 0, 64, 1, 1),
-    PIX_BUF_FMT_ARGB8888      = PIX_BUF_FMT(12, 32, 0, 64, 1, 1),
-    PIX_BUF_FMT_ABGR8888      = PIX_BUF_FMT(13, 32, 0, 64, 1, 1),
     PIX_BUF_FMT_ETC1          = PIX_BUF_FMT(14, 64, 1, 64, 4, 4),
     PIX_BUF_FMT_DXT1          = PIX_BUF_FMT(15, 64, 1, 64, 4, 4),
     PIX_BUF_FMT_DXT3          = PIX_BUF_FMT(16, 128, 1, 64, 4, 4),
