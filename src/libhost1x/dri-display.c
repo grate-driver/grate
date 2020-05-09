@@ -39,11 +39,14 @@ static int dri2_display_set(struct host1x_display *displayp,
 	xcb_dri2_swap_buffers_cookie_t cookie;
 	xcb_dri2_swap_buffers_reply_t *rep;
 
-	host1x_gr2d_blit(stuff->host1x->gr2d,
-			 fb->pixbuf, stuff->pixbuf,
-			 0, 0, 0, 0,
-			 stuff->pixbuf->width,
-			-stuff->pixbuf->height);
+	host1x_gr2d_surface_blit(stuff->host1x->gr2d,
+				 fb->pixbuf, stuff->pixbuf,
+				 0, 0,
+				 fb->pixbuf->width,
+				 fb->pixbuf->height,
+				 0, 0,
+				 stuff->pixbuf->width,
+				-stuff->pixbuf->height);
 
 	cookie = xcb_dri2_swap_buffers(stuff->disp, stuff->win,
 				       0, 0,  0, 0,  0, 0);
@@ -138,7 +141,7 @@ void dri2_display_create(struct xcb_stuff *stuff, struct host1x_display *disp)
 
 	switch (dri2_buffer[0].cpp) {
 	case 4:
-		format = PIX_BUF_FMT_ARGB8888;
+		format = PIX_BUF_FMT_BGRA8888;
 		break;
 
 	default:

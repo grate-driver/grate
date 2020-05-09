@@ -63,15 +63,19 @@ static void *fbdata(struct xcb_stuff *stuff, struct host1x_framebuffer *fb)
 						WIN_WIDTH,
 						WIN_HEIGHT,
 						WIN_WIDTH * 4,
-						PIX_BUF_FMT_RGBA8888,
+						PIX_BUF_FMT_BGRA8888,
 						PIX_BUF_LAYOUT_LINEAR);
 	if (!stuff->pixbuf)
 		return NULL;
 
-	err = host1x_gr2d_blit(stuff->host1x->gr2d,
-			       pixbuf, stuff->pixbuf,
-			       0, 0, 0, 0,
-			       WIN_WIDTH, -WIN_HEIGHT);
+	err = host1x_gr2d_surface_blit(stuff->host1x->gr2d,
+				       pixbuf, stuff->pixbuf,
+				       0, 0,
+				       pixbuf->width,
+				       pixbuf->height,
+				       0, 0,
+				       WIN_WIDTH,
+				      -WIN_HEIGHT);
 	if (err < 0)
 		return NULL;
 
