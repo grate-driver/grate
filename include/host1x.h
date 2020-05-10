@@ -37,6 +37,13 @@
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
+#define host1x_error(fmt, args...) \
+	fprintf(stderr, "\033[31mERROR: %s:%d: " fmt "\033[0m", \
+		__func__, __LINE__, ##args)
+
+#define host1x_info(fmt, args...) \
+	fprintf(stdout, "INFO: %s:%d: " fmt, __func__, __LINE__, ##args)
+
 enum host1x_class {
 	HOST1X_CLASS_GR2D = 0x51,
 	HOST1X_CLASS_GR3D = 0x60,
@@ -217,9 +224,7 @@ static inline struct host1x_bo *host1x_bo_create_helper(struct host1x *host1x,
 {
 	struct host1x_bo *bo = host1x_bo_create(host1x, size, flags);
 	if (!bo)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_create() failed\n",
-			file, line);
+		host1x_error("host1x_bo_create() failed\n");
 	return bo;
 }
 
@@ -229,9 +234,7 @@ static inline struct host1x_bo *host1x_bo_wrap_helper(struct host1x_bo *bo,
 {
 	struct host1x_bo *wrap = host1x_bo_wrap(bo, offset, size);
 	if (!wrap)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_wrap() failed\n",
-			file, line);
+		host1x_error("host1x_bo_wrap() failed\n");
 	return wrap;
 }
 
@@ -241,9 +244,7 @@ static inline int host1x_bo_invalidate_helper(struct host1x_bo *bo,
 {
 	int err = host1x_bo_invalidate(bo, offset, length);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_invalidate() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_bo_invalidate() failed %d\n", err);
 	return err;
 }
 
@@ -253,9 +254,7 @@ static inline int host1x_bo_flush_helper(struct host1x_bo *bo,
 {
 	int err = host1x_bo_flush(bo, offset, length);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_flush() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_bo_flush() failed %d\n", err);
 	return err;
 }
 
@@ -264,9 +263,7 @@ static inline int host1x_bo_mmap_helper(struct host1x_bo *bo, void **ptr,
 {
 	int err = host1x_bo_mmap(bo, ptr);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_mmap() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_bo_mmap() failed %d\n", err);
 	return err;
 }
 
@@ -276,9 +273,7 @@ static inline int host1x_bo_export_helper(struct host1x_bo *bo,
 {
 	int err = host1x_bo_export(bo, handle);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_export() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_bo_export() failed %d\n", err);
 	return err;
 }
 
@@ -289,9 +284,7 @@ static inline struct host1x_bo *host1x_bo_import_helper(struct host1x *host1x,
 {
 	struct host1x_bo *bo = host1x_bo_import(host1x, handle);
 	if (!bo)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_bo_import() failed\n",
-			file, line);
+		host1x_error("host1x_bo_import() failed\n");
 	return bo;
 }
 
@@ -384,9 +377,7 @@ static inline struct host1x_job *host1x_job_create_helper(
 {
 	struct host1x_job *job = host1x_job_create(syncpt, increments);
 	if (!job)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_job_create() failed\n",
-			file, line);
+		host1x_error("host1x_job_create() failed\n");
 	return job;
 }
 
@@ -398,9 +389,7 @@ static inline struct host1x_pushbuf *host1x_job_append_helper(
 {
 	struct host1x_pushbuf *pb = host1x_job_append(job, bo, offset);
 	if (!pb)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_job_append() failed\n",
-			file, line);
+		host1x_error("host1x_job_append() failed\n");
 	return pb;
 }
 
@@ -412,9 +401,7 @@ static inline int host1x_pushbuf_relocate_helper(struct host1x_pushbuf *pb,
 {
 	int err = host1x_pushbuf_relocate(pb, target, offset, shift);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_pushbuf_relocate() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_pushbuf_relocate() failed %d\n", err);
 	return err;
 }
 
@@ -424,9 +411,7 @@ static inline int host1x_client_submit_helper(struct host1x_client *client,
 {
 	int err = host1x_client_submit(client, job);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_client_submit() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_client_submit() failed %d\n", err);
 	return err;
 }
 
@@ -436,9 +421,7 @@ static inline int host1x_client_flush_helper(struct host1x_client *client,
 {
 	int err = host1x_client_flush(client, fence);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_client_flush() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_client_flush() failed %d\n", err);
 	return err;
 }
 
@@ -448,9 +431,7 @@ static inline int host1x_client_wait_helper(struct host1x_client *client,
 {
 	int err = host1x_client_wait(client, fence, timeout);
 	if (err)
-		fprintf(stderr,
-			"ERROR: %s:%d: host1x_client_wait() failed %d\n",
-			file, line, err);
+		host1x_error("host1x_client_wait() failed %d\n", err);
 	return err;
 }
 
