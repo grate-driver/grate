@@ -34,9 +34,6 @@
 
 #include "libgrate-private.h"
 
-#define MAX(a, b)		(((a) > (b)) ? (a) : (b))
-#define MIN(a, b)		(((a) < (b)) ? (a) : (b))
-
 struct grate_texture *grate_create_texture(struct grate *grate,
 					   unsigned width, unsigned height,
 					   enum pixel_format format,

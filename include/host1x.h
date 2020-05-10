@@ -37,6 +37,9 @@
 #define ALIGN(x,a)		__ALIGN_MASK(x,(typeof(x))(a)-1)
 #define __ALIGN_MASK(x,mask)	(((x)+(mask))&~(mask))
 
+#define MAX(a, b)		(((a) > (b)) ? (a) : (b))
+#define MIN(a, b)		(((a) < (b)) ? (a) : (b))
+
 #define host1x_error(fmt, args...) \
 	fprintf(stderr, "\033[31mERROR: %s:%d: " fmt "\033[0m", \
 		__func__, __LINE__, ##args)

@@ -32,8 +32,6 @@
 #include "host1x.h"
 #include "host1x-private.h"
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
 #define CTX_NB 11
 
 struct ctx2d {

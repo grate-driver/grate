@@ -517,8 +517,8 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 		return -EINVAL;
 	}
 
-	inv_scale_x = (src_width) / (float)(dst_width);
-	inv_scale_y = (src_height) / (float)(dst_height);
+	inv_scale_x = MAX(src_width - 1, 1) / (float)(dst_width - 1);
+	inv_scale_y = MAX(src_height - 1, 1) / (float)(dst_height - 1);
 
 	if (inv_scale_y > 64.0f || inv_scale_y < 1.0f / 4096.0f) {
 		host1x_error("Unsupported Y scale\n");
