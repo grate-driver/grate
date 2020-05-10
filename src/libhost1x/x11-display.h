@@ -25,10 +25,6 @@
 
 #include "host1x-private.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #ifdef HAVE_XCB
 
 #include <xcb/xcb.h>
