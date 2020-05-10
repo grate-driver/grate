@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = -static
 
 noinst_PROGRAMS = \
+	gr2d-blit \
 	gr2d-clear \
 	gr2d-context \
 	gr3d-triangle
