@@ -4,7 +4,8 @@ noinst_PROGRAMS = \
 	hex2float \
 	fp20 \
 	fx10 \
-	replay
+	replay \
+	reset3d
 
 AM_LDFLAGS = -static
 

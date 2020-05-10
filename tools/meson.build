@@ -4,7 +4,8 @@ tools = [
 	'hex2float',
 	'fp20',
 	'fx10',
-	'replay'
+	'replay',
+	'reset3d',
 ]
 
 includes = include_directories(
