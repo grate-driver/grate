@@ -28,6 +28,7 @@
 #ifdef HAVE_XCB
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_image.h>
 
 struct xcb_stuff {

@@ -107,6 +107,7 @@ int x11_display_create(struct host1x *host1x, struct host1x_display *base,
 {
 	struct xcb_stuff *stuff;
 	xcb_void_cookie_t cookie;
+	xcb_size_hints_t hints;
 	xcb_screen_t *screen;
 
 	stuff = calloc(1, sizeof(*stuff));
@@ -149,6 +150,11 @@ int x11_display_create(struct host1x *host1x, struct host1x_display *base,
 		free(stuff);
 		return -ENODEV;
 	}
+
+	xcb_icccm_size_hints_set_min_size(&hints, WIN_WIDTH, WIN_HEIGHT);
+	xcb_icccm_size_hints_set_max_size(&hints, WIN_WIDTH, WIN_HEIGHT);
+	xcb_icccm_set_wm_size_hints(stuff->disp, stuff->win,
+				    XCB_ATOM_WM_NORMAL_HINTS, &hints);
 
 	cookie = xcb_map_window_checked(stuff->disp, stuff->win);
 	if (xcb_request_check(stuff->disp, cookie)) {

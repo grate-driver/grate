@@ -26,12 +26,13 @@ libhost1x_sources =  files(
 libhost1x_c_args = []
 libhost1x_deps = [libdrm, libpng]
 
-libxcb = dependency('xcb-image', required : false)
+libxcb = dependency('xcb', required : false)
 if libxcb.found()
 	libhost1x_c_args += '-DHAVE_XCB'
 	libhost1x_deps += libxcb
 	libhost1x_deps += dependency('xcb-image')
 	libhost1x_deps += dependency('xcb-dri2')
+	libhost1x_deps += dependency('xcb-icccm')
 endif
 
 libhost1x = shared_library('host1x',
