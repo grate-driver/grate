@@ -36,6 +36,7 @@
 static int x11_overlay_create(struct host1x_display *display,
 			      struct host1x_overlay **overlayp)
 {
+	host1x_info("overlay unsupported\n");
 	return -1;
 }
 
