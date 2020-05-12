@@ -26,10 +26,13 @@ libhost1x_sources =  files(
 libhost1x_c_args = []
 libhost1x_deps = [libdrm, libpng]
 
-libxcb = dependency('xcb', required : false)
-if libxcb.found()
+if x11.found() and \
+   dependency('xcb', required : false).found() and \
+   dependency('xcb-image', required : false).found() and \
+   dependency('xcb-dri2', required : false).found() and \
+   dependency('xcb-icccm', required : false).found()
 	libhost1x_c_args += '-DHAVE_XCB'
-	libhost1x_deps += libxcb
+	libhost1x_deps += dependency('xcb')
 	libhost1x_deps += dependency('xcb-image')
 	libhost1x_deps += dependency('xcb-dri2')
 	libhost1x_deps += dependency('xcb-icccm')

@@ -11,10 +11,8 @@ devil = dependency('ILU')
 
 egl = dependency('egl', required : false)
 x11 = dependency('x11', required : false)
-if egl.found() and x11.found()
-	gles1 = dependency('glesv1_cm', required : false)
-	gles2 = dependency('glesv2', required : false)
-endif
+gles1 = dependency('glesv1_cm', required : false)
+gles2 = dependency('glesv2', required : false)
 
 subdir('src')
 subdir('tools')

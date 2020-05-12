@@ -1,10 +1,12 @@
 subdir('host1x')
 subdir('grate')
 
-if gles1.found()
-	subdir('gles1')
-endif
+if egl.found() and x11.found()
+	if gles1.found()
+		subdir('gles1')
+	endif
 
-if gles2.found()
-	subdir('gles2')
+	if gles2.found()
+		subdir('gles2')
+	endif
 endif
