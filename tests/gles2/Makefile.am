@@ -9,7 +9,6 @@ libcommon_la_LIBADD = $(X11_LIBS) $(GLES2_LIBS) $(PNG_LIBS) $(DevIL_LIBS) -lm
 AM_CFLAGS = $(GLES2_CFLAGS) $(PNG_CFLAGS)
 AM_CFLAGS += -I$(top_srcdir)/include
 AM_CFLAGS += -I$(top_srcdir)/src/libgrate
-AM_LDFLAGS = -static
 LDADD = libcommon.la $(top_builddir)/src/libgrate/libgrate.la
 
 noinst_PROGRAMS = \

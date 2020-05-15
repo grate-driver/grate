@@ -16,7 +16,5 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libgrate
 
-AM_LDFLAGS = -static -lm
-
 LDADD = \
 	$(top_builddir)/src/libgrate/libgrate.la
