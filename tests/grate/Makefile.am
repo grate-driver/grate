@@ -12,6 +12,8 @@ noinst_PROGRAMS = \
 	triangle \
 	triangle-rotate
 
+AM_LDFLAGS = -lm
+
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/include \
 	-I$(top_srcdir)/src/libgrate
