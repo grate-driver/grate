@@ -440,7 +440,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 			     struct host1x_pixelbuffer *src,
 			     struct host1x_pixelbuffer *dst,
 			     unsigned int sx, unsigned int sy,
-			     unsigned int src_width, unsigned int src_height,
+			     unsigned int src_width, int src_height,
 			     unsigned int dx, unsigned int dy,
 			     unsigned int dst_width, int dst_height)
 {
@@ -456,7 +456,8 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	unsigned dst_fmt;
 	unsigned hftype;
 	unsigned vftype;
-	unsigned vfen;
+	unsigned hfen = 1;
+	unsigned vfen = 1;
 	uint32_t fence;
 	int err;
 
@@ -520,17 +521,27 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	inv_scale_x = MAX(src_width - 1, 1) / (float)(dst_width - 1);
 	inv_scale_y = MAX(src_height - 1, 1) / (float)(dst_height - 1);
 
-	if (inv_scale_y > 64.0f || inv_scale_y < 1.0f / 4096.0f) {
-		host1x_error("Unsupported Y scale\n");
-		return -EINVAL;
+	if (inv_scale_y < 1.0f / 4096.0f) {
+		inv_scale_y = 1.0f / 4096.0f;
+		vfen = 0;
 	}
 
-	if (inv_scale_x > 64.0f || inv_scale_x < 1.0f / 4096.0f) {
-		host1x_error("Unsupported X scale\n");
-		return -EINVAL;
+	if (inv_scale_y > 64.0f - 1.0f / 4096.0f) {
+		inv_scale_y = 64.0f - 1.0f / 4096.0f;
+		vfen = 0;
 	}
 
-	if (inv_scale_x == 1.0f)
+	if (inv_scale_x < 1.0f / 4096.0f) {
+		inv_scale_x = 1.0f / 4096.0f;
+		hfen = 0;
+	}
+
+	if (inv_scale_x > 64.0f - 1.0f / 4096.0f) {
+		inv_scale_x = 64.0f - 1.0f / 4096.0f;
+		hfen = 0;
+	}
+
+	if (inv_scale_x == 1.0f || !hfen)
 		hftype = 7;
 	else if (inv_scale_x < 1.0f)
 		hftype = 0;
@@ -541,9 +552,12 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	else
 		hftype = 6;
 
-	if (inv_scale_y == 1.0f) {
+	if (inv_scale_y == 1.0f || !vfen) {
 		vftype = 0;
 		vfen = 0;
+
+		src_height -= 1;
+		dst_height -= 1;
 	} else {
 		vfen = 1;
 
@@ -555,7 +569,13 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 			vftype = 2;
 		else
 			vftype = 3;
+
+		src_height -= 2;
+		dst_height -= 2;
 	}
+
+	src_height = MAX(src_height, 0);
+	dst_height = MAX(dst_height, 0);
 
 	job = HOST1X_JOB_CREATE(syncpt->id, 1);
 	if (!job)
@@ -614,23 +634,21 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba_sb_surfbase */
 	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
 				dst->bo->offset + sb_offset(dst, dx, dy) +
-				yflip * dst->pitch * (dst_height - 1), 0);
+				yflip * dst->pitch * dst_height, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba_sb_surfbase */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_MASK(0x02b, 0x3149));
 	HOST1X_PUSHBUF_RELOCATE(pb, dst->bo,
 				dst->bo->offset + sb_offset(dst, dx, dy) +
-				yflip * dst->pitch * (dst_height - 1), 0);
+				yflip * dst->pitch * dst_height, 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* dstba */
 	host1x_pushbuf_push(pb, dst->pitch); /* dstst */
 	HOST1X_PUSHBUF_RELOCATE(pb, src->bo,
 				src->bo->offset + sb_offset(src, sx, sy), 0);
 	host1x_pushbuf_push(pb, 0xdeadbeef); /* srcba */
 	host1x_pushbuf_push(pb, src->pitch); /* srcst */
-	host1x_pushbuf_push(pb,
-			    (src_height - 1) << 16 | src_width); /* srcsize */
-	host1x_pushbuf_push(pb,
-			    (dst_height - 1) << 16 | dst_width); /* dstsize */
+	host1x_pushbuf_push(pb, src_height << 16 | src_width); /* srcsize */
+	host1x_pushbuf_push(pb, dst_height << 16 | dst_width); /* dstsize */
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x000, 1));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);

@@ -489,7 +489,7 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 			     struct host1x_pixelbuffer *src,
 			     struct host1x_pixelbuffer *dst,
 			     unsigned int sx, unsigned int sy,
-			     unsigned int src_width, unsigned int src_height,
+			     unsigned int src_width, int src_height,
 			     unsigned int dx, unsigned int dy,
 			     unsigned int dst_width, int dst_height);
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
