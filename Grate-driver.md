@@ -21,6 +21,12 @@
 
 [https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo](https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo)
 
+### PostmarketOS
+
+[https://wiki.postmarketos.org/wiki/Nvidia_Tegra_2_(tegra20)](https://wiki.postmarketos.org/wiki/Nvidia_Tegra_2_(tegra20))
+
+[https://wiki.postmarketos.org/wiki/Nvidia_Tegra_3_(tegra30)](https://wiki.postmarketos.org/wiki/Nvidia_Tegra_3_(tegra30))
+
 # Build it yourself
 
 ## General rules:
