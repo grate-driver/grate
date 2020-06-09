@@ -51,9 +51,10 @@ static int dri2_display_set(struct host1x_display *displayp,
 	cookie = xcb_dri2_swap_buffers(stuff->disp, stuff->win,
 				       0, 0,  0, 0,  0, 0);
 	rep = xcb_dri2_swap_buffers_reply(stuff->disp, cookie, NULL);
-
-	if (!rep)
-		host1x_error("xcb_dri2_swap_buffers_reply failed\n");
+	if (!rep) {
+		host1x_error("xcb_dri2_swap_buffers_reply failed, aborting\n");
+		exit(1);
+	}
 	free(rep);
 
 	return 0;
