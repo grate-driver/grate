@@ -84,6 +84,7 @@ struct drm_display {
 	uint32_t plane;
 	uint32_t crtc;
 	int reflected;
+	bool upside_down;
 };
 
 static inline struct drm_display *to_drm_display(struct host1x_display *display)
@@ -196,13 +197,15 @@ static int drm_display_find_plane(struct drm_display *display,
 	return 0;
 }
 
-static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
-				 bool reflect)
+static int drm_overlay_reflect(struct drm_display *display, uint32_t plane_id,
+			       bool reflect_y)
 {
 #ifdef DRM_MODE_REFLECT_Y
+	struct drm *drm = display->drm;
 	drmModeObjectPropertiesPtr properties;
 	drmModePropertyPtr property;
 	drmModeAtomicReqPtr req;
+	unsigned int rotate_display;
 	unsigned int reflect_flag;
 	unsigned int i;
 	int ret;
@@ -221,26 +224,33 @@ static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
 		goto atomic_free;
 	}
 
+	rotate_display = drm->base.options->rotate_display;
+
+	if (rotate_display != 0 && rotate_display != 180) {
+		host1x_error("unsupported display rotation %u, only 0 and 180 are supported\n",
+			     rotate_display);
+
+		rotate_display = 0;
+	}
+
+	if (display->upside_down)
+		rotate_display = (rotate_display == 0) ? 180 : 0;
+
 	for (i = 0, ret = -100; i < properties->count_props; i++) {
 		property = drmModeGetProperty(drm->fd, properties->props[i]);
 		if (!property)
 			continue;
 
-		if (reflect)
+		if (reflect_y)
 			reflect_flag = DRM_MODE_REFLECT_Y;
 		else
 			reflect_flag = 0;
 
 		if (!strcmp(property->name, "rotation")) {
-			if (drm->base.options->rotate_display == 180) {
+			if (rotate_display == 180)
 				reflect_flag |= DRM_MODE_ROTATE_180;
-			} else {
-				if (drm->base.options->rotate_display != 0)
-					host1x_error("unsupported display rotation %u, only 180 is supported\n",
-						     drm->base.options->rotate_display);
-
+			else
 				reflect_flag |= DRM_MODE_ROTATE_0;
-			}
 
 			ret = drmModeAtomicAddProperty(req, plane_id,
 						       property->prop_id,
@@ -297,7 +307,7 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 	int err;
 
 	if (plane->reflected != reflect_y) {
-		drm_overlay_reflect_y(drm, plane->plane, reflect_y);
+		drm_overlay_reflect(display, plane->plane, reflect_y);
 		plane->reflected = reflect_y;
 	}
 
@@ -377,7 +387,7 @@ static int drm_display_set(struct host1x_display *display,
 	int err;
 
 	if (drm->reflected != reflect_y) {
-		drm_overlay_reflect_y(drm->drm, drm->plane, reflect_y);
+		drm_overlay_reflect(drm, drm->plane, reflect_y);
 		drm->reflected = reflect_y;
 	}
 
@@ -434,7 +444,7 @@ static int drm_display_setup(struct drm_display *display, int display_id)
 	struct drm *drm = display->drm;
 	int ret = -ENODEV;
 	drmModeRes *res;
-	uint32_t i;
+	uint32_t i, k;
 
 	res = drmModeGetResources(drm->fd);
 	if (!res)
@@ -442,6 +452,7 @@ static int drm_display_setup(struct drm_display *display, int display_id)
 
 retry_connector:
 	for (i = 0; i < res->count_connectors; i++) {
+		drmModePropertyPtr property;
 		drmModeConnector *connector;
 		drmModeEncoder *encoder;
 
@@ -466,6 +477,22 @@ retry_connector:
 		if (!encoder) {
 			drmModeFreeConnector(connector);
 			continue;
+		}
+
+		for (k = 0; k < connector->count_props; k++) {
+			property = drmModeGetProperty(drm->fd, connector->props[k]);
+			if (!property)
+				continue;
+
+			if (!strcmp(property->name, "panel orientation")) {
+				unsigned int orientation_id = connector->prop_values[k];
+				const char *orientation_name = property->enums[orientation_id].name;
+
+				if (!strcmp(orientation_name, "Upside Down"))
+					display->upside_down = true;
+			}
+
+			free(property);
 		}
 
 		display->connector = res->connectors[i];
