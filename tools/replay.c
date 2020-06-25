@@ -626,6 +626,7 @@ static void handle_single_step(void)
 
 int main(int argc, char *argv[])
 {
+	struct host1x_options options = {};
 	struct record_act r;
 	unsigned int act_cnt = 0;
 	char *path = NULL;
@@ -633,7 +634,11 @@ int main(int argc, char *argv[])
 	int ret;
 	int c;
 
-	host1x = host1x_open(true, -1, -1);
+	options.open_display = true;
+	options.display_id = -1;
+	options.fd = -1;
+
+	host1x = host1x_open(&options);
 	if (!host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		abort();

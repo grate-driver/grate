@@ -176,8 +176,7 @@ static int display_set(struct host1x_display *displayp,
 			   vsync, reflect_y);
 }
 
-struct nvhost_display * nvhost_display_create(struct nvhost *nvhost,
-					      int display_id)
+struct nvhost_display * nvhost_display_create(struct nvhost *nvhost)
 {
 	struct tegra_dc_ext_control_output_properties output_properties;
 	struct fb_var_screeninfo fb_info;
@@ -185,6 +184,7 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost,
 	uint32_t num_outputs = 0;
 	uint32_t syncpt;
 	uint32_t output;
+	int display_id;
 	int err;
 	int fd;
 
@@ -197,6 +197,8 @@ struct nvhost_display * nvhost_display_create(struct nvhost *nvhost,
 		close(fd);
 		return NULL;
 	}
+
+	display_id = nvhost->base.options->display_id;;
 
 retry_output:
 	for (output = 0; output < num_outputs; output++) {

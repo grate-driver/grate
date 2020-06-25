@@ -25,6 +25,7 @@
 int main(int argc, char *argv[])
 {
 	struct host1x_pixelbuffer *src, *dst;
+	struct host1x_options options = {};
 	struct host1x_gr2d *gr2d;
 	struct host1x *host1x;
 	unsigned int width = 300;
@@ -33,7 +34,11 @@ int main(int argc, char *argv[])
 	void *smap, *dmap;
 	int err;
 
-	host1x = host1x_open(true, -1, -1);
+	options.open_display = true;
+	options.display_id = -1;
+	options.fd = -1;
+
+	host1x = host1x_open(&options);
 	if (!host1x) {
 		host1x_error("host1x_open() failed\n");
 		return 1;

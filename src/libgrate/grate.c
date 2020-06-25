@@ -171,8 +171,11 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 	if (!grate)
 		return NULL;
 
-	grate->host1x = host1x_open(!options->nodisplay, fd,
-				    options->display_id);
+	grate->host1x_options.open_display = !options->nodisplay;
+	grate->host1x_options.display_id = options->display_id;
+	grate->host1x_options.fd = fd;
+
+	grate->host1x = host1x_open(&grate->host1x_options);
 	if (!grate->host1x) {
 		free(grate);
 		return NULL;

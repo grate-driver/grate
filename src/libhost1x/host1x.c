@@ -29,18 +29,18 @@
 #include "host1x.h"
 #include "host1x-private.h"
 
-struct host1x *host1x_open(bool open_display, int fd, int display_id)
+struct host1x *host1x_open(struct host1x_options *options)
 {
 	struct host1x *host1x;
 
 	printf("Looking for Tegra DRM interface...");
 	fflush(stdout);
 
-	host1x = host1x_drm_open(fd);
+	host1x = host1x_drm_open(options);
 	if (host1x) {
 		printf("found\n");
-		if (open_display)
-			host1x_drm_display_init(host1x, display_id);
+		if (options->open_display)
+			host1x_drm_display_init(host1x);
 		return host1x;
 	}
 
@@ -48,18 +48,18 @@ struct host1x *host1x_open(bool open_display, int fd, int display_id)
 	printf("Looking for L4T interface...");
 	fflush(stdout);
 
-	host1x = host1x_nvhost_open();
+	host1x = host1x_nvhost_open(options);
 	if (host1x) {
 		printf("found\n");
-		if (open_display)
-			host1x_nvhost_display_init(host1x, display_id);
+		if (options->open_display)
+			host1x_nvhost_display_init(host1x);
 		return host1x;
 	}
 
 	printf("not found\n\n");
 
 	printf("Kernel driver interface undetected, continuing using a dummy interface!\n\n");
-	return host1x_dummy_open();
+	return host1x_dummy_open(options);
 }
 
 void host1x_close(struct host1x *host1x)

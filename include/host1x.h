@@ -181,7 +181,13 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf);
 void host1x_pixelbuffer_disable_bo_guard(void);
 bool host1x_pixelbuffer_bo_guard_disabled(void);
 
-struct host1x *host1x_open(bool open_display, int fd, int display_id);
+struct host1x_options {
+	bool open_display;
+	int display_id;
+	int fd;
+};
+
+struct host1x *host1x_open(struct host1x_options *options);
 void host1x_close(struct host1x *host1x);
 
 struct host1x_display *host1x_get_display(struct host1x *host1x);

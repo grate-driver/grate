@@ -110,8 +110,7 @@ static inline struct nvhost *to_nvhost(struct host1x *host1x)
 	return container_of(host1x, struct nvhost, base);
 }
 
-struct nvhost_display * nvhost_display_create(struct nvhost *nvhost,
-					      int display_id);
+struct nvhost_display * nvhost_display_create(struct nvhost *nvhost);
 void nvhost_display_close(struct nvhost_display *display);
 
 struct nvhost_gr2d *nvhost_gr2d_open(struct nvhost *nvhost);

@@ -492,8 +492,7 @@ retry_connector:
 	return ret;
 }
 
-static int drm_display_create(struct drm_display **displayp, struct drm *drm,
-			      int display_id)
+static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 {
 	struct drm_display *display;
 	int err;
@@ -517,7 +516,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm,
 		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
 			     err);
 
-	err = drm_display_setup(display, display_id);
+	err = drm_display_setup(display, drm->base.options->display_id);
 	if (err < 0)
 		goto try_x11;
 
@@ -1073,9 +1072,10 @@ static void drm_close(struct host1x *host1x)
 	free(drm);
 }
 
-struct host1x *host1x_drm_open(int fd)
+struct host1x *host1x_drm_open(struct host1x_options *options)
 {
 	struct drm *drm;
+	int fd = options->fd;
 	int err;
 
 	if (fd < 0) {
@@ -1096,6 +1096,7 @@ struct host1x *host1x_drm_open(int fd)
 	drm->base.framebuffer_init = drm_framebuffer_init;
 	drm->base.close = drm_close;
 	drm->base.bo_import = drm_bo_import;
+	drm->base.options = options;
 
 	err = drm_gr2d_create(&drm->gr2d, drm);
 	if (err < 0) {
@@ -1119,12 +1120,12 @@ struct host1x *host1x_drm_open(int fd)
 	return &drm->base;
 }
 
-void host1x_drm_display_init(struct host1x *host1x, int display_id)
+void host1x_drm_display_init(struct host1x *host1x)
 {
 	struct drm *drm = to_drm(host1x);
 	int err;
 
-	err = drm_display_create(&drm->display, drm, display_id);
+	err = drm_display_create(&drm->display, drm);
 	if (err < 0) {
 		host1x_error("drm_display_create() failed: %d\n", err);
 	} else {

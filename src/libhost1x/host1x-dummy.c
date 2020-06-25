@@ -145,7 +145,7 @@ static struct host1x_gr3d dummy_gr3d = {
 	.client = &dummy_client,
 };
 
-struct host1x *host1x_dummy_open(void)
+struct host1x *host1x_dummy_open(struct host1x_options *options)
 {
 	struct host1x *host1x;
 	int err;
@@ -156,6 +156,7 @@ struct host1x *host1x_dummy_open(void)
 
 	host1x->bo_create = host1x_dummy_bo_create;
 	host1x->close = host1x_dummy_close;
+	host1x->options = options;
 
 	host1x->gr2d = &dummy_gr2d;
 	host1x->gr3d = &dummy_gr3d;

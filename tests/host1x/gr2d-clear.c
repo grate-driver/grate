@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 {
 	struct host1x_display *display = NULL;
 	struct host1x_overlay *overlay = NULL;
+	struct host1x_options options = {};
 	struct host1x_framebuffer *fb;
 	unsigned int width = 256;
 	unsigned int height = 256;
@@ -43,7 +44,11 @@ int main(int argc, char *argv[])
 	struct host1x *host1x;
 	int err;
 
-	host1x = host1x_open(true, -1, -1);
+	options.open_display = true;
+	options.display_id = -1;
+	options.fd = -1;
+
+	host1x = host1x_open(&options);
 	if (!host1x) {
 		fprintf(stderr, "host1x_open() failed\n");
 		return 1;

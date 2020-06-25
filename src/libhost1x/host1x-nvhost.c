@@ -175,7 +175,7 @@ static int nvhost_framebuffer_init(struct host1x *host1x,
 	return host1x_gr2d_clear(gr2d, fb->pixbuf, 0x00000000);
 }
 
-struct host1x *host1x_nvhost_open(void)
+struct host1x *host1x_nvhost_open(struct host1x_options *options)
 {
 	struct nvhost *nvhost;
 
@@ -193,6 +193,7 @@ struct host1x *host1x_nvhost_open(void)
 
 	nvhost->base.bo_create = nvhost_bo_create;
 	nvhost->base.close = host1x_nvhost_close;
+	nvhost->base.options = options;
 
 	nvhost->gr2d = nvhost_gr2d_open(nvhost);
 	if (!nvhost->gr2d)
@@ -209,11 +210,11 @@ struct host1x *host1x_nvhost_open(void)
 	return &nvhost->base;
 }
 
-void host1x_nvhost_display_init(struct host1x *host1x, int display_id)
+void host1x_nvhost_display_init(struct host1x *host1x)
 {
 	struct nvhost *nvhost = to_nvhost(host1x);
 
-	nvhost->display = nvhost_display_create(nvhost, display_id);
+	nvhost->display = nvhost_display_create(nvhost);
 	if (!nvhost->display) {
 		host1x_error("nvhost_display_create() failed\n");
 	} else {

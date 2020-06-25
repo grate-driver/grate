@@ -28,6 +28,7 @@ struct grate {
 	struct grate_overlay *overlay;
 	struct grate_framebuffer *fb;
 	struct grate_color clear;
+	struct host1x_options host1x_options;
 	struct host1x *host1x;
 };
 

@@ -121,14 +121,15 @@ struct host1x {
 	struct host1x_display *display;
 	struct host1x_gr2d *gr2d;
 	struct host1x_gr3d *gr3d;
+	struct host1x_options *options;
 };
 
-struct host1x *host1x_nvhost_open(void);
-void host1x_nvhost_display_init(struct host1x *host1x, int display_id);
+struct host1x *host1x_nvhost_open(struct host1x_options *options);
+void host1x_nvhost_display_init(struct host1x *host1x);
 
-struct host1x *host1x_drm_open(int fd);
-void host1x_drm_display_init(struct host1x *host1x, int display_id);
+struct host1x *host1x_drm_open(struct host1x_options *options);
+void host1x_drm_display_init(struct host1x *host1x);
 
-struct host1x *host1x_dummy_open(void);
+struct host1x *host1x_dummy_open(struct host1x_options *options);
 
 #endif
