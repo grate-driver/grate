@@ -329,6 +329,11 @@ static int drm_overlay_set(struct host1x_overlay *overlay,
 		}
 	}
 
+	if (display->upside_down) {
+		x = display->mode.hdisplay - width - x;
+		y = display->mode.vdisplay - height - y;
+	}
+
 	err = drmModeSetPlane(drm->fd, plane->plane, display->crtc,
 			      fb->handle, 0, x, y, width, height, 0, 0,
 			      fb->pixbuf->width << 16,
