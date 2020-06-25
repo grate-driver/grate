@@ -83,7 +83,7 @@ struct drm_display {
 	unsigned int pipe;
 	uint32_t plane;
 	uint32_t crtc;
-	bool reflected;
+	int reflected;
 };
 
 static inline struct drm_display *to_drm_display(struct host1x_display *display)
@@ -101,7 +101,7 @@ struct drm_overlay {
 	unsigned int width;
 	unsigned int height;
 	uint32_t format;
-	bool reflected;
+	int reflected;
 };
 
 static inline struct drm_overlay *to_drm_overlay(struct host1x_overlay *overlay)
@@ -350,6 +350,7 @@ static int drm_overlay_create(struct host1x_display *display,
 
 	overlay->display = drm;
 	overlay->plane = plane;
+	overlay->reflected = -1;
 
 	*overlayp = &overlay->base;
 
@@ -470,6 +471,7 @@ retry_connector:
 		display->connector = res->connectors[i];
 		display->mode = connector->modes[0];
 		display->crtc = encoder->crtc_id;
+		display->reflected = -1;
 
 		drmModeFreeEncoder(encoder);
 		drmModeFreeConnector(connector);
