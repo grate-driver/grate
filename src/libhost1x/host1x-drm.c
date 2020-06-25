@@ -232,9 +232,18 @@ static int drm_overlay_reflect_y(struct drm *drm, uint32_t plane_id,
 			reflect_flag = 0;
 
 		if (!strcmp(property->name, "rotation")) {
+			if (drm->base.options->rotate_display == 180) {
+				reflect_flag |= DRM_MODE_ROTATE_180;
+			} else {
+				if (drm->base.options->rotate_display != 0)
+					host1x_error("unsupported display rotation %u, only 180 is supported\n",
+						     drm->base.options->rotate_display);
+
+				reflect_flag |= DRM_MODE_ROTATE_0;
+			}
+
 			ret = drmModeAtomicAddProperty(req, plane_id,
 						       property->prop_id,
-						       DRM_MODE_ROTATE_0 |
 						       reflect_flag);
 			if (ret < 0)
 				host1x_error("drmModeAtomicAddProperty() failed: %d\n",

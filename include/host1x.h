@@ -182,6 +182,7 @@ void host1x_pixelbuffer_disable_bo_guard(void);
 bool host1x_pixelbuffer_bo_guard_disabled(void);
 
 struct host1x_options {
+	unsigned int rotate_display;
 	bool open_display;
 	int display_id;
 	int fd;

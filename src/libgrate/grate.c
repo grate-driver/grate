@@ -97,9 +97,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 		{ "singlebuffered", 0, NULL, 's' },
 		{ "guard", 0, NULL, 'g' },
 		{ "display", 1, NULL, 'd' },
+		{ "rotate-display-degrees", 1, NULL, 'r' },
 		{ /* Sentinel */ },
 	};
-	static const char opts[] = "fw:h:vnsgd:";
+	static const char opts[] = "fw:h:vnsgd:r:";
 	int opt;
 
 	printf("\nINFO: Available cmdline arguments:\n");
@@ -120,6 +121,7 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	options->width = 256;
 	options->height = 256;
 	options->display_id = -1;
+	options->rotate_display = 0;
 
 	while ((opt = getopt_long(argc, argv, opts, long_opts, NULL)) != -1) {
 		switch (opt) {
@@ -155,6 +157,10 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 			options->display_id = strtoul(optarg, NULL, 10);
 			break;
 
+		case 'r':
+			options->rotate_display = strtoul(optarg, NULL, 10);
+			break;
+
 		default:
 			return false;
 		}
@@ -171,6 +177,7 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 	if (!grate)
 		return NULL;
 
+	grate->host1x_options.rotate_display = options->rotate_display;
 	grate->host1x_options.open_display = !options->nodisplay;
 	grate->host1x_options.display_id = options->display_id;
 	grate->host1x_options.fd = fd;

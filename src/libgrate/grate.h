@@ -74,6 +74,7 @@ struct grate_options {
 	bool nodisplay;
 	bool vsync;
 	int display_id;
+	unsigned int rotate_display;
 };
 
 bool grate_parse_command_line(struct grate_options *options, int argc,
