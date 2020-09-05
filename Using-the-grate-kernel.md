@@ -19,6 +19,11 @@ $ git clone https://github.com/grate-driver/linux.git
 # apt-get install gcc-arm-linux-gnueabihf
 ```
 
+### Arch
+
+```
+# yay -S arm-linux-gnueabihf-gcc
+```
 ---
 
 You should also be able to use binary toolchains by [Arm](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads), [Linaro](https://www.linaro.org/downloads/) or any other that are targeting `armv7a-hardfloat-linux-gnueabi`, `arm-linux-gnueabi` or `arm-none-linux-gnueabihf` (including those provided by your distribution)
