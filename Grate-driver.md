@@ -51,6 +51,17 @@
   3. `sh autogen.sh --prefix=/usr`
   4. `make install`
 
+### Software GL:
+
+Note that Display Managers may require GL support, but it's not available yet and automatic fallback doesn't work with Opentegra. Add these lines to `/etc/security/pam_env.conf` to fix this problem:
+
+```
+QT_QUICK_BACKEND=software
+LIBGL_ALWAYS_SOFTWARE=1
+```
+
+This will provide a system-wide fall back to software GL.
+
 ### Mesa:
 
   1. `git clone https://github.com/grate-driver/mesa.git`
