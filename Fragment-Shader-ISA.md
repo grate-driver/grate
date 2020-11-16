@@ -413,3 +413,4 @@ _XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination regis
 - [EP1665165: "Pixel processing system and method"](https://patents.google.com/patent/EP1665165)
 - [US8711155: "Early kill removal graphics processing system and method"](https://patents.google.com/patent/US8711155)
 - [US7199799: "Interleaving of pixels for low power programmable processor"](https://patents.google.com/patent/US7199799)
+- [US8314803: "Buffering deserialized pixel data in a graphics processor unit pipeline"](https://patents.google.com/patent/US8314803)
