@@ -409,6 +409,7 @@ These seems to be for Tegra:
 - [US8314803: "Buffering deserialized pixel data in a graphics processor unit pipeline"](https://patents.google.com/patent/US8314803)
 - [US9183607: "Scoreboard cache coherence in a graphics pipeline"](https://patents.google.com/patent/US9183607)
 - [US7808512: "Bounding region accumulation for graphics rendering"](https://patents.google.com/patent/US7808512)
+- [US8441497: "Interpolation of vertex attributes in a graphics processor"](https://patents.google.com/patent/US8441497)
 
 These seems to be for GoForce (based on filing dates):
 - [US7969446: "Method for operating low power programmable processor"](https://patents.google.com/patent/US7969446)
