@@ -405,6 +405,10 @@ _XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination regis
 
 ## More patents
 
+This one seems to be for Tegra:
+- [US8314803: "Buffering deserialized pixel data in a graphics processor unit pipeline"](https://patents.google.com/patent/US8314803)
+
+These seems to be for GoForce (based on filing dates):
 - [US7969446: "Method for operating low power programmable processor"](https://patents.google.com/patent/US7969446)
 - [US8749576: "Method and system for implementing multiple high precision and low precision interpolators for a graphics pipeline"](https://patents.google.com/patent/US8749576)
 - [EP1759380: "Low power programmable processor"](https://patents.google.com/patent/EP1759380)
@@ -413,4 +417,3 @@ _XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination regis
 - [EP1665165: "Pixel processing system and method"](https://patents.google.com/patent/EP1665165)
 - [US8711155: "Early kill removal graphics processing system and method"](https://patents.google.com/patent/US8711155)
 - [US7199799: "Interleaving of pixels for low power programmable processor"](https://patents.google.com/patent/US7199799)
-- [US8314803: "Buffering deserialized pixel data in a graphics processor unit pipeline"](https://patents.google.com/patent/US8314803)
