@@ -405,8 +405,9 @@ _XXX: the above is valid for fetching 32bit RGBA8888 into FX10 destination regis
 
 ## More patents
 
-This one seems to be for Tegra:
+These seems to be for Tegra:
 - [US8314803: "Buffering deserialized pixel data in a graphics processor unit pipeline"](https://patents.google.com/patent/US8314803)
+- [US9183607: "Scoreboard cache coherence in a graphics pipeline"](https://patents.google.com/patent/US9183607)
 
 These seems to be for GoForce (based on filing dates):
 - [US7969446: "Method for operating low power programmable processor"](https://patents.google.com/patent/US7969446)
