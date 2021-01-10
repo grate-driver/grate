@@ -53,6 +53,8 @@ static void grate_3d_begin(struct host1x_pushbuf *pb)
 {
 	host1x_pushbuf_push(pb,
 			    HOST1X_OPCODE_SETCL(0x0, HOST1X_CLASS_GR3D, 0x0));
+
+	host1x_push_gr3d_reset(pb);
 }
 
 static void grate_3d_set_depth_range(struct host1x_pushbuf *pb,

@@ -77,22 +77,9 @@ static int host1x_gr3d_test(struct host1x_gr3d *gr3d)
 	return 0;
 }
 
-static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
+int host1x_push_gr3d_reset(struct host1x_pushbuf *pb)
 {
-	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
-	struct host1x_pushbuf *pb;
-	struct host1x_job *job;
 	unsigned int i;
-	uint32_t fence;
-	int err;
-
-	job = HOST1X_JOB_CREATE(syncpt->id, 1);
-	if (!job)
-		return -ENOMEM;
-
-	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
-	if (!pb)
-		return -ENOMEM;
 
 	/* Tegra30 specific stuff */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x907, 0x0000));
@@ -271,6 +258,26 @@ static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe28, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe29, 0x0000));
 
+	return 0;
+}
+
+static int host1x_gr3d_reset(struct host1x_gr3d *gr3d)
+{
+	struct host1x_syncpt *syncpt = &gr3d->client->syncpts[0];
+	struct host1x_pushbuf *pb;
+	struct host1x_job *job;
+	uint32_t fence;
+	int err;
+
+	job = HOST1X_JOB_CREATE(syncpt->id, 1);
+	if (!job)
+		return -ENOMEM;
+
+	pb = HOST1X_JOB_APPEND(job, gr3d->commands, 0);
+	if (!pb)
+		return -ENOMEM;
+
+	host1x_push_gr3d_reset(pb);
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_NONINCR(0x00, 0x01));
 	host1x_pushbuf_push(pb, 0x000001 << 8 | syncpt->id);
 

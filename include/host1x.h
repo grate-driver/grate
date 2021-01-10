@@ -502,4 +502,6 @@ int host1x_gr2d_surface_blit(struct host1x_gr2d *gr2d,
 int host1x_gr3d_triangle(struct host1x_gr3d *gr3d,
 			 struct host1x_pixelbuffer *pixbuf);
 
+int host1x_push_gr3d_reset(struct host1x_pushbuf *pb);
+
 #endif
