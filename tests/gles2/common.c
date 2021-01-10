@@ -737,7 +737,7 @@ struct gles_texture *gles_texture_load3(const char *filename,
 	case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
 	case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
 	{
-		ILenum DXTCFormat;
+		ILenum DXTCFormat = 0;
 
 		switch (gl_format) {
 		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
