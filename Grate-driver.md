@@ -62,6 +62,12 @@ LIBGL_ALWAYS_SOFTWARE=1
 
 This will provide a system-wide fall back to software GL.
 
+By default the `llvmpipe` Mesa driver will be used and it doesn't work on Tegra20 or if NEON is disabled. In this case use `softpipe` driver:
+
+```
+GALLIUM_DRIVER=softpipe
+```
+
 ### Mesa:
 
   1. `git clone https://github.com/grate-driver/mesa.git`
