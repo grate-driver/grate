@@ -1115,6 +1115,34 @@ static void drm_close(struct host1x *host1x)
 	free(drm);
 }
 
+static enum tegra_soc_id host1x_drm_get_soc_id(void)
+{
+	const char *path = "/sys/devices/soc0/soc_id";
+	FILE *file;
+
+	file = fopen(path, "r");
+	if (file) {
+		unsigned int id = 0;
+
+		if (fscanf(file, "%d", &id) != 1)
+			host1x_error("fscanf failed for %s\n", path);
+		fclose(file);
+
+		switch (id) {
+		case 0x20:
+			return TEGRA20_SOC;
+		case 0x30:
+			return TEGRA30_SOC;
+		case 0x35:
+			return TEGRA114_SOC;
+		}
+	} else {
+		host1x_error("failed to open %s\n", path);
+	}
+
+	return TEGRA_UNKOWN_SOC;
+}
+
 struct host1x *host1x_drm_open(struct host1x_options *options)
 {
 	struct drm *drm;
@@ -1159,6 +1187,8 @@ struct host1x *host1x_drm_open(struct host1x_options *options)
 
 	drm->base.gr2d = &drm->gr2d->base;
 	drm->base.gr3d = &drm->gr3d->base;
+
+	options->chip_info.soc_id = host1x_drm_get_soc_id();
 
 	return &drm->base;
 }

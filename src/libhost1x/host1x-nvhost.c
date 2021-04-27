@@ -175,6 +175,42 @@ static int nvhost_framebuffer_init(struct host1x *host1x,
 	return host1x_gr2d_clear(gr2d, fb->pixbuf, 0x00000000);
 }
 
+static enum tegra_soc_id host1x_nvhost_get_chip_id(void)
+{
+	const char *path1 = "/sys/module/tegra_fuse/parameters/tegra_chip_id";
+	const char *path2 = "/sys/module/fuse/parameters/tegra_chip_id";
+	const char *path;
+	FILE *file;
+
+	path = path1;
+	file = fopen(path, "r");
+	if (!file) {
+		path = path2;
+		file = fopen(path, "r");
+	}
+	if (file) {
+		unsigned int id = 0;
+
+		if (fscanf(file, "%d", &id) != 1)
+			host1x_error("fscanf failed for %s\n", path);
+		fclose(file);
+
+		switch (id) {
+		case 0x20:
+			return TEGRA20_SOC;
+		case 0x30:
+			return TEGRA30_SOC;
+		case 0x35:
+			return TEGRA114_SOC;
+		}
+	} else {
+		host1x_error("failed to open %s\n", path1);
+		host1x_error("failed to open %s\n", path2);
+	}
+
+	return TEGRA_UNKOWN_SOC;
+}
+
 struct host1x *host1x_nvhost_open(struct host1x_options *options)
 {
 	struct nvhost *nvhost;
@@ -206,6 +242,8 @@ struct host1x *host1x_nvhost_open(struct host1x_options *options)
 	nvhost->base.gr2d = &nvhost->gr2d->base;
 	nvhost->base.gr3d = &nvhost->gr3d->base;
 	nvhost->base.framebuffer_init = nvhost_framebuffer_init;
+
+	options->chip_info.soc_id = host1x_nvhost_get_chip_id();
 
 	return &nvhost->base;
 }

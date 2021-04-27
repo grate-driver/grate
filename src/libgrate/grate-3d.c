@@ -60,9 +60,16 @@ static void grate_3d_begin(struct host1x_pushbuf *pb)
 static void grate_3d_set_depth_range(struct host1x_pushbuf *pb,
 				     struct grate_3d_ctx *ctx)
 {
+	unsigned int scale;
+
+	if (grate_chip_info()->soc_id == TEGRA114_SOC)
+		scale = 0xFFFFFF;
+	else
+		scale = 0xFFFFF;
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_RANGE_NEAR, 2));
-	host1x_pushbuf_push(pb, (uint32_t)(0xFFFFF * ctx->depth_range_near));
-	host1x_pushbuf_push(pb, (uint32_t)(0xFFFFF * ctx->depth_range_far));
+	host1x_pushbuf_push(pb, (uint32_t)(scale * ctx->depth_range_near));
+	host1x_pushbuf_push(pb, (uint32_t)(scale * ctx->depth_range_far));
 }
 
 static void grate_3d_set_dither(struct host1x_pushbuf *pb,
@@ -327,7 +334,8 @@ static void grate_3d_set_alu_buffer_size(struct host1x_pushbuf *pb,
 	host1x_pushbuf_push(pb, value);
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x501, 1));
-	host1x_pushbuf_push(pb, (0x0032 << 16) | (unk_pseq_cfg << 4) | 0xF);
+	host1x_pushbuf_push(pb, (0x2200 << 16) | (0x0032 << 16) |
+				(unk_pseq_cfg << 4) | 0xF);
 }
 
 static void grate_3d_set_pseq_dw_cfg(struct host1x_pushbuf *pb,
@@ -338,6 +346,13 @@ static void grate_3d_set_pseq_dw_cfg(struct host1x_pushbuf *pb,
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_FP_PSEQ_DW_CFG, 1));
 	host1x_pushbuf_push(pb, value);
+
+	if (grate_chip_info()->soc_id == TEGRA114_SOC) {
+		/* XXX: maybe not needed */
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x547, 0x0002));
+		host1x_pushbuf_push(pb, 0xc0000000);
+		host1x_pushbuf_push(pb, 0x00000000);
+	}
 }
 
 static void grate_3d_set_used_tram_rows_nb(struct host1x_pushbuf *pb,
@@ -457,6 +472,11 @@ static void grate_3d_init(struct host1x_pushbuf *pb)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa00, 0xe01));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xa08, 0x100));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x40c, 0x06));
+
+	if (grate_chip_info()->soc_id == TEGRA114_SOC) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x41a, 0xa00));
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x416, 0x140));
+	}
 }
 
 static void grate_3d_reset_program(struct host1x_pushbuf *pb)
@@ -503,8 +523,18 @@ static void grate_3d_set_depth_buffer(struct host1x_pushbuf *pb,
 	value |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_WRITE, ctx->depth_write);
 	value |= 0x200;
 
+	if (grate_chip_info()->soc_id == TEGRA114_SOC) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x411, 1));
+		host1x_pushbuf_push(pb, value);
+	}
+
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_TEST_PARAMS, 1));
 	host1x_pushbuf_push(pb, value);
+
+	if (grate_chip_info()->soc_id == TEGRA114_SOC) {
+		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe45, 1));
+		host1x_pushbuf_push(pb, value);
+	}
 }
 
 static void grate_3d_set_stencil_test(struct host1x_pushbuf *pb,

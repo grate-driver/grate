@@ -94,4 +94,14 @@ struct file_table {
 
 void file_table_register(const struct file_table *table, unsigned int count);
 
+enum chip_id {
+	TEGRA_INVALID,
+	TEGRA_UNKNOWN,
+	TEGRA20,
+	TEGRA30,
+	TEGRA114,
+};
+
+enum chip_id tegra_chip_id(void);
+
 #endif

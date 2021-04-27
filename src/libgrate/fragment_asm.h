@@ -36,6 +36,29 @@ typedef union fragment_instruction_schedule {
 	uint32_t data;
 } instr_sched;
 
+typedef union fragment_alu_instruction_schedule_t114 {
+	struct __attribute__((packed)) {
+		unsigned __pad:8;
+		unsigned instructions_nb:8;
+		unsigned address:8;
+		unsigned unk24_31:8;
+	};
+
+	uint32_t data;
+} alu_instr_sched_t114;
+
+static inline alu_instr_sched_t114 to_114_alu_sched(uint32_t reg_value)
+{
+	instr_sched t20_sched = { .data = reg_value };
+	alu_instr_sched_t114 t114_sched;
+
+	t114_sched.instructions_nb = t20_sched.instructions_nb;
+	t114_sched.address = t20_sched.address;
+	t114_sched.unk24_31 = 0xe0;
+
+	return t114_sched;
+}
+
 #define MFU_NOP		0
 #define MFU_RCP		1
 #define MFU_RSQ		2

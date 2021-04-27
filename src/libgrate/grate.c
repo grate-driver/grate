@@ -169,6 +169,13 @@ bool grate_parse_command_line(struct grate_options *options, int argc,
 	return true;
 }
 
+static struct host1x_chip_info chip_info;
+
+const struct host1x_chip_info *grate_chip_info(void)
+{
+	return &chip_info;
+}
+
 struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 {
 	struct grate *grate;
@@ -189,6 +196,8 @@ struct grate *grate_init_with_fd(struct grate_options *options, int fd)
 	}
 
 	grate->options = options;
+
+	chip_info = grate->host1x_options.chip_info;
 
 	if (grate->options->nodisplay)
 		return grate;

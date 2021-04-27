@@ -29,6 +29,13 @@
 #include "host1x.h"
 #include "host1x-private.h"
 
+static const char * const soc_names[] = {
+	[TEGRA_UNKOWN_SOC] = "unknown",
+	[TEGRA20_SOC] = "Tegra20",
+	[TEGRA30_SOC] = "Tegra30",
+	[TEGRA114_SOC] = "Tegra114",
+};
+
 struct host1x *host1x_open(struct host1x_options *options)
 {
 	struct host1x *host1x;
@@ -41,7 +48,7 @@ struct host1x *host1x_open(struct host1x_options *options)
 		printf("found\n");
 		if (options->open_display)
 			host1x_drm_display_init(host1x);
-		return host1x;
+		goto out;
 	}
 
 	printf("not found\n");
@@ -53,13 +60,17 @@ struct host1x *host1x_open(struct host1x_options *options)
 		printf("found\n");
 		if (options->open_display)
 			host1x_nvhost_display_init(host1x);
-		return host1x;
+		goto out;
 	}
 
 	printf("not found\n\n");
 
 	printf("Kernel driver interface undetected, continuing using a dummy interface!\n\n");
-	return host1x_dummy_open(options);
+	host1x = host1x_dummy_open(options);
+out:
+	printf("SoC ID: %s\n", soc_names[options->chip_info.soc_id]);
+
+	return host1x;
 }
 
 void host1x_close(struct host1x *host1x)

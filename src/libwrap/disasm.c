@@ -137,6 +137,9 @@ void disasm_write_reg(void *opaque, uint32_t host1x_class,
 			break;
 		}
 
+		if (tegra_chip_id() != TEGRA114)
+			value = to_114_alu_sched(value).data;
+
 		d->alu_sched[d->alu_sched_words_nb++].data = value;
 		break;
 
@@ -249,7 +252,7 @@ void disasm_dump(struct disasm_state *d)
 		tex_instr  *tex  = &d->tex_instructions[i];
 		dw_instr   *dw   = &d->dw_instructions[i];
 		mfu_instr  mfu[3];
-		alu_instr  alu[3];
+		alu_instr  alu[3 + 5];
 
 		addr = d->mfu_sched[i].address;
 		for (k = 0; k < d->mfu_sched[i].instructions_nb; k++, addr++) {

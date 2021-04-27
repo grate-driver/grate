@@ -228,3 +228,53 @@ void file_dup(struct file *file, int fd)
 
 	fprintf(stderr, "out of FD slots\n");
 }
+
+static enum chip_id read_chip_id(const char *path)
+{
+	FILE *file = fopen(path, "r");
+	if (file) {
+		unsigned int id = 0;
+
+		if (fscanf(file, "%d", &id) != 1)
+			fprintf(stderr, "fscanf failed for %s\n", path);
+		fclose(file);
+
+		switch (id) {
+		case 0x20:
+			return TEGRA20;
+		case 0x30:
+			return TEGRA30;
+		case 0x35:
+			return TEGRA114;
+		}
+
+		return TEGRA_UNKNOWN;
+	}
+
+	return TEGRA_INVALID;
+}
+
+enum chip_id tegra_chip_id(void)
+{
+	const char *path[] =  {
+		"/sys/module/tegra_fuse/parameters/tegra_chip_id",
+		"/sys/module/fuse/parameters/tegra_chip_id",
+		"/sys/devices/soc0/soc_id",
+	};
+	static enum chip_id id = TEGRA_INVALID;
+	unsigned int i;
+
+	if (id != TEGRA_INVALID)
+		return id;
+
+	for (i = 0; i < ARRAY_SIZE(path); i++) {
+		id = read_chip_id(path[i]);
+		if (id != TEGRA_INVALID)
+			return id;
+	}
+
+	fprintf(stderr, "failed to identify SoC version\n");
+	id = TEGRA_UNKNOWN;
+
+	return id;
+}

@@ -404,8 +404,12 @@ struct grate_shader *grate_shader_parse_fragment_asm(const char *asm_txt)
 	/* ALU SCHED */
 	shader->words[words++] =
 			HOST1X_OPCODE_NONINCR(0x801, asm_fs_instructions_nb);
-	for (i = 0; i < asm_fs_instructions_nb; i++)
-		shader->words[words++] = asm_alu_sched[i].data;
+	for (i = 0; i < asm_fs_instructions_nb; i++) {
+		if (grate_chip_info()->soc_id == TEGRA114_SOC)
+			shader->words[words++] = to_114_alu_sched(asm_alu_sched[i].data).data;
+		else
+			shader->words[words++] = asm_alu_sched[i].data;
+	}
 
 	/* ALU */
 	shader->words[words++] =

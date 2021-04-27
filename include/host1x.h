@@ -181,11 +181,25 @@ void host1x_pixelbuffer_check_guard(struct host1x_pixelbuffer *pixbuf);
 void host1x_pixelbuffer_disable_bo_guard(void);
 bool host1x_pixelbuffer_bo_guard_disabled(void);
 
+enum tegra_soc_id {
+	TEGRA_UNKOWN_SOC,
+	TEGRA20_SOC,
+	TEGRA30_SOC,
+	TEGRA114_SOC,
+};
+
+struct host1x_chip_info {
+	enum tegra_soc_id soc_id;
+};
+
 struct host1x_options {
+	/* in */
 	unsigned int rotate_display;
 	bool open_display;
 	int display_id;
 	int fd;
+	/* out */
+	struct host1x_chip_info chip_info;
 };
 
 struct host1x *host1x_open(struct host1x_options *options);

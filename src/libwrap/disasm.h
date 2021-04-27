@@ -64,7 +64,7 @@ struct disasm_state {
 	uint32_t alu_complements[64];
 	unsigned int alu_complements_nb;
 
-	instr_sched alu_sched[64];
+	alu_instr_sched_t114 alu_sched[64];
 	unsigned int alu_sched_words_nb;
 
 	dw_instr dw_instructions[64];

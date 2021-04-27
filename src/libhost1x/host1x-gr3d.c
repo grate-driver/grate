@@ -81,6 +81,36 @@ int host1x_push_gr3d_reset(struct host1x_pushbuf *pb)
 {
 	unsigned int i;
 
+	/* Tegra114 specific stuff */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe44, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x807, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc00, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc01, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc02, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc03, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc30, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc31, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc32, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc33, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc40, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc41, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc42, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc43, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc50, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc51, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc52, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xc53, 0x0000));
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0xe70, 0x0010));
+	for (i = 0; i < 16; i++)
+		host1x_pushbuf_push(pb, 0x00000000);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe80, 0x0f00));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe84, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe85, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe86, 0x0000));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xe87, 0x0000));
+
 	/* Tegra30 specific stuff */
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x907, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x908, 0x0000));
@@ -100,6 +130,14 @@ int host1x_push_gr3d_reset(struct host1x_pushbuf *pb)
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x750, 0x0010));
 	for (i = 0; i < 16; i++)
 		host1x_pushbuf_push(pb, 0x00000000);
+
+	/* Tegra114 has additional texture descriptors */
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x770, 0x0030));
+	for (i = 0; i < 16 + 2 * 16; i++)
+		host1x_pushbuf_push(pb, 0x00000000);
+
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x7e0, 0x0001));
+	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0x7e1, 0x0000));
 
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb01, 0x0000));
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_IMM(0xb04, 0x0000));

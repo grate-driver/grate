@@ -223,4 +223,6 @@ void grate_3d_printf(struct grate *grate,
 
 void grate_init_data_path(char *fpath);
 
+const struct host1x_chip_info *grate_chip_info(void);
+
 #endif
