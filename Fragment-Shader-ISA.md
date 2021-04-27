@@ -23,7 +23,10 @@ The different units seems to be synchronized by separate timing streams.
 
 ## Program sequencer
 
+Allows to execute large shaders in multiple passes. Not used by in practice, BLOB driver gives up on large shaders.
+
 Patent: https://www.google.com/patents/US8411096
+Patent: https://www.google.com/patents/US8659601
 
 ## Instructions scheduling
 
