@@ -23,7 +23,9 @@ The different units seems to be synchronized by separate timing streams.
 
 ## Program sequencer
 
-Allows to execute large shaders in multiple passes. Not used by in practice, BLOB driver gives up on large shaders.
+Allows to execute large fragment shaders in multiple passes. This features not used by in practice, BLOB driver gives up on large shaders.
+
+Controls recirculation of pixel over the fragment shader pipeline.
 
 Patent: https://www.google.com/patents/US8411096<br>
 Patent: https://www.google.com/patents/US8659601
