@@ -72,8 +72,8 @@ The ALU instructions comes in packets of 3 or 4 scalar instructions (the fourth 
 |   Bits | Meaning                  |
 |-------:|:-------------------------|
 | 62..63 | opcode                   |
-|     61 | accumulate result: other |
-|     60 | accumulate result: this  |
+|     61 | send                     |
+|     60 | recv                     |
 |     59 | addition disable         |
 | 57..58 | scale result             |
 |     56 | saturate result          |
@@ -197,9 +197,9 @@ Patents:
 
 Patent: https://www.google.com/patents/US8521800
 
-When "accumulate this" bit is set, operand rC is overridden with the accumulation value.
+When the "recv" bit is set, operand rC is overridden with the accumulation value.
 
-|       | Accumulate this | Accumulate other |
+|       | recv            | send             |
 |-------|-----------------|------------------|
 | ALU0: | ALU0 += ALU3    | No action        |
 | ALU1: | ALU1 += ALU0    | ALU0 += ALU1     |
