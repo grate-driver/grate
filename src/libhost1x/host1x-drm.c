@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/ioctl.h>
@@ -60,6 +61,11 @@ struct drm;
 struct drm_bo {
 	struct host1x_bo base;
 	struct drm *drm;
+
+	struct {
+		uint32_t mapping_id;
+		uint32_t channel_ctx;
+	} mappings[2];
 };
 
 static inline struct drm_bo *to_drm_bo(struct host1x_bo *bo)
@@ -132,6 +138,7 @@ struct drm {
 	struct drm_gr3d *gr3d;
 
 	int fd;
+	bool new_uapi;
 };
 
 static struct drm *to_drm(struct host1x *host1x)
@@ -658,6 +665,24 @@ static void drm_bo_free(struct host1x_bo *bo)
 	if (bo->wrapped)
 		return free(drm_bo);
 
+	if (drm_bo->drm->new_uapi) {
+		struct drm_tegra_channel_unmap unmap_args;
+		unsigned int i;
+
+		for (i = 0; i < 2; i++) {
+			if (drm_bo->mappings[i].mapping_id == 0)
+				break;
+
+			memset(&unmap_args, 0, sizeof(unmap_args));
+			unmap_args.channel_ctx =
+				drm_bo->mappings[i].channel_ctx;
+			unmap_args.mapping_id = drm_bo->mappings[i].mapping_id;
+
+			ioctl(drm_bo->drm->fd, DRM_IOCTL_TEGRA_CHANNEL_UNMAP,
+			      &unmap_args);
+		}
+	}
+
 	memset(&args, 0, sizeof(args));
 	args.handle = bo->handle;
 
@@ -718,11 +743,13 @@ static struct host1x_bo *drm_bo_create(struct host1x *host1x,
 	memset(&args, 0, sizeof(args));
 	args.size = size;
 
-	if (flags & HOST1X_BO_CREATE_FLAG_BOTTOM_UP)
-		args.flags |= DRM_TEGRA_GEM_CREATE_BOTTOM_UP;
+	if (!drm->new_uapi) {
+		if (flags & HOST1X_BO_CREATE_FLAG_BOTTOM_UP)
+			args.flags |= DRM_TEGRA_GEM_CREATE_BOTTOM_UP;
 
-	if (flags & HOST1X_BO_CREATE_FLAG_TILED)
-		args.flags |= DRM_TEGRA_GEM_CREATE_TILED;
+		if (flags & HOST1X_BO_CREATE_FLAG_TILED)
+			args.flags |= DRM_TEGRA_GEM_CREATE_TILED;
+	}
 
 	err = ioctl(drm->fd, DRM_IOCTL_TEGRA_GEM_CREATE, &args);
 	if (err < 0) {
@@ -777,6 +804,48 @@ static struct host1x_bo *drm_bo_import(struct host1x *host1x,
 	bo->base.priv->export = drm_bo_export;
 
 	return &bo->base;
+}
+
+static int drm_bo_map(struct host1x_bo *host1x_bo, struct drm_channel *channel,
+		      uint32_t *mapping_id)
+{
+	struct drm_tegra_channel_map args;
+	struct drm_bo *bo = to_drm_bo(host1x_bo);
+	int i, free_i = -1, err;
+
+	if (!bo->drm->new_uapi)
+		return 0;
+
+	for (i = 0; i < 2; i++) {
+		if (bo->mappings[i].channel_ctx == channel->context) {
+			*mapping_id = bo->mappings[i].mapping_id;
+			return 0;
+		}
+
+		if (bo->mappings[i].mapping_id == 0)
+			free_i = i;
+	}
+
+	if (free_i == -1)
+		return -EBUSY;
+
+	memset(&args, 0, sizeof(args));
+	args.channel_ctx = channel->context;
+	args.handle = bo->base.handle;
+
+	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CHANNEL_MAP, &args);
+	if (err < 0) {
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_CHANNEL_MAP) failed: %d\n",
+			     errno);
+		return -errno;
+	}
+
+	bo->mappings[free_i].channel_ctx = channel->context;
+	bo->mappings[free_i].mapping_id = args.mapping_id;
+
+	*mapping_id = args.mapping_id;
+
+	return 0;
 }
 
 static int drm_framebuffer_init(struct host1x *host1x,
@@ -840,17 +909,127 @@ static int drm_framebuffer_init(struct host1x *host1x,
 
 static int drm_channel_open(struct drm *drm, uint32_t class, uint64_t *channel)
 {
-	struct drm_tegra_open_channel args;
+	int err;
+
+	if (drm->new_uapi) {
+		struct drm_tegra_channel_open args;
+
+		memset(&args, 0, sizeof(args));
+		args.host1x_class = class;
+
+		err = ioctl(drm->fd, DRM_IOCTL_TEGRA_CHANNEL_OPEN, &args);
+		if (err < 0)
+			return -errno;
+
+		*channel = args.channel_ctx;
+	} else {
+		struct drm_tegra_open_channel args;
+
+		memset(&args, 0, sizeof(args));
+		args.client = class;
+
+		err = ioctl(drm->fd, DRM_IOCTL_TEGRA_OPEN_CHANNEL, &args);
+		if (err < 0)
+			return -errno;
+
+		*channel = args.context;
+	}
+
+	return 0;
+}
+
+static int drm_channel_submit2(struct host1x_client *client,
+			       struct host1x_job *job)
+{
+	struct drm_channel *channel = to_drm_channel(client);
+	struct drm_tegra_channel_submit args;
+	struct drm_tegra_submit_buf *bufs, *next_buf;
+	struct drm_tegra_submit_cmd *cmds;
+	uint32_t next_offset = 0, first_offset;
+	unsigned int i, num_relocs = 0;
 	int err;
 
 	memset(&args, 0, sizeof(args));
-	args.client = class;
+	args.channel_ctx = channel->context;
+	args.syncpt_incr.id = job->syncpt;
+	args.syncpt_incr.num_incrs = job->syncpt_incrs;
 
-	err = ioctl(drm->fd, DRM_IOCTL_TEGRA_OPEN_CHANNEL, &args);
-	if (err < 0)
-		return -errno;
+	cmds = calloc(job->num_pushbufs, sizeof(*bufs));
+	if (!cmds)
+		return -ENOMEM;
 
-	*channel = args.context;
+	args.cmds_ptr = (__u64)(unsigned long)cmds;
+	args.num_cmds = job->num_pushbufs;
+
+	for (i = 0; i < job->num_pushbufs; i++) {
+		struct host1x_pushbuf *pushbuf = &job->pushbufs[i];
+		struct drm_tegra_submit_cmd *cmd = &cmds[i];
+
+		if (pushbuf->offset != next_offset) {
+			free(cmds);
+			return -EINVAL;
+		}
+
+		if (next_offset == 0) {
+			args.gather_data_ptr = (__u64)(unsigned long)(pushbuf->bo->ptr + pushbuf->offset);
+			args.gather_data_words += pushbuf->length;
+
+			first_offset = pushbuf->offset;
+		}
+
+		cmd->type = DRM_TEGRA_SUBMIT_CMD_GATHER_UPTR;
+		cmd->gather_uptr.words = pushbuf->length;
+
+		next_offset += pushbuf->length;
+		num_relocs += pushbuf->num_relocs;
+	}
+
+	bufs = calloc(num_relocs, sizeof(*bufs));
+	if (!bufs) {
+		free(cmds);
+		return -ENOMEM;
+	}
+
+	args.bufs_ptr = (__u64)(unsigned long)bufs;
+	args.num_bufs = num_relocs;
+
+	next_buf = bufs;
+
+	for (i = 0; i < job->num_pushbufs; i++) {
+		struct host1x_pushbuf *pushbuf = &job->pushbufs[i];
+		unsigned int j;
+
+		for (j = 0; j < pushbuf->num_relocs; j++) {
+			struct host1x_pushbuf_reloc *r = &pushbuf->relocs[j];
+
+			err = drm_bo_map(r->target_bo, channel,
+					 &next_buf->mapping_id);
+			if (err < 0) {
+				free(bufs);
+				free(cmds);
+				return err;
+			}
+
+			next_buf->reloc.gather_offset_words = r->source_offset/4 - first_offset;
+			next_buf->reloc.target_offset = r->target_offset;
+			next_buf->reloc.shift = r->shift;
+
+			next_buf++;
+		}
+	}
+
+	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CHANNEL_SUBMIT, &args);
+	if (err < 0) {
+		host1x_error("ioctl(DRM_IOCTL_TEGRA_CHANNEL_SUBMIT) failed: %d\n",
+			     errno);
+		err = -errno;
+	} else {
+		channel->fence = args.syncpt_incr.fence_value;
+		err = 0;
+	}
+
+	free(bufs);
+	free(cmds);
 
 	return 0;
 }
@@ -948,26 +1127,84 @@ static int drm_channel_flush(struct host1x_client *client, uint32_t *fence)
 	return 0;
 }
 
+static uint64_t gettime_ns(void)
+{
+    struct timespec current;
+    clock_gettime(CLOCK_MONOTONIC, &current);
+    return (uint64_t)current.tv_sec * 1000000000ull + current.tv_nsec;
+}
+
 static int drm_channel_wait(struct host1x_client *client, uint32_t fence,
 			    uint32_t timeout)
 {
 	struct drm_channel *channel = to_drm_channel(client);
-	struct drm_tegra_syncpt_wait args;
 	struct host1x_syncpt *syncpt;
 	int err;
 
 	syncpt = &channel->client.syncpts[0];
 
-	memset(&args, 0, sizeof(args));
-	args.id = syncpt->id;
-	args.thresh = fence;
-	args.timeout = timeout;
+	if (channel->drm->new_uapi) {
+		struct drm_tegra_syncpoint_wait args;
 
-	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SYNCPT_WAIT, &args);
-	if (err < 0) {
-		host1x_error("ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
-			     errno);
-		return -errno;
+		memset(&args, 0, sizeof(args));
+		args.id = syncpt->id;
+		args.threshold = fence;
+		args.timeout_ns = gettime_ns() + timeout * 1000000ull;
+
+		err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SYNCPOINT_WAIT, &args);
+		if (err < 0) {
+			host1x_error("ioctl(DRM_IOCTL_TEGRA_SYNCPOINT_WAIT) failed: %d\n",
+				errno);
+			return -errno;
+		}
+	} else {
+		struct drm_tegra_syncpt_wait args;
+
+		memset(&args, 0, sizeof(args));
+		args.id = syncpt->id;
+		args.thresh = fence;
+		args.timeout = timeout;
+
+		err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_SYNCPT_WAIT, &args);
+		if (err < 0) {
+			host1x_error("ioctl(DRM_IOCTL_TEGRA_SYNCPT_WAIT) failed: %d\n",
+				errno);
+			return -errno;
+		}
+	}
+
+	return 0;
+}
+
+static int drm_channel_allocate_syncpt(struct drm* drm, struct drm_channel* channel, unsigned int i)
+{
+	struct host1x_syncpt *syncpt = &channel->client.syncpts[i];
+	int err;
+
+	if (drm->new_uapi) {
+		struct drm_tegra_syncpoint_allocate args;
+
+		memset(&args, 0, sizeof(args));
+
+		err = ioctl(drm->fd, DRM_IOCTL_TEGRA_SYNCPOINT_ALLOCATE, &args);
+		if (err < 0)
+			return -errno;
+
+		syncpt->id = args.id;
+		syncpt->value = 0;
+	} else {
+		struct drm_tegra_get_syncpt args;
+
+		memset(&args, 0, sizeof(args));
+		args.context = channel->context;
+		args.index = i;
+
+		err = ioctl(drm->fd, DRM_IOCTL_TEGRA_GET_SYNCPT, &args);
+		if (err < 0)
+			return -errno;
+
+		syncpt->id = args.id;
+		syncpt->value = 0;
 	}
 
 	return 0;
@@ -994,23 +1231,16 @@ static int drm_channel_init(struct drm *drm, struct drm_channel *channel,
 	channel->client.syncpts = syncpts;
 
 	for (i = 0; i < num_syncpts; i++) {
-		struct drm_tegra_get_syncpt args;
-
-		memset(&args, 0, sizeof(args));
-		args.context = channel->context;
-		args.index = i;
-
-		err = ioctl(drm->fd, DRM_IOCTL_TEGRA_GET_SYNCPT, &args);
-		if (err < 0) {
-			syncpts[i].id = 0;
-			continue;
-		}
-
-		syncpts[i].id = args.id;
-		syncpts[i].value = 0;
+		err = drm_channel_allocate_syncpt(drm, channel, i);
+		if (err < 0)
+			channel->client.syncpts[i].id = 0;
 	}
 
-	channel->client.submit = drm_channel_submit;
+	if (drm->new_uapi)
+		channel->client.submit = drm_channel_submit2;
+	else
+		channel->client.submit = drm_channel_submit;
+
 	channel->client.flush = drm_channel_flush;
 	channel->client.wait = drm_channel_wait;
 
@@ -1019,16 +1249,29 @@ static int drm_channel_init(struct drm *drm, struct drm_channel *channel,
 
 static void drm_channel_exit(struct drm_channel *channel)
 {
-	struct drm_tegra_close_channel args;
 	int err;
 
-	memset(&args, 0, sizeof(args));
-	args.context = channel->context;
+	if (channel->drm->new_uapi) {
+		struct drm_tegra_channel_close args;
 
-	err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CLOSE_CHANNEL, &args);
-	if (err < 0)
-		host1x_error("ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
-			     -errno);
+		memset(&args, 0, sizeof(args));
+		args.channel_ctx = channel->context;
+
+		err =  ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CHANNEL_CLOSE, &args);
+		if (err < 0)
+			host1x_error("ioctl(DRM_IOCTL_TEGRA_CHANNEL_CLOSE) failed: %d\n",
+				     -errno);
+	} else {
+		struct drm_tegra_close_channel args;
+
+		memset(&args, 0, sizeof(args));
+		args.context = channel->context;
+
+		err = ioctl(channel->drm->fd, DRM_IOCTL_TEGRA_CLOSE_CHANNEL, &args);
+		if (err < 0)
+			host1x_error("ioctl(DRM_IOCTL_TEGRA_CLOSE_CHANNEL) failed: %d\n",
+				-errno);
+	}
 
 	free(channel->client.syncpts);
 }
@@ -1153,6 +1396,7 @@ struct host1x *host1x_drm_open(struct host1x_options *options)
 {
 	struct drm *drm;
 	int fd = options->fd;
+	drmVersionPtr ver;
 	int err;
 
 	if (fd < 0) {
@@ -1161,11 +1405,29 @@ struct host1x *host1x_drm_open(struct host1x_options *options)
 			return NULL;
 	}
 
-	drm = calloc(1, sizeof(*drm));
-	if (!drm) {
+	ver = drmGetVersion(fd);
+	if (!ver) {
 		close(fd);
 		return NULL;
 	}
+
+	drm = calloc(1, sizeof(*drm));
+	if (!drm) {
+		drmFreeVersion(ver);
+		close(fd);
+		return NULL;
+	}
+
+	if (ver->version_major == 1 &&
+	    !getenv("GRATE_FORCE_OLD_UAPI"))
+		drm->new_uapi = true;
+
+	drmFreeVersion(ver);
+
+	if (drm->new_uapi)
+		printf("Using new UAPI.\n");
+	else
+		printf("Using old UAPI.\n");
 
 	drm->fd = fd;
 

@@ -340,6 +340,7 @@ int host1x_pushbuf_relocate(struct host1x_pushbuf *pb, struct host1x_bo *target,
 	reloc = &pb->relocs[pb->num_relocs++];
 
 	reloc->source_offset = host1x_bo_get_offset(pb->bo, pb->ptr);
+	reloc->target_bo = target;
 	reloc->target_handle = target->handle;
 	reloc->target_offset = offset;
 	reloc->shift = shift;

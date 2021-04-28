@@ -348,6 +348,7 @@ static inline struct host1x_bo *host1x_bo_import_helper(struct host1x *host1x,
 
 struct host1x_pushbuf_reloc {
 	unsigned long source_offset;
+	struct host1x_bo *target_bo;
 	unsigned long target_handle;
 	unsigned long target_offset;
 	unsigned long shift;
