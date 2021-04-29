@@ -35,7 +35,7 @@
 #define PRINTF(...)				\
 	do {					\
 		if (libwrap_verbose)		\
-			printf(__VA_ARGS__);	\
+			fprintf(stderr, __VA_ARGS__);	\
 	} while (0)
 
 extern bool libwrap_verbose;
