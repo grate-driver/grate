@@ -52,7 +52,7 @@ static void *__dlsym(void *handle, const char *name)
 	static typeof(dlsym) *orig = NULL;
 
 	if (orig == NULL)
-		orig = _dl_sym(RTLD_NEXT, "dlsym", dlsym);
+		orig = _dl_sym(RTLD_NEXT, "dlsym", __dlsym);
 
 	if (!strcmp(name, "dlsym"))
 		return (void*)dlsym;
