@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 	if (!fb)
 		return 1;
 
-	grate_clear_color(grate, 0.0f, 0.0f, 0.0f, 1.0f);
+	grate_clear_color(grate, 0.3f, 0.3f, 0.3f, 0.3f);
 	grate_bind_framebuffer(grate, fb);
 	grate_clear(grate);
 
