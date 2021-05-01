@@ -523,11 +523,6 @@ static void grate_3d_set_depth_buffer(struct host1x_pushbuf *pb,
 	value |= TGR3D_BOOL(DEPTH_TEST_PARAMS, DEPTH_WRITE, ctx->depth_write);
 	value |= 0x200;
 
-	if (grate_chip_info()->soc_id == TEGRA114_SOC) {
-		host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(0x411, 1));
-		host1x_pushbuf_push(pb, value);
-	}
-
 	host1x_pushbuf_push(pb, HOST1X_OPCODE_INCR(TGR3D_DEPTH_TEST_PARAMS, 1));
 	host1x_pushbuf_push(pb, value);
 
