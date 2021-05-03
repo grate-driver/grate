@@ -1045,11 +1045,14 @@ ALU_OPERATIONS:
 		}
 
 		yyval.aluX_instr.rD_enable		= !$9.disable;
-		yyval.aluX_instr.rD_absolute_value	= $9.absolute;
-		yyval.aluX_instr.rD_fixed10		= $9.lowp.enable;
-		yyval.aluX_instr.rD_minus_one		= $9.minus_one;
-		yyval.aluX_instr.rD_sub_reg_select_high	= $9.lowp.high;
-		yyval.aluX_instr.rD_reg_select		= $9.index;
+
+		if (yyval.aluX_instr.rD_enable) {
+			yyval.aluX_instr.rD_absolute_value	= $9.absolute;
+			yyval.aluX_instr.rD_fixed10		= $9.lowp.enable;
+			yyval.aluX_instr.rD_minus_one		= $9.minus_one;
+			yyval.aluX_instr.rD_sub_reg_select_high	= $9.lowp.high;
+			yyval.aluX_instr.rD_reg_select		= $9.index;
+		}
 
 		yyval.aluX_instr.rC_scale_by_two	= $8.scale_x2;
 		yyval.aluX_instr.rC_negate		= $8.negate;
