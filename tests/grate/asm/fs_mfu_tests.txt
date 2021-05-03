@@ -1,0 +1,36 @@
+alu_buffer_size = 1
+pseq_to_dw_exec_nb = 3
+
+.asm
+EXEC
+	MFU:	sfu: rcp r4
+		mul0: bar, sfu, bar0
+		mul1: bar, sfu, bar1
+		ipl: t0.fp20, t0.fp20, t0.fp20, t0.fp20
+
+	ALU:
+		ALU0:	MAD  r3.lh,  r3,         #1,         r3
+		ALU1:	MAD  r1.lh,  r1,         #0,         imm0
+		ALU2:	MAD  r2.lh,  r2,         #0,         imm0
+		ALU3:	imm0 = 0.5
+;
+
+EXEC
+	MFU:	sfu: rcp r3
+	MFU:	sfu: precos r1
+	MFU:	sfu: preex2 r2
+;
+
+EXEC
+	MFU:	sfu: cos r1
+		mul0: r0, r0, r3
+	MFU:	sfu: ex2 r2
+
+	ALU:
+		ALU0:	MAD  r3.*h,  r3,         #1,         #0
+		ALU1:	MAD  r3.l*,  r2,         #1,        -#1
+		ALU2:	MAD  r2.*h,  r0,         #1,         #0
+		ALU3:	MAD  r2.l*,  r1,         #1,         #0
+
+	DW:	store rt1, r2, r3
+;
