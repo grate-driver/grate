@@ -66,6 +66,16 @@ AC_CHECK_HEADER([envytools/rnn.h],
 	[AC_CHECK_LIB([rnn], [rnn_init], [enable_rnn=yes], [enable_rnn=no], [-lenvyutil -lxml2])])
 AM_CONDITIONAL([ENABLE_RNN], [test "x$enable_rnn" = "xyes"])
 
+SAVE_CPPFLAGS="$CPPFLAGS"
+CPPFLAGS="$CPPFLAGS $DRM_CFLAGS"
+
+AC_CHECK_DECL(drmSetClientCap,
+	      [AC_DEFINE(HAVE_LIBDRM_CLIENT_CAP, 1,
+	      [Have drmSetClientCap API])], [],
+	      [#include <xf86drm.h>])
+
+CPPFLAGS="$SAVE_CPPFLAGS"
+
 AC_CONFIG_FILES([
 	src/libgrate/libgrate.pc
 ])

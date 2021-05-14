@@ -21,6 +21,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -550,6 +554,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	if (err < 0)
 		goto try_x11;
 
+#ifdef HAVE_LIBDRM_CLIENT_CAP
 	err = drmSetClientCap(drm->fd, DRM_CLIENT_CAP_ATOMIC, 1);
 	if (err)
 		host1x_error("drmSetClientCap(ATOMIC) failed: %d\n", err);
@@ -558,6 +563,7 @@ static int drm_display_create(struct drm_display **displayp, struct drm *drm)
 	if (err)
 		host1x_error("drmSetClientCap(UNIVERSAL_PLANES) failed: %d\n",
 			     err);
+#endif
 
 	err = drm_display_setup(display, drm->base.options->display_id);
 	if (err < 0)

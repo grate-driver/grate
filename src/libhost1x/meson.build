@@ -38,6 +38,14 @@ if x11.found() and \
 	libhost1x_deps += dependency('xcb-icccm')
 endif
 
+cc = meson.get_compiler('c')
+
+if cc.has_function('drmSetClientCap',
+                   prefix: '#include <xf86drm.h>',
+                   dependencies : [libdrm])
+	libhost1x_c_args += '-DHAVE_LIBDRM_CLIENT_CAP'
+endif
+
 libhost1x = shared_library('host1x',
 	libhost1x_sources,
 	include_directories : include_directories('../../include'),
