@@ -72,9 +72,10 @@ GALLIUM_DRIVER=softpipe
 
   1. `git clone https://github.com/grate-driver/mesa.git`
   2. `cd mesa`
-  3. `meson -Dprefix=/usr -Dgallium-drivers=grate -Ddri-drivers=swrast -Dplatforms=x11,drm -Dshared-glapi=true -Dgbm=true -Dglx=dri -Dosmesa=none -Dgles1=false -Dgles2=true -Degl=true -Dgallium-xa=false -Dgallium-vdpau=false -Dgallium-va=false -Dgallium-xvmc=false -Duse-elf-tls=false -Dgallium-nine=false -Db_ndebug=true -Dvulkan-drivers= -Dlibunwind=false -Dllvm=false build`
-  4. `cd build/`
-  5. `ninja && ninja install`
+  3. `git checkout 21.1.0`
+  4. `meson -Dgallium-drivers=grate,swrast -Dplatforms=x11 -Dshared-glapi=true -Dgbm=true -Dglx=dri  -Dgles1=false -Dgles2=true -Degl=true -Dgallium-xa=false -Dgallium-vdpau=false -Dgallium-va=false -Dgallium-xvmc=false -Duse-elf-tls=false -Dgallium-nine=false -Db_ndebug=true -Dvulkan-drivers= -Dlibunwind=false -Dllvm=false build`
+  5. `cd build/`
+  6. `ninja && ninja install`
 
 #### Example cross-file for meson:
 
@@ -109,6 +110,14 @@ cpu_family = 'arm'
 cpu = 'armv7a'
 endian = 'little'
 ```
+
+Outdated instructions: 
+  1. **for older Mesa 19 and older versions only!**
+  2. `git clone https://github.com/grate-driver/mesa.git`
+  3. `cd mesa`
+  4. `meson -Dprefix=/usr -Dgallium-drivers=grate -Ddri-drivers=swrast -Dplatforms=x11,drm -Dshared-glapi=true -Dgbm=true -Dglx=dri -Dosmesa=none -Dgles1=false -Dgles2=true -Degl=true -Dgallium-xa=false -Dgallium-vdpau=false -Dgallium-va=false -Dgallium-xvmc=false -Duse-elf-tls=false -Dgallium-nine=false -Db_ndebug=true -Dvulkan-drivers= -Dlibunwind=false -Dllvm=false build`
+  5. `cd build/`
+  6. `ninja && ninja install`
 
 Outdated instructions: 
   1. **for older Mesa versions only!**
