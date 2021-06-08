@@ -19,7 +19,7 @@
 
 ### Fedora repository
 
-[https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo](https://repos.fedorapeople.org/repos/kwizart/ac100/fedora-ac100.repo)
+[https://copr.fedorainfracloud.org/coprs/kwizart/grate-driver/](https://copr.fedorainfracloud.org/coprs/kwizart/grate-driver/)
 
 ### PostmarketOS
 
