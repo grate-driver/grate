@@ -38,7 +38,14 @@ int yywrap(void)
 
 %%
 [ \t]+			/* skip */;
-"/*"([^*]|(\*+[^*/]))*\*+\/ /* multi line comment */;
+"/*"([^*]|(\*+[^*/]))*\*+\/ {
+				/* multi line comment */
+				unsigned i;
+
+				for (i = 0; i < strlen(yytext); i++)
+					if (yytext[i] == '\n')
+						yylineno++;
+			}
 "//".*			/* single line comment */;
 [\n]			yylineno++;
 
