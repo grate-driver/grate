@@ -1,5 +1,5 @@
-# grate
-Grate is an anagram of "tegra", actually it is a collection of open source reverse-engineering tools aiming at the NVIDIA Tegra2+ 3D engine.
+# Grate
+Grate is an anagram of "Tegra", actually it is a collection of open source reverse-engineering tools aiming at the NVIDIA Tegra 2/34 2D/3D engines.
 
 ## Documentation
 
