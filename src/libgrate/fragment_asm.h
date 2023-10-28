@@ -275,6 +275,18 @@ typedef union fragment_alu_instruction_x4 {
 } alu_instr;
 
 typedef union fragment_pseq_instruction {
+	struct __attribute__((packed)) {
+		unsigned unk_0:1;
+		unsigned dst_regs_select:1;
+		unsigned unk_2:1;
+		unsigned enable0:1;
+		unsigned unk_4_15:12;
+		unsigned rt_select:4;
+		unsigned unk_20_22:3;
+		unsigned enable1:1;
+		unsigned unk_24_31:8;
+	};
+
 	uint32_t data;
 } pseq_instr;
 

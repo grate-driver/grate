@@ -21,6 +21,7 @@
  */
 
 %{
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,6 +66,8 @@ unsigned asm_pseq_to_dw_exec_nb;
 
 int asm_discards_fragment;
 
+static bool asm_alu_used[4];
+
 static void reset_fragment_asm_parser_state(void)
 {
 	int i, k;
@@ -94,6 +97,8 @@ static void reset_fragment_asm_parser_state(void)
 	asm_discards_fragment = 0;
 
 	fragment_asmlineno = 1;
+
+	memset(asm_alu_used, 0, sizeof(asm_alu_used));
 }
 
 static uint32_t float_to_fp20(float f)
@@ -228,7 +233,7 @@ static uint32_t float_to_fx10(float f)
 
 %token T_DW_STORE
 %token T_DW_STENCIL
-%token <u> T_DW_RENDER_TARGET
+%token <u> T_RENDER_TARGET
 
 %token <u> T_HEX
 %token <f> T_FLOAT
@@ -262,6 +267,8 @@ static uint32_t float_to_fx10(float f)
 
 %token T_ALU_BUFFER_SIZE
 %token T_PSEQ_DW_EXEC_NB
+
+%token T_FETCH
 
 %union {
 	char c;
@@ -479,6 +486,27 @@ PSEQ_INSTRUCTION:
 	T_PSEQ T_HEX
 	{
 		asm_pseq_instructions[asm_fs_instructions_nb].data = $2;
+	}
+	|
+	T_PSEQ T_FETCH T_ROW_REGISTER ',' T_ROW_REGISTER ',' T_RENDER_TARGET
+	{
+		if ($3 == 0 && $5 == 1) {
+			asm_pseq_instructions[asm_fs_instructions_nb].dst_regs_select =  0;
+		}
+		else if ($3 == 2 && $5 == 3) {
+			asm_pseq_instructions[asm_fs_instructions_nb].dst_regs_select =  1;
+		}
+		else {
+			PARSE_ERROR("PSEQ destination registers should be either \"r0,r1\" or \"r2,r3\"");
+		}
+
+		if ($7 > 15) {
+			PARSE_ERROR("Invalid PSEQ render target, 15 is maximum");
+		}
+
+		asm_pseq_instructions[asm_fs_instructions_nb].rt_select = $7;
+		asm_pseq_instructions[asm_fs_instructions_nb].enable0 = 1;
+		asm_pseq_instructions[asm_fs_instructions_nb].enable1 = 1;
 	}
 	|
 	T_PSEQ T_OPCODE_NOP
@@ -831,6 +859,8 @@ ALU_INSTRUCTION: T_ALU ALUX_INSTRUCTIONS
 		asm_alu_sched[asm_fs_instructions_nb].instructions_nb++;
 		asm_alu_sched[asm_fs_instructions_nb].address = address;
 		asm_alu_instructions_nb++;
+
+		memset(asm_alu_used, 0, sizeof(asm_alu_used));
 	}
 	;
 
@@ -848,12 +878,24 @@ ALUX_INSTRUCTIONS:
 ALUX_INSTRUCTION:
 	T_ALUX ALU_OPERATION
 	{
+		if (asm_alu_used[$1]) {
+			PARSE_ERROR("ALU has been overridden");
+		} else {
+			asm_alu_used[$1] = true;
+		}
+
 		asm_alu_instructions[asm_alu_instructions_nb].a[$1] = $2;
 	}
 	|
 	T_ALUX ALU3_IMMEDIATES
 	{
 		uint32_t swap = asm_alu_instructions[asm_alu_instructions_nb].part7;
+
+		if (asm_alu_used[$1]) {
+			PARSE_ERROR("ALU has been overridden");
+		} else {
+			asm_alu_used[$1] = true;
+		}
 
 		if ($1 != 3) {
 			PARSE_ERROR("ALU immediates can override ALU3 only");
@@ -1491,7 +1533,7 @@ DW_INSTRUCTION:
 		asm_dw_instructions[asm_fs_instructions_nb].data = $2;
 	}
 	|
-	T_DW T_DW_STORE T_DW_RENDER_TARGET ',' T_ROW_REGISTER ',' T_ROW_REGISTER
+	T_DW T_DW_STORE T_RENDER_TARGET ',' T_ROW_REGISTER ',' T_ROW_REGISTER
 	{
 		asm_dw_instructions[asm_fs_instructions_nb].enable = 1;
 
