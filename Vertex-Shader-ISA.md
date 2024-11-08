@@ -113,13 +113,15 @@ https://www.google.com/patents/US7755634
 |      0 | NOP      |                                                                       |
 |      1 | MOV      | rD = rC                                                               |
 |      2 | RCP      | rD = 1.0 / rC                                                         |
-|      3 | RCC ?    | rD = clamp(1.0 / abs(rC), pow(2.0, -64.0), pow(2.0, 64.0)) * sign(rC) |
+|      3 | RCC      | rD = clamp(1.0 / abs(rC), pow(2.0, -64.0), pow(2.0, 64.0)) * sign(rC) |
 |      4 | RSQ      | rD = 1.0 / sqrt(rC)                                                   |
 |      5 | EXP      | rD = vec4(pow(2.0, floor(rC.x)), fract(rC.x), pow(2.0, rC.x), 1.0)    |
-|      6 | LOG ?    | rD = vec4(floor(log2(abs(rC.x))), abs(rC.x) / pow(2.0, floor(log2(rC.x))), log2(abs(rC.x)), 1.0) |
-|      7 | LIT ?    | rD = vec4(1.0, max(rD.x, 0.0), rD.x > 0.0 ? pow(max(rC.y, 0.0), clamp(rC.w, -128.0, 128.0) : 0.0, 1.0) |
-|      9 | BRA      | jump(IADDR)                                                           |
-|     11 | CAL      | push(IP); jump(IADDR)                                                 |
+|      6 | LOG      | rD = vec4(floor(log2(abs(rC.x))), abs(rC.x) / pow(2.0, floor(log2(rC.x))), log2(abs(rC.x)), 1.0) |
+|      7 | LIT      | rD = vec4(1.0, max(rD.x, 0.0), rD.x > 0.0 ? pow(max(rC.y, 0.0), clamp(rC.w, -128.0, 128.0) : 0.0, 1.0) |
+|      8 | BRA      | ???                                                                   |
+|      9 | BRI      | jump(IADDR)                                                           |
+|     10 | CLA      | ???                                                                   |
+|     11 | CLI      | push(IP); jump(IADDR)                                                 |
 |     12 | RET      | jump( pop() )                                                         |
 |     13 | LG2      | rD = log2(rC)                                                         |
 |     14 | EX2      | rD = exp2(rC)                                                         |
