@@ -100,10 +100,10 @@ https://www.google.com/patents/US7755634
 |     21 | STR      | rD = bvec4(true, true, true, true)      |
 |     22 | SSG      | rD = sign(rA)                           |
 |     23 | ARR      | A0 = round(rA)                          |
-|     24 | ARA      | A0.x = A0.z = A0.x + A0.z<br>A0.y = A0.w = A0.y + A0.w |
-|     25 | TXL ?    | ???                                     |
-|     26 | PUSHA    | push(A0)                                |
-|     27 | POPA     | A0 = pop()                              |
+|     24 | MVA      | A0.x = A0.z = A0.x + A0.z<br>A0.y = A0.w = A0.y + A0.w |
+|     25 | TXL      | ???                                     |
+|     26 | PSH      | push(A0)                                |
+|     27 | POP      | A0 = pop()                              |
 | 28..31 | ???      | ???                                     |
 
 ### scalar opcodes
