@@ -109,7 +109,7 @@ Unlike a regular ALU instruction, the ALU3 instruction words, constituting immed
 |      0 |    MAD   | Multiply-Add       | rA * rB + rC * rD          |
 |      1 |    MIN   | Minimum            | min(rA * rB, rC * rD)      |
 |      2 |    MAX   | Maximum            | max(rA * rB, rC * rD)      |
-|      3 |   CSEL   | Conditional select | (rA < 0) ? rB : (rC * rD)  |
+|      3 |    CMP   | Compare and select | (rA < 0) ? rB : (rC * rD)  |
 
 #### Scale result:
 
