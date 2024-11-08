@@ -190,6 +190,7 @@ Patents:
 | 64..71 | condition registers     |
 |     72 | fragment x-position     |
 |     73 | fragment y-position     |
+|     74 | primitive coverage      |
 |     75 | polygon face            |
 |     76 | kill (discard) fragment |
 
