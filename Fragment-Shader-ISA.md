@@ -322,7 +322,7 @@ The TEX instruction takes the texture coordinates and LOD bias from the first ro
 
 |   Bits | Meaning                               |
 |-------:|:--------------------------------------|
-| 12..31 | ???                                   |
+| 13..31 | ???                                   |
 |     12 | enable bias                           |
 |     11 | ???                                   |
 |     10 | enable                                |
