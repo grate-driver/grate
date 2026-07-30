@@ -34,14 +34,14 @@ Patent: https://www.google.com/patents/US8659601
 
 Patent: https://www.google.com/patents/US8856499
 
-Instructions schedule specifies the number of MFU and ALU instructions executed by the respective stage, each from 1 to 3 per fragment pipeline instructions batch.
+Instructions schedule specifies the number of MFU instructions or ALU instruction packets (with an ALU packet encoding up to 4 scalar instructions, see below) executed by the respective stage, each from 0 to 3 per fragment pipeline instructions batch, with 0 being a NOP (see below).
 
 | Bits | Meaning                           |
 |-----:|:----------------------------------|
 | 2..7 | Address                           |
 | 0..1 | Number of instructions to execute |
 
-If the "number of instructions to execute" is 0, then the pipeline stage is NOP, however still takes 1 clock cycle. The "address" is the number of pushed instructions before the instruction to execute, so unit[Address] ... unit[Address + Number of instructions to execute] instructions will be executed, where unit stands for MFU or ALU.
+If the "number of instructions to execute" is 0, then the pipeline stage is NOP, however still takes 1 clock cycle. The "address" is the number of pushed instructions before the instruction to execute, so unit[Address] ... unit[Address + Number of instructions to execute] instructions (or instruction packets) will be executed, where unit stands for MFU or ALU.
 
 ## Registers
 
