@@ -36,7 +36,7 @@ libwrap_includes = include_directories(
 )
 
 libwrap_deps = [libdl, dependency('threads')]
-libwrap_c_args = ['-U_FILE_OFFSET_BITS']
+libwrap_c_args = []
 
 librnn = cc.find_library('rnn', required : false)
 if librnn.found() and cc.has_header('envytools/rnn.h')
