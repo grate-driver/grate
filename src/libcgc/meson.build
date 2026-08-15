@@ -2,13 +2,19 @@ libcgc_sources =  files(
 	'instruction.c',
 	'shader.c',
 	'stream.c',
-
-	'dummy.c' # temp
 )
+libcgc_deps = []
+
+if cgdrv.found()
+	libcgc_deps += cgdrv
+else
+	libcgc_sources += files('dummy.c')
+endif
 
 libcgc_lib = shared_library('cgc',
 	libcgc_sources,
-	include_directories : include_directories('../../include')
+	include_directories : include_directories('../../include'),
+	dependencies: libcgc_deps,
 )
 
 libcgc_idep = declare_dependency(
