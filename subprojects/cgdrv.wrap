@@ -1,0 +1,7 @@
+[wrap-file]
+directory = Linux_for_Tegra
+source_url = http://developer.download.nvidia.com/mobile/tegra/l4t/r16.5.0/ventana_release_armhf/Tegra20_Linux_R16.5_armhf.tbz2
+source_filename = Tegra20_Linux_R16.5_armhf.tbz2
+source_hash = 02b7a83b29cec59cf275b98f0de0fc87a24ffa25593af6af729cd2e881c41587
+
+patch_directory = cgdrv
