@@ -680,7 +680,7 @@ static const char *get_mfu_opcode_str(unsigned op)
 		"frc", "preexp", "presin", "precos",
 		"???", "???", "???", "???"
 	};
-	assert(op >= 0 && op < 16);
+	assert(op < 16);
 	return op_str[op];
 }
 
