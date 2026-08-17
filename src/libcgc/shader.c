@@ -554,7 +554,7 @@ static int fragment_alu_disasm(uint32_t *words)
 	uint32_t i, op, dst_reg, subreg, sat, scale, accum;
 	int embedded_constant_used = 0;
 	struct instruction *inst;
-	char buf[512], *str = buf;
+	char buf[512] = { 0 }, *str = buf;
 	const char *dscale_str[] = {
 		"", "_mul2", "_mul4", "_div2"
 	};
@@ -688,7 +688,7 @@ static void fragment_mfu_disasm(uint32_t *words)
 {
 	uint32_t op, reg, var;
 	struct instruction *inst;
-	char buf[512], *str = buf;
+	char buf[512] = { 0 }, *str = buf;
 
 	inst = instruction_create_from_words(words, 2);
 
