@@ -800,15 +800,16 @@ static void fragment_tex_disasm(uint32_t *words)
 
 static void fragment_dw_disasm(uint32_t *words)
 {
-	uint32_t op;
 	struct instruction *inst;
 	char buf[512] = { 0 }, *str = buf;
 
 	inst = instruction_create_from_words(words, 1);
 
-	op = instruction_get_bit(inst, 17);
-	if (op) {
-		pr("dw ");
+	uint32_t store = instruction_get_bit(inst, 0);
+	if (store) {
+		uint32_t rt = instruction_extract(inst, 2, 5);
+		uint32_t src_set = instruction_get_bit(inst, 15);
+		pr("store rt%d, r%d, r%d", rt, src_set * 2, src_set * 2 + 1);
 	} else
 		pr("nop");
 
