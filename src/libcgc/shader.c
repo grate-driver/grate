@@ -677,7 +677,8 @@ static int fragment_alu_disasm(uint32_t *words)
 			else
 				pr("r%d", reg);
 
-			if ((gpr_written[reg] & subreg) != subreg)
+			int reg_mask = x10 ? (1 << subreg) : 0x3;
+			if ((gpr_written[reg] & reg_mask) != reg_mask)
 				fprintf(stderr, "r%d read before written!\n", reg);
 		}
 		pr("%s%s", abs ? ")" : "", scale ? " * #2" : "");
