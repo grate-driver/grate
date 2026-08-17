@@ -684,22 +684,75 @@ static const char *get_mfu_opcode_str(unsigned op)
 	return op_str[op];
 }
 
+static const char *get_var_opcode_str(unsigned op)
+{
+	const char *op_str[] = {
+		"nop", "var1", "var2", "???"
+	};
+	assert(op < ARRAY_SIZE(op_str));
+	return op_str[op];
+}
+
+static const char *get_mul_src_str(unsigned src)
+{
+	const char *src_str[] = {
+		"r0", "r1", "r2", "r3",
+		"???", "???", "???", "???",
+		"???", "???",
+		"sfu", "bar0", "bar1", "1.0"
+		"???", "???"
+	};
+	assert(src < ARRAY_SIZE(src_str));
+	return src_str[src];
+}
+
 static void fragment_mfu_disasm(uint32_t *words)
 {
-	uint32_t op, reg, var;
+	uint32_t op, reg;
 	struct instruction *inst;
-	char buf[512] = { 0 }, *str = buf;
+	char sfu_buf[512] = { 0 };
+	char mul_buf[2][512] = { 0 };
+	char ipl_buf[512] = { 0 };
 
 	inst = instruction_create_from_words(words, 2);
 
-	if (! words[1]) { /* use heuristic for now until we know .. */
-		op = instruction_extract(inst, 54, 57);
-		reg = instruction_extract(inst, 58, 62);
+	char *str = sfu_buf;
+	op = instruction_extract(inst, 54, 57);
+	if (op != 0) {
+		reg = instruction_extract(inst, 58, 63);
 		pr("%s r%d", get_mfu_opcode_str(op), reg);
-	} else {
-		var = instruction_extract(inst, 24, 28);
+	} else
+		pr("nop");
 
-		pr("var v%d", var);
+	for (int i = 0; i < 2; ++i) {
+		str = mul_buf[i];
+		int start = 32 + i * 11;
+		uint32_t dst = instruction_extract(inst, start + 8, start + 10);
+		if (dst == 1)
+			pr("bar");
+		else if (dst > 4)
+			pr("r%d", dst - 4);
+		else
+			pr("#%d", dst);
+
+		uint32_t src0 = instruction_extract(inst, start, start + 3);
+		pr(" %s", get_mul_src_str(src0));
+		uint32_t src1 = instruction_extract(inst, start + 4, start + 7);
+		pr(" %s", get_mul_src_str(src1));
+	}
+
+	str = ipl_buf;
+	for (int i = 0; i < 4; ++i) {
+		op = instruction_extract(inst, i * 7 + 1, i * 7 + 2);
+		if (!op) {
+			pr("nop%s", i < 3 ? ", " : "");
+			continue;
+		}
+
+		uint32_t sat = instruction_get_bit(inst, i * 7);
+		uint32_t row = instruction_extract(inst, i * 7 + 3, i * 7 + 7);
+
+		pr("%s%s v%d%s", get_var_opcode_str(op), sat ? "_sat" : "", row, i < 3 ? ", " : "");
 	}
 
 	printf("    ");
@@ -707,7 +760,13 @@ static void fragment_mfu_disasm(uint32_t *words)
 	instruction_print_raw(inst);
 	instruction_print_unknown(inst);
 
-	printf("    %s\n", buf);
+	printf("    sfu: %s\n", sfu_buf);
+	printf("%51s", "");
+	printf("    mul0: %s\n", mul_buf[0]);
+	printf("%51s", "");
+	printf("    mul1: %s\n", mul_buf[1]);
+	printf("%51s", "");
+	printf("    ipl: %s\n", ipl_buf);
 
 	instruction_free(inst);
 }
