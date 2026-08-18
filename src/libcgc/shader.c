@@ -549,6 +549,33 @@ static uint32_t gpr_written[256];
 
 #define pr(fmt, ...) do { str += sprintf(str, fmt, ##__VA_ARGS__); } while (0)
 
+static void fragment_pseq_disasm(uint32_t *words)
+{
+	struct instruction *inst;
+	char buf[512] = { 0 }, *str = buf;
+
+	inst = instruction_create_from_words(words, 1);
+
+	uint32_t load = instruction_get_bit(inst, 23);
+	if (load) {
+		uint32_t rt = instruction_extract(inst, 16, 19);
+		uint32_t dst_set = instruction_get_bit(inst, 1);
+		pr("load rt%d r%d, r%d", rt, dst_set * 2, dst_set * 2 + 1);
+		gpr_written[dst_set * 2] = 0x3;
+		gpr_written[dst_set * 2 + 1] = 0x3;
+	} else
+		pr("nop");
+
+	printf("             ");
+	instruction_print_raw(inst);
+	printf("         ");
+	instruction_print_unknown(inst);
+
+	printf("    %s\n", buf);
+
+	instruction_free(inst);
+}
+
 static int fragment_alu_disasm(uint32_t *words)
 {
 	uint32_t i, op, dst_reg, subreg, sat, scale, accum;
@@ -761,11 +788,11 @@ static void fragment_mfu_disasm(uint32_t *words)
 	instruction_print_unknown(inst);
 
 	printf("    sfu: %s\n", sfu_buf);
-	printf("%51s", "");
+	printf("%52s", "");
 	printf("    mul0: %s\n", mul_buf[0]);
-	printf("%51s", "");
+	printf("%52s", "");
 	printf("    mul1: %s\n", mul_buf[1]);
-	printf("%51s", "");
+	printf("%52s", "");
 	printf("    ipl: %s\n", ipl_buf);
 
 	instruction_free(inst);
@@ -924,25 +951,28 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 		uint32_t mfu_offset = mfu_sched >> 2, mfu_count = mfu_sched & 3;
 		uint32_t alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
 
+		printf("PSEQ:%03d", i + 1);
+		fragment_pseq_disasm(gr3d_ctx.pseq + i);
+
 		for (j = 0; j < mfu_count; ++j) {
-			printf("MFU:%03d", i + 1);
+			printf("MFU :%03d", i + 1);
 			fragment_mfu_disasm(gr3d_ctx.mfu + mfu_offset + (j * 2));
 		}
 
-		printf("TEX:%03d", i + 1);
+		printf("TEX :%03d", i + 1);
 		fragment_tex_disasm(gr3d_ctx.tex + i);
 
 		for (j = 0; j < alu_count; ++j) {
 			int embedded_constant_used = 0;
 			for (k = 0; k < (embedded_constant_used ? 3 : 4); ++k) {
-				printf("ALU:%03d", i + 1);
+				printf("ALU :%03d", i + 1);
 				embedded_constant_used |= fragment_alu_disasm(gr3d_ctx.alu +
 				                                              (alu_offset + j) * 8 +
 				                                              k * 2);
 			}
 		}
 
-		printf("DW :%03d", i + 1);
+		printf("DW  :%03d", i + 1);
 		fragment_dw_disasm(gr3d_ctx.dw + i);
 		printf("\n");
 	}
