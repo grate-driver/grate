@@ -1009,11 +1009,21 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 		length = header->binary_size - sizeof(*fs);
 		words = fs->words;
 
-		fragment_shader_disassemble(words, length);
+		struct cgc_bar *bar = shader->binary + header->bar_offset;
+		struct cgc_chunk_entry *chunks = shader->binary + bar->chunk_table_offset;
 
-		fprintf(fp, "signature: %.*s\n", 8, fs->signature);
-		fprintf(fp, "unknown0: 0x%08x\n", fs->unknown0);
-		fprintf(fp, "unknown1: 0x%08x\n", fs->unknown1);
+		for (uint32_t i = 0; i < bar->chunk_count; i++) {
+			struct cgc_fragment_shader *fs = shader->binary + chunks[i].offset;
+			uint32_t length = chunks[i].length - sizeof(*fs);
+
+			fprintf(fp, "*** chunk %u/%u (offset 0x%x, length 0x%x)\n",
+					i + 1, bar->chunk_count, chunks[i].offset, chunks[i].length);
+			fragment_shader_disassemble(fs->words, length);
+
+			fprintf(fp, "signature: %.*s\n", 8, fs->signature);
+			fprintf(fp, "unknown0: 0x%08x\n", fs->unknown0);
+			fprintf(fp, "unknown1: 0x%08x\n", fs->unknown1);
+		}
 		break;
 
 	default:

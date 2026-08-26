@@ -72,6 +72,22 @@ struct cgc_header {
 	struct cgc_header_symbol symbols[0];
 };
 
+struct cgc_bar {
+    uint32_t unknown0;
+    uint32_t unknown1;
+    uint32_t chunk_count;
+    uint32_t chunk_table_offset;
+    uint32_t unknown4;
+    uint32_t unknown5;
+    uint32_t unknown6;
+    uint32_t unknown7[5];
+};
+
+struct cgc_chunk_entry {
+    uint32_t length;
+    uint32_t offset;
+};
+
 struct cgc_vertex_shader {
 	uint32_t unknown00;
 	uint32_t unknown04;
