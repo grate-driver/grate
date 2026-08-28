@@ -1202,7 +1202,6 @@ static void hexdump_line(FILE *fp, uint8_t *bytes, int count)
 void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 {
 	struct cgc_header *header = shader->binary;
-	struct cgc_symbol *symbol;
 	unsigned int i, j;
 	const char *type;
 
@@ -1285,6 +1284,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	fprintf(fp, "  attributes:\n");
 	i = 0;
 
+	struct cgc_symbol *symbol;
 	while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
 		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
 			symbol->location);
