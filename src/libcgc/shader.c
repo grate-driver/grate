@@ -854,9 +854,9 @@ struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t pseq[0x40];
 	uint32_t alu[0x200];
-	uint32_t alu_sched[0x10];
+	uint32_t alu_sched[0x40];
 	uint32_t mfu[0x80];
-	uint32_t mfu_sched[0x10];
+	uint32_t mfu_sched[0x40];
 	uint32_t tex[0x40];
 	uint32_t dw[0x40];
 };
