@@ -22,6 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+#undef _FILE_OFFSET_BITS
+#undef _TIME_BITS
 #define _LARGEFILE64_SOURCE
 #define _GNU_SOURCE
 

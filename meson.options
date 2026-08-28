@@ -1,0 +1,5 @@
+option('cgdrv',
+  type : 'feature',
+  value : 'auto',
+  description : 'Enable Nvidia Tegra cgdrv compiler support'
+)

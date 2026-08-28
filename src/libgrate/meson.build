@@ -52,6 +52,6 @@ libgrate = shared_library('grate',
 	fragment_asm_parser, lex_fragment_asm,
 	linker_asm_parser, lex_linker_asm,
 	include_directories : include_directories('../../include'),
-	dependencies : [math, devil],
-	link_with : [libcgc, libhost1x]
+	dependencies : [libcgc_idep, math, devil],
+	link_with : [libhost1x]
 )

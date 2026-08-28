@@ -13,6 +13,7 @@ egl = dependency('egl', required : false)
 x11 = dependency('x11', required : false)
 gles1 = dependency('glesv1_cm', required : false)
 gles2 = dependency('glesv2', required : false)
+cgdrv = dependency('cgdrv', required : get_option('cgdrv'))
 
 subdir('src')
 subdir('tools')

@@ -31,7 +31,7 @@
 
 #include "utils.h"
 
-extern void *_dl_sym(void *, const char *, void *);
+extern void *__attribute__((weak))_dl_sym(void *, const char *, void *);
 extern void *__libc_malloc(size_t size);
 extern void *__libc_realloc(void *ptr, size_t size);
 extern void *__libc_free(void *ptr);

@@ -14,7 +14,7 @@ includes = include_directories(
 	'../../src/libhost1x'
 )
 
-tools_deps = [math]
+tools_deps = [libcgc_idep, math]
 tools_c_args = []
 
 libz = cc.find_library('z', required : false)
@@ -36,7 +36,7 @@ foreach tool : tools
 		src,
 		include_directories : includes,
 		dependencies : tools_deps,
-		link_with : [libgrate, libhost1x, libcgc],
+		link_with : [libgrate, libhost1x],
 		c_args: tools_c_args,
 	)
 endforeach

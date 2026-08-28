@@ -147,7 +147,7 @@ static bool record_start(void)
 
 	r.act = REC_START;
 	r.data.header.version = REC_VER;
-	strncpy(r.data.header.magic, REC_MAGIC, sizeof(r.data.header.magic));
+	memcpy(r.data.header.magic, REC_MAGIC, sizeof(r.data.header.magic));
 
 	record_write_action(&r);
 
