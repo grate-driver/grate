@@ -378,10 +378,14 @@ Seems have no effect when the depth or stencil write enabled.
 
 Some of the render targets have an additional special purpose, like depth/stencil store. They are hardwired and their special purpose is active under certain conditions, like when depth/stencil test is enabled.
 
-| Render target | Usage            |
-|--------------:|:-----------------|
-|             0 | Depth buffer     |
-|             2 | Stencil buffer   |
+| Render target | Usage             |
+|--------------:|:------------------|
+|             0 | Depth buffer      |
+|             1 | Color buffer      |
+|             2 | Stencil buffer    |
+|             3 | Coverage buffer ? |
+|             4 | Spill buffer      |
+|         5..12 | MRT n+1           |
 
 ## PSEQ instruction word encoding
 
