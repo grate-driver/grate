@@ -9,9 +9,9 @@ tools = [
 ]
 
 includes = include_directories(
-	'../../include',
-	'../../src/libgrate',
-	'../../src/libhost1x'
+	'../include',
+	'../src/libgrate',
+	'../src/libhost1x'
 )
 
 tools_deps = [libcgc_idep, math]

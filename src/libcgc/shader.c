@@ -22,10 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
@@ -854,9 +850,9 @@ struct gr3d_context {
 	uint32_t regs[0x1000];
 	uint32_t pseq[0x40];
 	uint32_t alu[0x200];
-	uint32_t alu_sched[0x10];
+	uint32_t alu_sched[0x40];
 	uint32_t mfu[0x80];
-	uint32_t mfu_sched[0x10];
+	uint32_t mfu_sched[0x40];
 	uint32_t tex[0x40];
 	uint32_t dw[0x40];
 };
@@ -1202,7 +1198,6 @@ static void hexdump_line(FILE *fp, uint8_t *bytes, int count)
 void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 {
 	struct cgc_header *header = shader->binary;
-	struct cgc_symbol *symbol;
 	unsigned int i, j;
 	const char *type;
 
@@ -1285,6 +1280,7 @@ void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
 	fprintf(fp, "  attributes:\n");
 	i = 0;
 
+	struct cgc_symbol *symbol;
 	while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
 		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
 			symbol->location);
