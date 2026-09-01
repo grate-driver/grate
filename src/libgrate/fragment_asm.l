@@ -39,7 +39,14 @@ int yywrap(void)
 
 %%
 [ \t]+			/* skip */;
-"/*"([^*]|(\*+[^*/]))*\*+\/ /* multi line comment */;
+"/*"([^*]|(\*+[^*/]))*\*+\/ {
+				/* multi line comment */
+				unsigned i;
+
+				for (i = 0; i < strlen(yytext); i++)
+					if (yytext[i] == '\n')
+						yylineno++;
+			}
 "//".*			/* single line comment */;
 [\n]			yylineno++;
 
@@ -209,10 +216,12 @@ TXB			return T_TXB_OPCODE;
 
 rt[0-9]{1,2}		{
 				fragment_asmlval.u = atoi(yytext + 2);
-				return T_DW_RENDER_TARGET;
+				return T_RENDER_TARGET;
 			}
 
 "stencil"		return T_DW_STENCIL;
+
+FETCH			return T_FETCH;
 
 .			return T_SYNTAX_ERROR;
 %%
