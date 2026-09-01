@@ -545,7 +545,7 @@ static uint32_t gpr_written[256];
 
 #define pr(fmt, ...) do { str += sprintf(str, fmt, ##__VA_ARGS__); } while (0)
 
-static void fragment_pseq_disasm(uint32_t *words)
+static void fragment_pseq_disasm(uint32_t *words, unsigned flags)
 {
 	struct instruction *inst;
 	char buf[512] = { 0 }, *str = buf;
@@ -557,22 +557,28 @@ static void fragment_pseq_disasm(uint32_t *words)
 		uint32_t rt = instruction_extract(inst, 16, 19);
 		uint32_t dst_set = instruction_get_bit(inst, 1);
 		pr("load rt%d r%d, r%d", rt, dst_set * 2, dst_set * 2 + 1);
-		gpr_written[dst_set * 2] = 0x3;
-		gpr_written[dst_set * 2 + 1] = 0x3;
+		if (flags & DUMP_GPR) {
+			gpr_written[dst_set * 2] = 0x3;
+			gpr_written[dst_set * 2 + 1] = 0x3;
+		}
 	} else
 		pr("nop");
 
-	printf("             ");
-	instruction_print_raw(inst);
-	printf("         ");
-	instruction_print_unknown(inst);
+	if (flags & DUMP_RAW) {
+		printf("             ");
+		instruction_print_raw(inst);
+	}
+	if (flags & DUMP_UNK) {
+		printf("         ");
+		instruction_print_unknown(inst);
+	}
 
 	printf("    %s\n", buf);
 
 	instruction_free(inst);
 }
 
-static int fragment_alu_disasm(uint32_t *words)
+static int fragment_alu_disasm(uint32_t *words, unsigned flags)
 {
 	uint32_t i, op, dst_reg, subreg, sat, scale, accum;
 	int embedded_constant_used = 0;
@@ -673,20 +679,27 @@ static int fragment_alu_disasm(uint32_t *words)
 			else
 				pr("r%d", reg);
 
-			if ((gpr_written[reg] & subreg) != subreg)
-				fprintf(stderr, "r%d read before written!\n", reg);
+			if (flags & DUMP_GPR) {
+				int reg_mask = x10 ? (1 << subreg) : 0x3;
+				if ((gpr_written[reg] & reg_mask) != reg_mask)
+					fprintf(stderr, "r%d read before written!\n", reg);
+			}
 		}
 		pr("%s%s", abs ? ")" : "", scale ? " * #2" : "");
 	}
 
-	gpr_written[dst_reg] |= subreg;
+	if (flags & DUMP_GPR)
+		gpr_written[dst_reg] |= subreg;
 
 out:
 
-	printf("    ");
+	if (flags & DUMP_RAW) {
+		printf("    ");
+		instruction_print_raw(inst);
+	}
 
-	instruction_print_raw(inst);
-	instruction_print_unknown(inst);
+	if (flags & DUMP_UNK)
+		instruction_print_unknown(inst);
 
 	printf("    %s\n", buf);
 
@@ -729,7 +742,7 @@ static const char *get_mul_src_str(unsigned src)
 	return src_str[src];
 }
 
-static void fragment_mfu_disasm(uint32_t *words)
+static void fragment_mfu_disasm(uint32_t *words, unsigned flags)
 {
 	uint32_t op, reg;
 	struct instruction *inst;
@@ -778,23 +791,29 @@ static void fragment_mfu_disasm(uint32_t *words)
 		pr("%s%s v%d%s", get_var_opcode_str(op), sat ? "_sat" : "", row, i < 3 ? ", " : "");
 	}
 
-	printf("    ");
-
-	instruction_print_raw(inst);
-	instruction_print_unknown(inst);
+	unsigned align = 8;
+	if (flags & DUMP_RAW) {
+		printf("    ");
+		instruction_print_raw(inst);
+		align += 24;
+	}
+	if (flags & DUMP_UNK) {
+		instruction_print_unknown(inst);
+		align += 20;
+	}
 
 	printf("    sfu: %s\n", sfu_buf);
-	printf("%52s", "");
+	printf("%*s", align, "");
 	printf("    mul0: %s\n", mul_buf[0]);
-	printf("%52s", "");
+	printf("%*s", align, "");
 	printf("    mul1: %s\n", mul_buf[1]);
-	printf("%52s", "");
+	printf("%*s", align, "");
 	printf("    ipl: %s\n", ipl_buf);
 
 	instruction_free(inst);
 }
 
-static void fragment_tex_disasm(uint32_t *words)
+static void fragment_tex_disasm(uint32_t *words, unsigned flags)
 {
 	uint32_t op;
 	struct instruction *inst;
@@ -811,17 +830,21 @@ static void fragment_tex_disasm(uint32_t *words)
 	} else
 		pr("nop");
 
-	printf("             ");
-	instruction_print_raw(inst);
-	printf("         ");
-	instruction_print_unknown(inst);
+	if (flags & DUMP_RAW) {
+		printf("             ");
+		instruction_print_raw(inst);
+	}
+	if (flags & DUMP_UNK) {
+		printf("         ");
+		instruction_print_unknown(inst);
+	}
 
 	printf("    %s\n", buf);
 
 	instruction_free(inst);
 }
 
-static void fragment_dw_disasm(uint32_t *words)
+static void fragment_dw_disasm(uint32_t *words, unsigned flags)
 {
 	struct instruction *inst;
 	char buf[512] = { 0 }, *str = buf;
@@ -836,10 +859,14 @@ static void fragment_dw_disasm(uint32_t *words)
 	} else
 		pr("nop");
 
-	printf("             ");
-	instruction_print_raw(inst);
-	printf("         ");
-	instruction_print_unknown(inst);
+	if (flags & DUMP_RAW) {
+		printf("             ");
+		instruction_print_raw(inst);
+	}
+	if (flags & DUMP_UNK) {
+		printf("         ");
+		instruction_print_unknown(inst);
+	}
 
 	printf("    %s\n", buf);
 
@@ -855,6 +882,7 @@ struct gr3d_context {
 	uint32_t mfu_sched[0x40];
 	uint32_t tex[0x40];
 	uint32_t dw[0x40];
+	unsigned flags;
 };
 
 static struct gr3d_context *gr3d_context(void *ptr)
@@ -870,49 +898,57 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 		gr3d = gr3d_context(user);
 		switch (offset) {
 		case 0x541:
-			printf("GR3D: PSEQ[%03x]: %08x\n", gr3d->regs[0x540], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: PSEQ[%03x]: %08x\n", gr3d->regs[0x540], value);
 			assert(gr3d->regs[0x540] < ARRAY_SIZE(gr3d->pseq));
 			gr3d->pseq[gr3d->regs[0x540]++] = value;
 			break;
 
 		case 0x601:
-			printf("GR3D: MFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: MFU-SCHED[%03x]: %08x\n", gr3d->regs[0x600], value);
 			assert(gr3d->regs[0x600] < ARRAY_SIZE(gr3d->mfu_sched));
 			gr3d->mfu_sched[gr3d->regs[0x600]++] = value;
 			break;
 
 		case 0x604:
-			printf("GR3D: MFU[%03x]: %08x\n", gr3d->regs[0x603], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: MFU[%03x]: %08x\n", gr3d->regs[0x603], value);
 			assert(gr3d->regs[0x603] < ARRAY_SIZE(gr3d->mfu));
 			gr3d->mfu[gr3d->regs[0x603]++] = value;
 			break;
 
 		case 0x701:
-			printf("GR3D: TEX[%03x]: %08x\n", gr3d->regs[0x700], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: TEX[%03x]: %08x\n", gr3d->regs[0x700], value);
 			assert(gr3d->regs[0x700] < ARRAY_SIZE(gr3d->tex));
 			gr3d->tex[gr3d->regs[0x700]++] = value;
 			break;
 
 		case 0x801:
-			printf("GR3D: ALU-SCHED[%03x]: %08x\n", gr3d->regs[0x800], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: ALU-SCHED[%03x]: %08x\n", gr3d->regs[0x800], value);
 			assert(gr3d->regs[0x800] < ARRAY_SIZE(gr3d->alu_sched));
 			gr3d->alu_sched[gr3d->regs[0x800]++] = value;
 			break;
 
 		case 0x804:
-			printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: ALU[%03x]: %08x\n", gr3d->regs[0x803], value);
 			assert(gr3d->regs[0x803] < ARRAY_SIZE(gr3d->alu));
 			gr3d->alu[gr3d->regs[0x803]++] = value;
 			break;
 
 		case 0x901:
-			printf("GR3D: DW[%03x]: %08x\n", gr3d->regs[0x900], value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: DW[%03x]: %08x\n", gr3d->regs[0x900], value);
 			assert(gr3d->regs[0x900] < ARRAY_SIZE(gr3d->dw));
 			gr3d->dw[gr3d->regs[0x900]++] = value;
 			break;
 
 		default:
-			printf("GR3D: offset %03x => %08x\n", offset, value);
+			if (gr3d->flags & DUMP_REG)
+				printf("GR3D: offset %03x => %08x\n", offset, value);
 			assert(0 <= offset && offset < ARRAY_SIZE(gr3d->regs));
 			gr3d->regs[offset] = value;
 		}
@@ -923,7 +959,7 @@ static void write_word(void *user, int classid, int offset, uint32_t value)
 	}
 }
 
-static void fragment_shader_disassemble(uint32_t *words, size_t length)
+static void fragment_shader_disassemble(uint32_t *words, size_t length, unsigned flags)
 {
 	unsigned i, j, k;
 	struct host1x_stream stream;
@@ -934,6 +970,7 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 	stream.classid = HOST1X_CLASS_GR3D;
 	memset(&gr3d_ctx, 0, sizeof(gr3d_ctx));
 	stream.user = &gr3d_ctx;
+	gr3d_ctx.flags = flags;
 	host1x_stream_interpret(&stream);
 
 	assert(gr3d_ctx.regs[0x540] == gr3d_ctx.regs[0x800]);
@@ -948,15 +985,15 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 		uint32_t alu_offset = alu_sched >> 2, alu_count = alu_sched & 3;
 
 		printf("PSEQ:%03d", i + 1);
-		fragment_pseq_disasm(gr3d_ctx.pseq + i);
+		fragment_pseq_disasm(gr3d_ctx.pseq + i, flags);
 
 		for (j = 0; j < mfu_count; ++j) {
 			printf("MFU :%03d", i + 1);
-			fragment_mfu_disasm(gr3d_ctx.mfu + mfu_offset + (j * 2));
+			fragment_mfu_disasm(gr3d_ctx.mfu + mfu_offset + (j * 2), flags);
 		}
 
 		printf("TEX :%03d", i + 1);
-		fragment_tex_disasm(gr3d_ctx.tex + i);
+		fragment_tex_disasm(gr3d_ctx.tex + i, flags);
 
 		for (j = 0; j < alu_count; ++j) {
 			int embedded_constant_used = 0;
@@ -964,17 +1001,18 @@ static void fragment_shader_disassemble(uint32_t *words, size_t length)
 				printf("ALU :%03d", i + 1);
 				embedded_constant_used |= fragment_alu_disasm(gr3d_ctx.alu +
 				                                              (alu_offset + j) * 8 +
-				                                              k * 2);
+				                                              k * 2,
+															  flags);
 			}
 		}
 
 		printf("DW  :%03d", i + 1);
-		fragment_dw_disasm(gr3d_ctx.dw + i);
+		fragment_dw_disasm(gr3d_ctx.dw + i, flags);
 		printf("\n");
 	}
 }
 
-static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
+static void shader_stream_dump(struct cgc_shader *shader, FILE *fp, unsigned flags)
 {
 	struct cgc_fragment_shader *fs;
 	struct cgc_vertex_shader *vs;
@@ -983,6 +1021,8 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 	struct cgc_header *header;
 	size_t length;
 	void *words;
+
+	gr3d_ctx.flags = flags;
 
 	switch (shader->type) {
 	case CGC_SHADER_VERTEX:
@@ -1014,9 +1054,9 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 
 			fprintf(fp, "*** chunk %u/%u (offset 0x%x, length 0x%x)\n",
 					i + 1, bar->chunk_count, chunks[i].offset, chunks[i].length);
-			fragment_shader_disassemble(fs->words, length);
+			fragment_shader_disassemble(fs->words, length, flags);
 
-			fprintf(fp, "signature: %.*s\n", 8, fs->signature);
+			// fprintf(fp, "signature: %.*s\n", 8, fs->signature);
 			fprintf(fp, "unknown0: 0x%08x\n", fs->unknown0);
 			fprintf(fp, "unknown1: 0x%08x\n", fs->unknown1);
 		}
@@ -1028,18 +1068,18 @@ static void shader_stream_dump(struct cgc_shader *shader, FILE *fp)
 	}
 }
 
-static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp)
+static void cgc_shader_disassemble(struct cgc_shader *shader, FILE *fp, unsigned flags)
 {
 	struct cgc_header *header = shader->binary;
 
 	switch (header->type) {
 	case 0x1b5d:
 		vertex_shader_disassemble(shader, fp);
-		shader_stream_dump(shader, fp);
+		shader_stream_dump(shader, fp, flags);
 		break;
 
 	case 0x1b5e:
-		shader_stream_dump(shader, fp);
+		shader_stream_dump(shader, fp, flags);
 		break;
 	}
 }
@@ -1195,133 +1235,147 @@ static void hexdump_line(FILE *fp, uint8_t *bytes, int count)
 	fprintf(fp, " |\n");
 }
 
-void cgc_shader_dump(struct cgc_shader *shader, FILE *fp)
+void cgc_shader_dump(struct cgc_shader *shader, FILE *fp, unsigned flags)
 {
+	if (flags & DUMP_BIN) {
+		fprintf(fp, "shader binary: %zu bytes\n", shader->size);
+
+		for (unsigned i = 0; i < shader->size; i += 4) {
+			uint32_t value = *(uint32_t *)(shader->binary + i);
+			uint8_t *bytes = (uint8_t *)(shader->binary + i);
+
+			fprintf(fp, "  %08x: %08x | ", i, value);
+			hexdump_line(fp, bytes, 4);
+		}
+	}
+
+	if (flags & DUMP_STR) {
+		fprintf(fp, "shader stream: %zu bytes\n", shader->length);
+
+		for (unsigned i = 0; i < shader->length; i += 4) {
+			uint32_t value = *(uint32_t *)(shader->stream + i);
+			uint8_t *bytes = (uint8_t *)(shader->stream + i);
+
+			fprintf(fp, "  %08x: %08x | ", i, value);
+			hexdump_line(fp, bytes, 4);
+		}
+	}
+
 	struct cgc_header *header = shader->binary;
-	unsigned int i, j;
-	const char *type;
+	if (flags & DUMP_HDR) {
+		const char *type;
+		if (header->type == 0x1b5d)
+			type = "vertex";
+		else if (header->type == 0x1b5e)
+			type = "fragment";
+		else
+			type = "unknown";
 
-	fprintf(fp, "shader binary: %zu bytes\n", shader->size);
-
-	for (i = 0; i < shader->size; i += 4) {
-		uint32_t value = *(uint32_t *)(shader->binary + i);
-		uint8_t *bytes = (uint8_t *)(shader->binary + i);
-
-		fprintf(fp, "  %08x: %08x | ", i, value);
-		hexdump_line(fp, bytes, 4);
+		fprintf(fp, "%s shader:\n", type);
+		fprintf(fp, "  type: 0x%08x\n", header->type);
+		fprintf(fp, "  unknown00: 0x%08x\n", header->unknown00);
+		fprintf(fp, "  size: 0x%08x\n", header->size);
+		fprintf(fp, "  num_symbols: %u\n", header->num_symbols);
+		fprintf(fp, "  bar_size: %u\n", header->bar_size);
+		fprintf(fp, "  bar_offset: 0x%08x\n", header->bar_offset);
+		fprintf(fp, "  binary_size: %u\n", header->binary_size);
+		fprintf(fp, "  binary_offset: 0x%08x\n", header->binary_offset);
+		fprintf(fp, "  unknown01: 0x%08x\n", header->unknown01);
+		fprintf(fp, "  unknown02: 0x%08x\n", header->unknown02);
+		fprintf(fp, "  unknown03: 0x%08x\n", header->unknown03);
+		fprintf(fp, "  unknown04: 0x%08x\n", header->unknown04);
+		fprintf(fp, "  symbols:\n");
 	}
 
-	fprintf(fp, "shader stream: %zu bytes\n", shader->length);
+	if (flags & DUMP_SYM) {
+		for (unsigned i = 0; i < header->num_symbols; i++) {
+			struct cgc_header_symbol *symbol = &header->symbols[i];
+			const char *name, *data_type;
 
-	for (i = 0; i < shader->length; i += 4) {
-		uint32_t value = *(uint32_t *)(shader->stream + i);
-		uint8_t *bytes = (uint8_t *)(shader->stream + i);
+			data_type = data_type_name(symbol->datatype & 0xff);
+			name = shader->binary + symbol->name_offset;
 
-		fprintf(fp, "  %08x: %08x | ", i, value);
-		hexdump_line(fp, bytes, 4);
-	}
+			fprintf(fp, "    %u: %s %s\n", i, data_type, name);
+			fprintf(fp, "      datatype: 0x%08x (%s)\n", symbol->datatype,
+					data_type);
+			fprintf(fp, "      unknown01: 0x%08x\n", symbol->unknown01);
+			fprintf(fp, "      type: 0x%08x (%s)\n", symbol->type,
+				variable_type_name(symbol->type));
+			fprintf(fp, "      location: 0x%08x\n", symbol->location);
+			fprintf(fp, "      name_offset: 0x%08x\n", symbol->name_offset);
+			fprintf(fp, "      values_offset: 0x%08x\n", symbol->values_offset);
 
-	if (header->type == 0x1b5d)
-		type = "vertex";
-	else if (header->type == 0x1b5e)
-		type = "fragment";
-	else
-		type = "unknown";
+			if (symbol->values_offset) {
+				const uint32_t *values = shader->binary + symbol->values_offset;
 
-	fprintf(fp, "%s shader:\n", type);
-	fprintf(fp, "  type: 0x%08x\n", header->type);
-	fprintf(fp, "  unknown00: 0x%08x\n", header->unknown00);
-	fprintf(fp, "  size: 0x%08x\n", header->size);
-	fprintf(fp, "  num_symbols: %u\n", header->num_symbols);
-	fprintf(fp, "  bar_size: %u\n", header->bar_size);
-	fprintf(fp, "  bar_offset: 0x%08x\n", header->bar_offset);
-	fprintf(fp, "  binary_size: %u\n", header->binary_size);
-	fprintf(fp, "  binary_offset: 0x%08x\n", header->binary_offset);
-	fprintf(fp, "  unknown01: 0x%08x\n", header->unknown01);
-	fprintf(fp, "  unknown02: 0x%08x\n", header->unknown02);
-	fprintf(fp, "  unknown03: 0x%08x\n", header->unknown03);
-	fprintf(fp, "  unknown04: 0x%08x\n", header->unknown04);
-	fprintf(fp, "  symbols:\n");
+				for (unsigned j = 0; j < 4; j++)
+					fprintf(fp, "        0x%08x\n", values[j]);
+			}
 
-	for (i = 0; i < header->num_symbols; i++) {
-		struct cgc_header_symbol *symbol = &header->symbols[i];
-		const char *name, *data_type;
-
-		data_type = data_type_name(symbol->datatype & 0xff);
-		name = shader->binary + symbol->name_offset;
-
-		fprintf(fp, "    %u: %s %s\n", i, data_type, name);
-		fprintf(fp, "      datatype: 0x%08x (%s)\n", symbol->datatype,
-		        data_type);
-		fprintf(fp, "      unknown01: 0x%08x\n", symbol->unknown01);
-		fprintf(fp, "      type: 0x%08x (%s)\n", symbol->type,
-			variable_type_name(symbol->type));
-		fprintf(fp, "      location: 0x%08x\n", symbol->location);
-		fprintf(fp, "      name_offset: 0x%08x\n", symbol->name_offset);
-		fprintf(fp, "      values_offset: 0x%08x\n", symbol->values_offset);
-
-		if (symbol->values_offset) {
-			const uint32_t *values = shader->binary + symbol->values_offset;
-
-			for (j = 0; j < 4; j++)
-				fprintf(fp, "        0x%08x\n", values[j]);
+			fprintf(fp, "      unknown06: 0x%08x\n", symbol->unknown06);
+			fprintf(fp, "      alt_offset: 0x%08x\n", symbol->alt_offset);
+			fprintf(fp, "      unknown08: 0x%08x\n", symbol->unknown08);
+			fprintf(fp, "      unknown09: 0x%08x\n", symbol->unknown09);
+			fprintf(fp, "      unknown10: 0x%08x\n", symbol->unknown10);
+			fprintf(fp, "      unknown11: 0x%08x\n", symbol->unknown11);
 		}
-
-		fprintf(fp, "      unknown06: 0x%08x\n", symbol->unknown06);
-		fprintf(fp, "      alt_offset: 0x%08x\n", symbol->alt_offset);
-		fprintf(fp, "      unknown08: 0x%08x\n", symbol->unknown08);
-		fprintf(fp, "      unknown09: 0x%08x\n", symbol->unknown09);
-		fprintf(fp, "      unknown10: 0x%08x\n", symbol->unknown10);
-		fprintf(fp, "      unknown11: 0x%08x\n", symbol->unknown11);
 	}
 
-	cgc_shader_disassemble(shader, fp);
+	cgc_shader_disassemble(shader, fp, flags);
 
-	fprintf(fp, "  attributes:\n");
-	i = 0;
+	if (flags & DUMP_ATT) {
+		fprintf(fp, "  attributes:\n");
+		unsigned i = 0;
 
-	struct cgc_symbol *symbol;
-	while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
-			symbol->location);
-		i++;
-	}
-
-	fprintf(fp, "  uniforms:\n");
-	i = 0;
-
-	while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
-		if (header->type == 0x1b5e) {
-			int bank = (symbol->location >> 16) & 0x7f;
-			int location = (symbol->location >> 3) & 0x7;
-			int mask = (symbol->location >> 8) & 0xf;
-			fprintf(fp, "    %u: %s.%s%s%s%s @ %d,%d, location: 0x%08x\n", i,
-			    symbol->name,
-			    mask & 1 ? "x" : "",
-			    mask & 2 ? "y" : "",
-			    mask & 4 ? "z" : "",
-			    mask & 8 ? "w" : "",
-			    bank, location,
-			    symbol->location);
-		} else {
-			fprintf(fp, "    %u: %s, location: 0x%08x\n", i,
-			    symbol->name,
-			    symbol->location);
+		struct cgc_symbol *symbol;
+		while ((symbol = cgc_shader_get_attribute(shader, i)) != NULL) {
+			fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
+				symbol->location);
+			i++;
 		}
-		i++;
 	}
 
-	fprintf(fp, "  constants:\n");
-	i = 0;
+	if (flags & DUMP_UNI) {
+		fprintf(fp, "  uniforms:\n");
+		unsigned i = 0;
 
-	while ((symbol = cgc_shader_get_constant(shader, i)) != NULL) {
-		fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
-			symbol->location);
-		fprintf(fp, "      values:\n");
+		struct cgc_symbol *symbol;
+		while ((symbol = cgc_shader_get_uniform(shader, i)) != NULL) {
+			if (header->type == 0x1b5e) {
+				int bank = (symbol->location >> 16) & 0x7f;
+				int location = (symbol->location >> 3) & 0x7;
+				int mask = (symbol->location >> 8) & 0xf;
+				fprintf(fp, "    %u: %s.%s%s%s%s @ %d,%d, location: 0x%08x\n", i,
+					symbol->name,
+					mask & 1 ? "x" : "",
+					mask & 2 ? "y" : "",
+					mask & 4 ? "z" : "",
+					mask & 8 ? "w" : "",
+					bank, location,
+					symbol->location);
+			} else {
+				fprintf(fp, "    %u: %s, location: 0x%08x\n", i,
+					symbol->name,
+					symbol->location);
+			}
+			i++;
+		}
+	}
 
-		for (j = 0; j < 4; j++)
-			fprintf(fp, "        0x%08x\n", symbol->vector[j]);
+	if (flags & DUMP_CONST) {
+		fprintf(fp, "  constants:\n");
+		unsigned i = 0;
 
-		i++;
+		struct cgc_symbol *symbol;
+		while ((symbol = cgc_shader_get_constant(shader, i)) != NULL) {
+			fprintf(fp, "    %u: %s, location: %d\n", i, symbol->name,
+				symbol->location);
+			fprintf(fp, "      values:\n");
+
+			for (unsigned j = 0; j < 4; j++)
+				fprintf(fp, "        0x%08x\n", symbol->vector[j]);
+
+			i++;
+		}
 	}
 }

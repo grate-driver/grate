@@ -214,10 +214,22 @@ struct cgc_shader {
 	unsigned int num_symbols;
 };
 
+#define DUMP_BIN 1
+#define DUMP_STR 2
+#define DUMP_HDR 4
+#define DUMP_SYM 8
+#define DUMP_ATT 16
+#define DUMP_UNI 32
+#define DUMP_CONST 64
+#define DUMP_RAW 128
+#define DUMP_UNK 256
+#define DUMP_GPR 512
+#define DUMP_REG 1024
+
 struct cgc_shader *cgc_compile(enum cgc_shader_type type, const char *code,
 			       size_t size);
 void cgc_shader_free(struct cgc_shader *shader);
-void cgc_shader_dump(struct cgc_shader *shader, FILE *fp);
+void cgc_shader_dump(struct cgc_shader *shader, FILE *fp, unsigned flags);
 
 struct cgc_symbol *cgc_shader_get_symbol_by_kind(struct cgc_shader *shader,
 						 enum glsl_kind kind,
