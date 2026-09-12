@@ -704,6 +704,29 @@ static const char * disassemble_dw(const dw_instr *dw)
 	return ret;
 }
 
+static const char * disassemble_pseq(const pseq_instr *pseq)
+{
+	static char ret[64];
+	char *buf = ret;
+
+	buf += sprintf(buf, "fetch ");
+
+	if (pseq->dst_regs_select) {
+		buf += sprintf(buf, "r2, r3, ");
+	} else {
+		buf += sprintf(buf, "r0, r1, ");
+	}
+
+	buf += sprintf(buf, "rt%u", pseq->rt_select);
+
+	if (pseq->unk_0 || pseq->unk_2 || pseq->unk_4_15 ||
+	    pseq->unk_20_22 || pseq->unk_24_31) {
+		sprintf(buf, " // 0x%08X", pseq->data);
+	}
+
+	return ret;
+}
+
 const char * fragment_pipeline_disassemble(
 	const pseq_instr *pseq,
 	const mfu_instr *mfu, unsigned mfu_nb,
@@ -726,7 +749,7 @@ const char * fragment_pipeline_disassemble(
 	buf += sprintf(buf, "EXEC\n");
 
 	if (pseq->data != 0x00000000) {
-		buf += sprintf(buf, "\tPSEQ:\t0x%08X\n", pseq->data);
+		buf += sprintf(buf, "\tPSEQ:\t%s\n", disassemble_pseq(pseq));
 	}
 
 	for (i = 0; i < mfu_nb; i++) {
